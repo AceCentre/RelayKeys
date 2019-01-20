@@ -2,6 +2,17 @@
 
 Allow a Computer to mimic a Bluetooth Keyboard(& Mouse). Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then recieve the keystrokes.
 
+## Why?
+
+Well a range of purposes. For some - its just a convient way of saving some money on a [KVM switch](https://en.wikipedia.org/wiki/KVM_switch) - or replacing now hard to find commerical solutions (e.g. the [Buffalo BSHSBT04BK](http://buffalo.jp/product/peripheral/wireless-adapter/bshsbt04bk/) or the [IOGEAR KeyShair](https://www.iogear.com/product/GKMB02)). (Also [read this blopost on The Farrago for a different set of reasons](https://haroldpimentel.wordpress.com/2016/09/08/bluetooth-keyboard-switch-with-arduino/)). 
+
+For the AceCentre we want people with disabilities who are forced to use one system (e.g. a dedicated Eyegaze system) to be able to access other computers and systems they may need to use for work or leisure. This has only been available on a few systems - and either rely on a piece of software running on the 'client' (i.e. receiving ) machine - and often on the same network (a great idea (thanks to [Jabbla doing this](http://jabblasoft.com) but sadly often impossible in schools or government workplaces) - Or over bluetooth but for only one system (Congrats [Prente Romiche](http://prentrom.com) who have been doing this for years). 
+
+Back story.. The AAC world has been trying to create standards for this for years.. and some have succeeded. Check out [AACKeys](https://aacinstitute.org/aac-keys/) - which now feels a little outdated but a great attempt at standardising communication between AAC devices and other systems. 
+
+![Image of Person Using AAC](https://acecentre.org.uk/wp-content/uploads/2017/05/Helping-children-with-AAC-needs-1280x492.jpg)
+
+
 ## Getting Started
 
 There are two different boards to purchase currently (NB: [A range have been looked into](https://forums.adafruit.com/viewtopic.php?f=53&t=145081&start=15) - but its not as straightforward as you would think). Your options:
