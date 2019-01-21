@@ -6,7 +6,7 @@ Allow a Computer to mimic a Bluetooth Keyboard (& Mouse). Using some hardware (a
 
 Well a range of purposes. For some - its just a convenient way of saving some money on a [KVM switch](https://en.wikipedia.org/wiki/KVM_switch) - or replacing now hard to find [commercial solutions](https://github.com/AceCentre/RelayKeys#non-disability-related-products). 
 
-For the AceCentre we want people with disabilities who are forced to use one system (e.g. a dedicated Eyegaze system) to be able to access other computers and systems they may need to use for work or leisure. This has only been available on a few systems - and either rely on a piece of software running on the 'client' (i.e. receiving ) machine - and often on the same network which is sadly often impossible in schools or government workplaces - Or over bluetooth but for only one system in the field exists (see [here for more details on these](#and-on-the-aac-side-of-things)). 
+For the [AceCentre](http://acecentre.org.uk) we want people with disabilities who are forced to use one system (e.g. a dedicated Eyegaze system) to be able to access other computers and systems they may need to use for work or leisure. This has only been available on a couple of commercial AAC systems - and often need to be on the same network which is sadly often impossible in schools or government workplaces - Or they do work over bluetooth but for only one system in the field exists like this (see [here for more details on these](#and-on-the-aac-side-of-things)). 
 
 ![Image of Person Using AAC](https://acecentre.org.uk/wp-content/uploads/2017/05/Helping-children-with-AAC-needs-1280x492.jpg)
 
@@ -31,9 +31,13 @@ then in another terminal run
 
 NB: Only tested on MacOS
 
-### Setup: Bluefruit LE Friend 
+### Setup: Adafruit Feather nRF52840 Express
 
-#### On the 'Server' (i.e. the machine you will send from)
+- Upload the [sketch](arduino_nRF52840.ino) to your feather. 
+- Run the server side code
+- Done!  
+
+### Setup: Bluefruit LE Friend 
 
 - [Install the CP2104 Driver](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers)
 - Plug it in
