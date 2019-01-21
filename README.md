@@ -88,6 +88,10 @@ This is easy. On your other device connect to the unit as you would any bluetoot
 - Install the libraries 
 
 		pip install -r requirements.txt
+		
+- run it
+
+		python relayKeys.py
 
 - A window will appear. Type in it. 
 - Done! 
