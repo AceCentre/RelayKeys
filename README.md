@@ -2,6 +2,8 @@
 
 Allow a Computer to mimic a Bluetooth Keyboard (& Mouse). Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then receive the keystrokes.
 
+<!--ts-->
+<!--te-->
 
    * [RelayKeys](#relaykeys)
       * [Why?](#why)
