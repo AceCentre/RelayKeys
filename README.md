@@ -2,6 +2,22 @@
 
 Allow a Computer to mimic a Bluetooth Keyboard (& Mouse). Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then receive the keystrokes.
 
+
+   * [RelayKeys](#relaykeys)
+      * [Why?](#why)
+      * [Getting Started](#getting-started)
+         * [Don't have any hardware yet? Want to see what the software does?](#dont-have-any-hardware-yet-want-to-see-what-the-software-does)
+         * [Setup: Adafruit Feather nRF52840 Express](#setup-adafruit-feather-nrf52840-express)
+         * [Setup: Bluefruit LE Friend](#setup-bluefruit-le-friend)
+         * [Setup: Connect the partner/client machine via Bluetooth](#setup-connect-the-partnerclient-machine-via-bluetooth)
+         * [Setup: Run the software.](#setup-run-the-software)
+      * [How does this all work?](#how-does-this-all-work)
+      * [Other projects / Similar work / Inspiration](#other-projects--similar-work--inspiration)
+         * [And on the AAC side of things:](#and-on-the-aac-side-of-things)
+         * [Non-disability related products:](#non-disability-related-products)
+      * [License](#license)
+      * [Credits](#credits)
+
 ## Why?
 
 Well a range of purposes. For some - its just a convenient way of saving some money on a [KVM switch](https://en.wikipedia.org/wiki/KVM_switch) - or replacing now hard to find [commercial solutions](https://github.com/AceCentre/RelayKeys#non-disability-related-products). 
@@ -78,11 +94,6 @@ This is easy. On your other device connect to the unit as you would any bluetoot
 
 Although there are two bits of hardware identified you can do this with other Bluetooth boards. The essential element is being able to transmit at a high enough speed, reliably, over the serial port of the computer (what we are defining as the 'server' in this context). 
 
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
 ## Other projects / Similar work / Inspiration
 
 - [The original RelayKeys from Harold Pimental](https://haroldpimentel.wordpress.com/2016/09/08/bluetooth-keyboard-switch-with-arduino/). 
@@ -102,6 +113,10 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 - The [IOGEAR KeyShair](https://www.iogear.com/product/GKMB02) (now discontinued) looked like exactly the same dongle - but with different software.
 
 Both of these products though failed to respond to software (on-screen) keyboards reliably. 
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 
 ## Credits
