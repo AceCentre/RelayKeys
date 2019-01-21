@@ -4,9 +4,9 @@ Allow a Computer to mimic a Bluetooth Keyboard (& Mouse). Using some hardware (a
 
 ## Why?
 
-Well a range of purposes. For some - its just a convenient way of saving some money on a [KVM switch](https://en.wikipedia.org/wiki/KVM_switch) - or replacing now hard to find [commercial solutions](). 
+Well a range of purposes. For some - its just a convenient way of saving some money on a [KVM switch](https://en.wikipedia.org/wiki/KVM_switch) - or replacing now hard to find [commercial solutions](https://github.com/AceCentre/RelayKeys#non-disability-related-products). 
 
-For the AceCentre we want people with disabilities who are forced to use one system (e.g. a dedicated Eyegaze system) to be able to access other computers and systems they may need to use for work or leisure. This has only been available on a few systems - and either rely on a piece of software running on the 'client' (i.e. receiving ) machine - and often on the same network which is sadly often impossible in schools or government workplaces - Or over bluetooth but for only one system in the field exists (see here for more details on these). 
+For the AceCentre we want people with disabilities who are forced to use one system (e.g. a dedicated Eyegaze system) to be able to access other computers and systems they may need to use for work or leisure. This has only been available on a few systems - and either rely on a piece of software running on the 'client' (i.e. receiving ) machine - and often on the same network which is sadly often impossible in schools or government workplaces - Or over bluetooth but for only one system in the field exists (see [here for more details on these](#and-on-the-aac-side-of-things)). 
 
 ![Image of Person Using AAC](https://acecentre.org.uk/wp-content/uploads/2017/05/Helping-children-with-AAC-needs-1280x492.jpg)
 
@@ -41,15 +41,15 @@ NB: Only tested on MacOS
 - Open up a serial terminal and connect to the device (See [here](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/terminal-settings#terraterm-windows-5-2) for exact settings for your Operating System)
 - Turn on HID Mode. More info [here](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/ble-services#at-plus-blehiden-14-31). To be precise - enter this into your serial terminal
 
-	AT+BLEHIDEN=1
-	
-	ATZ 
+		AT+BLEHIDEN=1
+
+		ATZ 
 
 (You should see 'OK' after each entry)
 
 - Next change the default speed. i.e. enter this in your serial terminal:
 
-	AT+BAUDRATE=115200
+		AT+BAUDRATE=115200
 
 - Next put the device into [DATA mode](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/uart-test#blefriend-configuration-6-3) (slide the switch). 
 
@@ -95,7 +95,8 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 Both of these products though failed to respond to software (on-screen) keyboards reliably. 
 
 
-## Thanks
+## Credits
 
+- [bbx10](https://forums.adafruit.com/viewtopic.php?f=53&t=145081&start=15) on the Adafruit forums who got this up and running. Awesome. 
 - [Keyboard](https://thenounproject.com/search/?q=keyboard&i=1442359) by Atif Arshad from the Noun Project
 - [Bluetooth](https://thenounproject.com/search/?q=bluetooth&i=1678456) by Adrien Coquet from the Noun Project
