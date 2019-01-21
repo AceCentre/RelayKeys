@@ -31,6 +31,7 @@ then in another terminal run
 
 	python relayeKeys.py no-serial
 
+NB: Only tested on MacOS
 
 ### Setup: Bluefruit LE Friend 
 
