@@ -31,7 +31,8 @@ then in another terminal run
 
 NB: Only tested on MacOS but should work on any posix system
 
-### Setup: Adafruit Feather nRF52840 Express
+
+### Setup: Adafruit Feather nRF52840 Express
 
 - Upload the [sketch](arduino_nRF52840.ino) to your feather. 
 - Run the server side code
