@@ -3,22 +3,24 @@
 Allow a Computer to mimic a Bluetooth Keyboard (& Mouse). Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then receive the keystrokes.
 
 <!--ts-->
-<!--te-->
-
    * [RelayKeys](#relaykeys)
       * [Why?](#why)
       * [Getting Started](#getting-started)
          * [Don't have any hardware yet? Want to see what the software does?](#dont-have-any-hardware-yet-want-to-see-what-the-software-does)
-         * [Setup: Adafruit Feather nRF52840 Express](#setup-adafruit-feather-nrf52840-express)
-         * [Setup: Bluefruit LE Friend](#setup-bluefruit-le-friend)
-         * [Setup: Connect the partner/client machine via Bluetooth](#setup-connect-the-partnerclient-machine-via-bluetooth)
-         * [Setup: Run the software.](#setup-run-the-software)
+         * [1. Setup: Adafruit Feather nRF52840 Express](#1-setup-adafruit-feather-nrf52840-express)
+         * [1. Setup: Bluefruit LE Friend](#1-setup-bluefruit-le-friend)
+         * [2. Setup: Connect the partner/client machine via Bluetooth](#2-setup-connect-the-partnerclient-machine-via-bluetooth)
+         * [3. Setup: Run the software.](#3-setup-run-the-software)
       * [How does this all work?](#how-does-this-all-work)
       * [Other projects / Similar work / Inspiration](#other-projects--similar-work--inspiration)
          * [And on the AAC side of things:](#and-on-the-aac-side-of-things)
          * [Non-disability related products:](#non-disability-related-products)
       * [License](#license)
       * [Credits](#credits)
+
+<!-- Added by: willwade, at:  -->
+
+<!--te-->
 
 ## Why?
 
@@ -50,13 +52,13 @@ then in another terminal run
 NB: Only tested on MacOS but should work on any posix system
 
 
-### Setup: Adafruit Feather nRF52840 Express
+### 1. Setup: Adafruit Feather nRF52840 Express
 
 - Upload the [sketch](arduino_nRF52840.ino) to your feather. 
 - Run the server side code
 - Done!  
 
-### Setup: Bluefruit LE Friend 
+### 1. Setup: Bluefruit LE Friend 
 
 - [Install the CP2104 Driver](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers)
 - Plug it in
@@ -77,12 +79,12 @@ NB: Only tested on MacOS but should work on any posix system
 - Next put the device into [DATA mode](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/uart-test#blefriend-configuration-6-3) (slide the switch). 
 
 
-### Setup: Connect the partner/client machine via Bluetooth
+### 2. Setup: Connect the partner/client machine via Bluetooth
 
 This is easy. On your other device connect to the unit as you would any bluetooth keyboard. E.g. Settings->Add Bluetooth Device->Search for device and add the device. 
 
 
-### Setup: Run the software. 
+### 3. Setup: Run the software. 
 
 - You will need Python3 running on your machine
 - Install the libraries 
