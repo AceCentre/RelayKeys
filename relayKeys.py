@@ -1,23 +1,24 @@
-#!/usr/bin/env python3
+# coding=utf-8
 
-import os
+# To debug - without the correct hardware attached:
+#   Run demoSerial.py 
+#   Call this code with relayKeys.py no-serial 
 
-import serial
+import os, sys, glob, serial, logging, time, pygame
 import serial.tools.list_ports
-import time
 import array as arr
-import pygame
 from pygame.locals import *
 from pygame.compat import as_bytes
 BytesIO = pygame.compat.get_BytesIO()
 
-OS = 'ios'
-
-# tty for Bluetooth device with baud
-SERIAL_TERMINAL = '/dev/ttyUSB0'
 #Use AT+BAUDRATE=115200 but make sure hardware flow control CTS/RTS works
 BAUD = 115200
+#Doesnt do much currently
+OS = 'ios'
+debug = True			
+		
 
+    
 # Translate keycodes from pygame to USB HID codes
 # uint8_t HIDCode[512]
 HIDCode = arr.array('B', [
@@ -540,7 +541,7 @@ HIDCode = arr.array('B', [
 keys = arr.array('B', [0, 0, 0, 0, 0, 0])
 
 def mkHID(keycode, modifiers, down):
-    # print (keycode, modifiers)
+    logging.debug('keycode:'+str(keycode)+'  modifiers:'+str(modifiers))
     hidmod = 0
     if modifiers & 0x0040:
         hidmod = hidmod | 0x01
@@ -561,7 +562,7 @@ def mkHID(keycode, modifiers, down):
     hidcode = HIDCode[keycode]
     if OS == 'ios' and keycode == 13:
         hidcode = 0x58
-    # print (hidcode, hidmod)
+    logging.debug('hidcode:'+ str(hidcode) + '  hidmod:'+str(hidmod))
     for i in range(0, 6):
         if keys[i] == 0:
             if down == True:
@@ -580,25 +581,54 @@ def mkHID(keycode, modifiers, down):
         else:
             zerocmd += "-00"
     atcmd += zerocmd + "\r"
-    # print (atcmd)
+    logging.debug('atcmd:'+ atcmd)
     ser.write(atcmd.encode());
 
-pygame.init ()
+
+# MAIN 
+logger = logging.getLogger()
+logging.getLogger().addHandler(logging.StreamHandler())
+if (debug):
+	logger.setLevel(logging.DEBUG)
+
+try:
+	if (sys.argv[1]=='no-serial'): 
+		noSerial = True
+		if (os.path.isfile('.serialDemo')):
+			with open('.serialDemo') as f: SERIAL_TERMINAL = f.read()
+		else:
+			logger.critical('no-serial is set to true.. Please make sure you have already run \'python resources\demoSerial.py\' from a different shell')
+			exit()
+except IndexError:
+	noSerial = False
+        
+if (noSerial==False):
+	# Default names
+	if (os.name=='posix'):
+		SERIAL_TERMINAL = '/dev/ttyUSB0'
+	else:
+		SERIAL_TERMINAL = 'COM6'
+
+pygame.init()
+pygame.display.set_icon(pygame.image.load('resources/logo.png'))
 screen = pygame.display.set_mode ((200, 200))
 c = pygame.time.Clock ()
 going = True
 
 # Look for Adafruit CP2104 break out board or Feather nRF52. Use the first 
-# one found. Default is /dev/ttyUSB0
+# one found. Default is /dev/ttyUSB0 Or COM6 (Windows)
+# tty for Bluetooth device with baud
+# NB: Could be p.device with a suitable name we are looking for. Noticed some variation around this
+
 for p in serial.tools.list_ports.comports():
-    if "CP2104" in p.description:
-        print(p)
-        SERIAL_TERMINAL = p.device
-        break
-    elif "nRF52" in p.description:
-        print(p)
-        SERIAL_TERMINAL = p.device
-        break
+	if "CP2104" in p.description:
+		logging.debug('serial desc:'+ p)
+		SERIAL_TERMINAL = p.device
+		break
+	elif "nRF52" in p.description:
+		logging.debug('serial desc:'+ p)
+		SERIAL_TERMINAL = p.device
+		break
 
 with serial.Serial(SERIAL_TERMINAL, BAUD, rtscts=1) as ser:
     # TODO check for OK or ERROR
