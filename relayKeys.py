@@ -601,8 +601,7 @@ try:
 				logger.critical('no-serial is set to true.. Please make sure you have already run \'python resources\demoSerial.py\' from a different shell')
 				exit()
 		elif (os.name=='nt'):
-			# If Using windows - Use https://netcologne.dl.sourceforge.net/project/com0com/com0com/3.0.0.0/com0com-3.0.0.0-i386-and-x64-signed.zip
-			SERIAL_TERMINAL = 'CNCA0'
+			SERIAL_TERMINAL = 'COM7'
 except IndexError:
 	noSerial = False
         
