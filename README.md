@@ -1,14 +1,12 @@
 # RelayKeys
 
-Allow a Computer to mimic a Bluetooth Keyboard(& Mouse). Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then recieve the keystrokes.
+Allow a Computer to mimic a Bluetooth Keyboard (& Mouse). Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then receive the keystrokes.
 
 ## Why?
 
-Well a range of purposes. For some - its just a convient way of saving some money on a [KVM switch](https://en.wikipedia.org/wiki/KVM_switch) - or replacing now hard to find commerical solutions (e.g. the [Buffalo BSHSBT04BK](http://buffalo.jp/product/peripheral/wireless-adapter/bshsbt04bk/) or the [IOGEAR KeyShair](https://www.iogear.com/product/GKMB02)). (Also [read this blopost on The Farrago for a different set of reasons](https://haroldpimentel.wordpress.com/2016/09/08/bluetooth-keyboard-switch-with-arduino/)). 
+Well a range of purposes. For some - its just a convenient way of saving some money on a [KVM switch](https://en.wikipedia.org/wiki/KVM_switch) - or replacing now hard to find [commercial solutions](). 
 
-For the AceCentre we want people with disabilities who are forced to use one system (e.g. a dedicated Eyegaze system) to be able to access other computers and systems they may need to use for work or leisure. This has only been available on a few systems - and either rely on a piece of software running on the 'client' (i.e. receiving ) machine - and often on the same network (a great idea (thanks to [Jabbla doing this](http://jabblasoft.com) but sadly often impossible in schools or government workplaces) - Or over bluetooth but for only one system (Congrats [Prente Romiche](http://prentrom.com) who have been doing this for years). 
-
-Back story.. The AAC world has been trying to create standards for this for years.. and some have succeeded. Check out [AACKeys](https://aacinstitute.org/aac-keys/) - which now feels a little outdated but a great attempt at standardising communication between AAC devices and other systems. 
+For the AceCentre we want people with disabilities who are forced to use one system (e.g. a dedicated Eyegaze system) to be able to access other computers and systems they may need to use for work or leisure. This has only been available on a few systems - and either rely on a piece of software running on the 'client' (i.e. receiving ) machine - and often on the same network which is sadly often impossible in schools or government workplaces - Or over bluetooth but for only one system in the field exists (see here for more details on these). 
 
 ![Image of Person Using AAC](https://acecentre.org.uk/wp-content/uploads/2017/05/Helping-children-with-AAC-needs-1280x492.jpg)
 
@@ -72,16 +70,29 @@ This is easy. On your other device connect to the unit as you would any bluetoot
 - Done! 
 
 
-## Authors
-
-* **bbx10** - *Initial work* - [bbx10/haroldpimentel.wordpress.com](https://haroldpimentel.wordpress.com/2016/09/08/bluetooth-keyboard-switch-with-arduino/)
-
-A massive thanks - this was the big breakthrough. You can read the full thread [here](https://forums.adafruit.com/viewtopic.php?f=53&t=145081&start=15)
-
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Other projects / Similar work / Inspiration
+
+- [The original RelayKeys from Harold Pimental](https://haroldpimentel.wordpress.com/2016/09/08/bluetooth-keyboard-switch-with-arduino/). 
+- **bbx10** on the adafruit forums. **bbx10** developed the Ascii to HID translation function. A massive thanks - the code is currently mostly his. He also worked out some of the early problems on speed issues we were having. You can read the full thread [here](https://forums.adafruit.com/viewtopic.php?f=53&t=145081&start=15).
+- [HID-Relay](https://github.com/juancgarcia/HID-Relay) from [juancgarcia](https://github.com/juancgarcia). Not really spent much time looking at this - but looks neat. Converts hardware keyboards to Bluetooth. 
+
+### And on the AAC side of things:
+
+- [MacroServerMac](http://github.com/willwade/MacroServerMac) was an attempt to create a Mac Port of "MacroServer" developed by [JabblaSoft](http://jabblasoft.com) for MindExpress . This is a protocol for communication over a TCP/IP stack. Its pretty nice - but if you are in a school or business allowing others machines to access the network in this way is often restricted. It can also be pretty flaky
+- [Liberator](http://liberator.co.uk) / [PRC](http://prentrom.com) - have the neatest commercial solution out there for AAC. You can either plug in a USB cable - or use a bluetooth dongle to connect with another computer. Its awesome. 
+- [Dynavox](http://tobiidynavox.com) used to make the [AccessIT](http://www.spectronics.com.au/product/accessit). A similar idea but using infrared rather than radio/bluetooth. 
+- The AAC world has been trying to create standards for this for years.. and some have succeeded. Check out [AACKeys](https://aacinstitute.org/aac-keys/) and the "GIDEI" protocol - which now feels a little outdated but a great attempt at standardising communication between AAC devices and other systems over serial. 
+
+### Non-disability related products:
+
+- the [Buffalo BSHSBT04BK](http://buffalo.jp/product/peripheral/wireless-adapter/bshsbt04bk/) was pretty neat. You can still get this in Japan and does a very similar jon
+- The [IOGEAR KeyShair](https://www.iogear.com/product/GKMB02) (now discontinued) looked like exactly the same dongle - but with different software.
+
+Both of these products though failed to respond to software (on-screen) keyboards reliably. 
 
 
 ## Thanks
