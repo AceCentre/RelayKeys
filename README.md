@@ -29,7 +29,7 @@ then in another terminal run
 
 	python relayeKeys.py no-serial
 
-NB: Only tested on MacOS
+NB: Only tested on MacOS but should work on any posix system
 
 ### Setup: Adafruit Feather nRF52840 Express
 
