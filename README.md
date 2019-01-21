@@ -44,6 +44,7 @@ NB: Only tested on MacOS
 - Turn on HID Mode. More info [here](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/ble-services#at-plus-blehiden-14-31). To be precise - enter this into your serial terminal
 
 	AT+BLEHIDEN=1
+	
 	ATZ 
 
 (You should see 'OK' after each entry)
