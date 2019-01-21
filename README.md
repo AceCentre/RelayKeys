@@ -68,10 +68,14 @@ This is easy. On your other device connect to the unit as you would any bluetoot
 - You will need Python3 running on your machine
 - Install the libraries 
 
-	pip install -r requirements.txt
+		pip install -r requirements.txt
 
 - A window will appear. Type in it. 
 - Done! 
+
+## How does this all work? 
+
+Although there are two bits of hardware identified you can do this with other Bluetooth boards. The essential element is being able to transmit at a high enough speed, reliably, over the serial port of the computer (what we are defining as the 'server' in this context). 
 
 
 ## License
