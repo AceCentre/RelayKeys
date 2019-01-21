@@ -21,9 +21,9 @@ There are two different boards to purchase currently (NB: [A range have been loo
 - [The Adafruit - Bluefruit LE Friend - nRF51822 - v3.0](https://www.adafruit.com/product/2267) (Buy in the [UK from Pimoroni](https://shop.pimoroni.com/products/adafruit-bluefruit-le-friend-ble-4-0-nrf51822-v1-0#description)). Carry on reading [here to see how to set this up](#setup-bluefruit-le-friend). 
 
 
-### Don't have any hardware yet? 
+### Don't have any hardware yet? Want to see what the software does?
 
-Alternatively you can try out the code without any hardware. To do this, in a terminal run:
+If you are developing the 'server' side of things and want to try out the code you can run this without any hardware by having a null serial terminal. To do this, in a terminal run:
 
 	python resources/demoSerial.py
 
