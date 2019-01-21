@@ -89,7 +89,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ### Non-disability related products:
 
-- the [Buffalo BSHSBT04BK](http://buffalo.jp/product/peripheral/wireless-adapter/bshsbt04bk/) was pretty neat. You can still get this in Japan and does a very similar jon
+- the [Buffalo BSHSBT04BK](http://buffalo.jp/product/peripheral/wireless-adapter/bshsbt04bk/) was pretty neat. You can still get this in Japan and does a very similar job
 - The [IOGEAR KeyShair](https://www.iogear.com/product/GKMB02) (now discontinued) looked like exactly the same dongle - but with different software.
 
 Both of these products though failed to respond to software (on-screen) keyboards reliably. 
