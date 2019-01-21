@@ -105,8 +105,8 @@ Although there are two bits of hardware identified you can do this with other Bl
 ### And on the AAC side of things:
 
 - [MacroServerMac](http://github.com/willwade/MacroServerMac) was an attempt to create a Mac Port of "MacroServer" developed by [JabblaSoft](http://jabblasoft.com) for MindExpress . This is a protocol for communication over a TCP/IP stack. Its pretty nice - but if you are in a school or business allowing others machines to access the network in this way is often restricted. It can also be pretty flaky
-- [Liberator](http://liberator.co.uk) / [PRC](http://prentrom.com) - have the neatest commercial solution out there for AAC. You can either plug in a USB cable - or use a bluetooth dongle to connect with another computer. Its awesome. 
-- [Dynavox](http://tobiidynavox.com) used to make the [AccessIT](http://www.spectronics.com.au/product/accessit). A similar idea but using infrared rather than radio/bluetooth. 
+- [Liberator](http://liberator.co.uk) / [PRC](http://prentrom.com) - have the neatest commercial solution out there for AAC. You can either plug in a USB cable - or use a bluetooth dongle to connect with another computer. Its awesome - but sadly only available to you if use one of their devices. 
+- [Dynavox](http://tobiidynavox.com) used to make the [AccessIT](http://www.spectronics.com.au/product/accessit). A similar idea but using infrared rather than radio/bluetooth. It was pretty expensive but a lot of people loved its simplicity. 
 - The AAC world has been trying to create standards for this for years.. and some have succeeded. Check out [AACKeys](https://aacinstitute.org/aac-keys/) and the "GIDEI" protocol - which now feels a little outdated but a great attempt at standardising communication between AAC devices and other systems over serial. 
 
 ### Non-disability related products:
