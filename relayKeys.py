@@ -625,11 +625,11 @@ going = True
 
 for p in serial.tools.list_ports.comports():
 	if "CP2104" in p.description:
-		logging.debug('serial desc:'+ p)
+		logging.debug('serial desc:'+ str(p))
 		SERIAL_TERMINAL = p.device
 		break
 	elif "nRF52" in p.description:
-		logging.debug('serial desc:'+ p)
+		logging.debug('serial desc:'+ str(p))
 		SERIAL_TERMINAL = p.device
 		break
 
