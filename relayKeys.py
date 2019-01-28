@@ -612,9 +612,18 @@ if (noSerial==False):
 	else:
 		SERIAL_TERMINAL = 'COM6'
 
+
+# Some helper functions for our pygame window
+
+
+
+## Main. This loads the window
+
 pygame.init()
 pygame.display.set_icon(pygame.image.load('resources/logo.png'))
-screen = pygame.display.set_mode ((200, 200))
+pygame.display.set_caption('RelayKeys Capture Window')
+size = (200,200)
+screen = pygame.display.set_mode (size)
 c = pygame.time.Clock ()
 going = True
 
@@ -652,7 +661,8 @@ with serial.Serial(SERIAL_TERMINAL, BAUD, rtscts=1) as ser:
             # print (e)
             if e.type == QUIT:
                 going = False
-
+                pygame.quit()
+                sys.exit()
             elif e.type == KEYDOWN:
                 mkHID(e.key, e.mod, True)
 
