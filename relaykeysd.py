@@ -13,12 +13,16 @@
 import os, serial
 from time import sleep
 from sys import exit
+import sys
 import serial.tools.list_ports
 from hashlib import sha256
 from threading import Thread
 from queue import Queue, Empty as QueueEmpty
 import array as arr
-import daemon
+
+if os.name =='posix': # unix based OS
+  from daemon import DaemonContext
+  from lockfile.pidlockfile import PIDLockFile
 
 # util modules
 import logging
@@ -53,7 +57,11 @@ parser.add_argument('--debug', dest='debug', action='store_const',
                     help='set logger to debug level')
 parser.add_argument('--daemon', '-d', dest='daemon', action='store_const',
                     const=True, default=False,
-                    help='Run as daemon')
+                    help='Run as daemon, posfix specific')
+parser.add_argument('--pidfile', dest='pidfile', default=None,
+                    help='file to hold pid of daemon, posfix specific')
+parser.add_argument('--logfile', dest='logfile', default=None,
+                    help='file to hold pid of daemon, posfix specific')
 parser.add_argument('--config', '-c', dest='config',
                     default=None, help='Path to config file')
 
@@ -73,6 +81,8 @@ class RequestHandler (BaseRequestHandler):
 def rpc_server_worker(host, port, username, password, queue):
   dispatcher = Dispatcher()
   srv = None
+  # prehash password
+  password = int(sha256(bytes(password, "utf8")).hexdigest(), 16)
   
   @dispatcher.add_method
   def keyevent (args):
@@ -96,11 +106,11 @@ def rpc_server_worker(host, port, username, password, queue):
 
   @Request.application
   def app (request):
-    # auth with simplified version of equal op timing attack secure
+    # auth with simplified version of equal op (timing attack secure)
     if (username != "" or password != "") and \
-       (request.authorization.username != username or \
-        int(sha256(request.authorization.password).hexdigest(), 16) - \
-        int(sha256(password).hexdigest(), 16) != 0):
+       (getattr(request.authorization,"username","") != username or \
+        int(sha256(bytes(getattr(request.authorization,"password",""), "utf8")).hexdigest(), 16) - \
+        password != 0):
       json = JSONRPC20Response(error={"code":403, "message": "Invalid username or password!"}).json
       return Response(json, 403, mimetype='application/json')
     response = JSONRPCResponseManager.handle(request.data, dispatcher)
@@ -139,8 +149,9 @@ def find_device_path (noserial):
   dev = None
   if noserial: 
     if os.name =='posix':
-      if os.path.isfile('.serialDemo'):
-        with open('.serialDemo') as f:
+      serialdemofile = os.path.join(os.path.dirname(os.path.realpath(__file__)), '.serialDemo')
+      if os.path.isfile(serialdemofile):
+        with open(serialdemofile, 'r') as f:
           dev = f.read()
       else:
         logging.critical('no-serial is set to true.. Please make sure you have already run \'python resources\demoSerial.py\' from a different shell')
@@ -174,6 +185,10 @@ def do_main (args, config):
                          config.getint("port", 5383),
                          config.get("username", ""),
                          config.get("password", ""))
+  try: # remove password from memory
+    del config["password"]
+  except:
+    pass
   if queue is None:
     logging.critical("Could not start rpc server")
     return -1 # exit the process
@@ -205,7 +220,7 @@ def do_main (args, config):
           if command[0] == "exit":
             return 0
           command = None
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt,SystemExit):
       if command != None:
         command[1].put("FAIL")
       break # exit
@@ -216,27 +231,80 @@ def do_main (args, config):
       print("Will retry in {} seconds".format(RETRY_TIMEOUT))
       sleep(RETRY_TIMEOUT)
   return 0
-  
-def main ():
-  args = parser.parse_args()
+
+def init_logger (isdaemon, args, config):
   # init logger
+  loggerformatter = logging.Formatter('%(asctime)-15s: %(message)s')
   logger = logging.getLogger()
-  logging.getLogger().addHandler(logging.StreamHandler())
+  # logging stdout handler
+  if not isdaemon:
+    handler = logging.StreamHandler()
+    handler.setFormatter(loggerformatter)
+    logger.addHandler(handler)
+  # logging file handler
+  logfile = config.get("logfile", None) if args.logfile is None else args.logfile
+  if logfile is not None:
+    handler = logging.FileHandler(logfile)
+    handler.setFormatter(loggerformatter)
+    logger.addHandler(handler)
   logger.setLevel(logging.INFO)
   if args.debug:
     logger.setLevel(logging.DEBUG)
+  if logfile is None and isdaemon: # disable logger
+    logging.disable(sys.maxsize)
+  
+def main ():
+  args = parser.parse_args()
   config = ConfigParser()
   config.read([os.path.expanduser('~/.relaykeys.cfg') if args.config is None else args.config])
   if "server" not in config.sections():
     config["server"] = {}
   serverconfig = config["server"]
-  if args.daemon or serverconfig.getboolean("daemon", False):
-    with daemon.DaemonContext():
+  isdaemon = args.daemon or serverconfig.getboolean("daemon", False) if os.name =='posix' else False
+  if isdaemon:
+    pidfile = os.path.realpath(args.pidfile or serverconfig.get("pidfile", None))
+    with DaemonContext(working_directory=os.getcwd(),
+                       pidfile=PIDLockFile(pidfile)):
+      init_logger(True, args, serverconfig)
       return do_main(args, serverconfig)
   else:
+    init_logger(False, args, serverconfig)
     return do_main(args, serverconfig)
+
   
 # MAIN
 if __name__ == '__main__':
-  ret = main()
-  exit(ret)
+  if os.name == 'nt':
+    # win32 service impl
+    import win32serviceutil
+    import win32service
+    import win32event
+    import servicemanager
+    import socket
+    class AppServerSvc (win32serviceutil.ServiceFramework):
+      _svc_name_ = "RelayKeysDameon"
+      _svc_display_name_ = "Relay Keys Daemon"
+
+      def __init__(self,args):
+        win32serviceutil.ServiceFramework.__init__(self,args)
+        self.hWaitStop = win32event.CreateEvent(None,0,0,None)
+        socket.setdefaulttimeout(60)
+
+      def SvcStop(self):
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        win32event.SetEvent(self.hWaitStop)
+
+      def SvcDoRun(self):
+        servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
+                              servicemanager.PYS_SERVICE_STARTED,
+                              (self._svc_name_,''))
+        self.main()
+
+      def main(self):
+        main()
+
+    win32serviceutil.HandleCommandLine(AppServerSvc)
+  else:
+    ret = main()
+    exit(ret)
+    
