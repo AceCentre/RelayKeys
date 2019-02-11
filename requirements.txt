@@ -1,2 +1,7 @@
 pygame==1.9.4
 pyserial==3.4
+json-rpc==1.12.1
+Werkzeug==0.14.1
+configparser==3.7.1
+python-daemon==2.2.3
+requests==2.21.0
