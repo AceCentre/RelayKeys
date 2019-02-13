@@ -3,8 +3,10 @@ import logging
 from time import sleep
 from functools import reduce
 
+# keys source http://www.freebsddiary.org/APC/usb_hid_usages.php
 keymap = dict([
   ("BACKSPACE", 0x2a),
+  ("ENTER", 0x28),
   ("TAB", 0x2b),
   ("PAUSE", 0x48),
   ("ESCAPE", 0x29),
@@ -97,6 +99,14 @@ keymap = dict([
   ("NUMLOCK", 0x53),
   ("CAPSLOCK", 0x39),
   ("SCROLLOCK", 0x47),
+  ("RIGHTARROW", 0x4F),
+  ("LEFTARROW", 0x50),
+  ("DOWNARROW", 0x51),
+  ("UPARROW", 0x52),
+  ("MENU", 0x76), # Keyboard Menu
+  ("APP", 0x65), # Keyboard Application
+  ("LGUI", 0xE3), # Keyboard Left GUI
+  ("RGUI", 0xE7), # Keyboard Right GUI
 ])
 
 def blehid_init_serial (ser):
@@ -114,6 +124,16 @@ def blehid_init_serial (ser):
   ser.flushInput()
   ser.write("ATZ\r".encode())
 
+
+def blehid_send_movemouse (ser, right, down):
+  atcmd = "AT+BLEHIDMOUSEMOVE={},{}\r".format(right, down)
+  logging.debug('atcmd:'+ atcmd)
+  ser.write(atcmd.encode())
+
+def blehid_send_mousebutton (ser, btn, behavior=None):
+  atcmd = "AT+BLEHIDMOUSEBUTTON={}{}\r".format(btn, "" if behavior is None else "," + behavior)
+  logging.debug('atcmd:' + atcmd)
+  ser.write(atcmd.encode())
 
 def blehid_send_keyboardcode (ser, key, modifiers, down, keys):
     logging.debug('key:'+str(key)+'  modifiers:'+str(modifiers))

@@ -682,11 +682,56 @@ keysmap3 = map(lambda a: ("pygame.KMOD_" + a[0], a[0]),
            ("LMETA", 0x08), ("RCTRL", 0x10), ("RSHIFT", 0x20),
            ("RALT", 0x40), ("RMETA", 0x80) ])
 )
-                  
+
+import win32api, win32con
+
+keystrokesdata = (
+  ("A", "a", win32api.VkKeyScan("a"), "a"), ("B", "b", win32api.VkKeyScan("b"), "b"), ("C", "c", win32api.VkKeyScan("c"), "c"), ("D", "d", win32api.VkKeyScan("d"), "d"), 
+  ("E", "e", win32api.VkKeyScan("e"), "e"), ("F", "f", win32api.VkKeyScan("f"), "f"), ("G", "g", win32api.VkKeyScan("g"), "g"), ("H", "h", win32api.VkKeyScan("h"), "h"), 
+  ("I", "i", win32api.VkKeyScan("i"), "i"), ("J", "j", win32api.VkKeyScan("j"), "j"), ("K", "k", win32api.VkKeyScan("k"), "k"), ("L", "l", win32api.VkKeyScan("l"), "l"), 
+  ("M", "m", win32api.VkKeyScan("m"), "m"), ("N", "n", win32api.VkKeyScan("n"), "n"), ("O", "o", win32api.VkKeyScan("o"), "o"), ("P", "p", win32api.VkKeyScan("p"), "p"), 
+  ("Q", "q", win32api.VkKeyScan("q"), "q"), ("R", "r", win32api.VkKeyScan("r"), "r"), ("S", "s", win32api.VkKeyScan("s"), "s"), ("T", "t", win32api.VkKeyScan("t"), "t"),
+  ("U", "u", win32api.VkKeyScan("u"), "u"), ("V", "v", win32api.VkKeyScan("v"), "v"), ("W", "w", win32api.VkKeyScan("w"), "w"), ("X", "x", win32api.VkKeyScan("x"), "x"), 
+  ("Y", "y", win32api.VkKeyScan("y"), "y"), ("Z", "z", win32api.VkKeyScan("z"), "z"), ("ONE", "1", win32api.VkKeyScan("1"), "1"), ("TWO", "2", win32api.VkKeyScan("2"), "2"), 
+  ("THREE", "3", win32api.VkKeyScan("3"), "3"), ("FOUR", "4", win32api.VkKeyScan("4"), "4"), ("FIVE", "5", win32api.VkKeyScan("5"), "5"), 
+  ("SIX", "6", win32api.VkKeyScan("6"), "6"), 
+  ("SEVEN", "7", win32api.VkKeyScan("7"), "7"), ("EIGHT", "8", win32api.VkKeyScan("8"), "8"), ("NINE", "9", win32api.VkKeyScan("9"), "9"), 
+  ("ZERO", "0", win32api.VkKeyScan("0"), "0"), ("DOT", ".", win32api.VkKeyScan("."), "."), ("COMMA", ",", win32api.VkKeyScan(","), ","), 
+  ("QUESTION", "?", win32api.VkKeyScan("?"), "?"), ("EXCLAMATION", "!", win32api.VkKeyScan("!"), "!"), ("COLON", ":", win32api.VkKeyScan(":"), ":"), 
+  ("SEMICOLON", ";", win32api.VkKeyScan(";"), ";"), ("AT", "@", win32api.VkKeyScan("@"), "@"), ("BASH", "#", win32api.VkKeyScan("#"), "#"),
+  ("DOLLAR", "$", win32api.VkKeyScan("$"), "$"), ("PERCENT", "%", win32api.VkKeyScan("%"), "%"), ("AMPERSAND", "&", win32api.VkKeyScan("&"), "&"), 
+  ("STAR", "*", win32con.VK_MULTIPLY, "*"), ("PLUS", "+", win32con.VK_ADD, "+"), ("MINUS", "-", win32con.VK_SUBTRACT, "-"), 
+  ("EQUALS", "=", win32api.VkKeyScan("="), "="), ("FSLASH", "/", win32api.VkKeyScan("/"), "/"), ("BSLASH", "\\", win32api.VkKeyScan("\\"), "\\"), 
+  ("SINGLEQUOTE", "\'", win32api.VkKeyScan("\'"), "\'"), ("DOUBLEQUOTE", "\"", win32api.VkKeyScan("\""), "\""), ("OPENBRACKET", "(", win32api.VkKeyScan("("), "("), 
+  ("CLOSEBRACKET", ")", win32api.VkKeyScan(")"), ")"), ("LESSTHAN", "<", win32api.VkKeyScan("<"), "<"), ("MORETHAN", ">", win32api.VkKeyScan(">"), ">"), 
+  ("CIRCONFLEX", "^", win32api.VkKeyScan("^"), "^"), ("ENTER", "ENTER", win32con.VK_RETURN, "\n"), ("SPACE", "space", win32con.VK_SPACE, " "),
+  ("BACKSPACE", "bckspc", win32con.VK_BACK, chr(8)), ("TAB", "tab", win32con.VK_TAB, "\t"), ("TABLEFT", "tab", win32con.VK_TAB, "\t"), 
+  ("UNDERSCORE", "_", win32api.VkKeyScan("_"), "_"), ("PAGEUP", "pageup", win32con.VK_PRIOR, None), ("PAGEDOWN", "pagedwn", win32con.VK_NEXT, None), 
+  ("LEFTARROW", "left", win32con.VK_LEFT, None), ("RIGHTARROW", "right", win32con.VK_RIGHT, "right"),
+  ("UPARROW", "up", win32con.VK_UP, "up"), ("DOWNARROW", "down", win32con.VK_DOWN, "down"), ("ESCAPE", "esc", win32con.VK_ESCAPE, "esc"), ("HOME", "home", win32con.VK_HOME, "home"), 
+  ("END", "end", win32con.VK_END, None), ("INSERT", "insert", win32con.VK_INSERT, None), ("DELETE", "del", win32con.VK_DELETE, None), 
+  ("STARTMENU", "start", win32con.VK_MENU, None), ("SHIFT", "shift", win32con.VK_SHIFT, None, True), ("ALT", "alt", win32con.VK_MENU, None, True),
+  ("CTRL", "ctrl", win32con.VK_CONTROL, None, True), ("WINDOWS", "win", win32con.VK_LWIN, None), ("APPKEY", "app", win32con.VK_LWIN, None), 
+  ("LCTRL", "left ctrl", win32con.VK_LCONTROL, None), ("RCTRL", "right ctrl", win32con.VK_RCONTROL, None),
+  ("LSHIFT", "left shift", win32con.VK_LSHIFT, None), ("RSHIFT", "right shift", win32con.VK_RSHIFT, None),
+  ("RALT", "right alt", win32con.VK_RMENU, None), ("LALT", "alt", win32con.VK_LMENU, None),
+  ("CAPSLOCK", "caps", win32con.VK_CAPITAL, None),
+  ("F1", "F1", win32con.VK_F1, None), ("F2", "F2", win32con.VK_F2, None), ("F3", "F3", win32con.VK_F3, None), ("F4", "F4", win32con.VK_F4, None), ("F5", "F5", win32con.VK_F5, None), 
+  ("F6", "F6", win32con.VK_F6, None), ("F7", "F7", win32con.VK_F7, None), ("F8", "F8", win32con.VK_F8, None), ("F9", "F9", win32con.VK_F9, None), ("F10", "F10", win32con.VK_F10, None),
+  ("F11", "F11", win32con.VK_F11, None), ("F12", "F12", win32con.VK_F12, None))
+
+keynames2 = list(map(lambda a: a[2:].upper(), keynames))
 
 print("[")
+for kdata in keystrokesdata:
+  val = kdata[0]
+  if val not in keynames2:
+    val = "#" + val + "#"
+  print("  ({}, \"{}\"),".format(kdata[2], val))
+'''
 for akey in keysmap3:
   print("  ({}, \"{}\"),".format(akey[0], akey[1]))
+'''
 '''
 for akey in keysmap:
   print("  (\"{}\", 0x{:02x}),".format(akey[0], akey[1]))

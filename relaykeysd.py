@@ -19,6 +19,8 @@ from hashlib import sha256
 from threading import Thread
 from queue import Queue, Empty as QueueEmpty
 import array as arr
+from os import urandom
+from math import floor
 
 if os.name =='posix': # unix based OS
   from daemon import DaemonContext
@@ -36,7 +38,8 @@ from werkzeug.serving import make_server, BaseRequestHandler
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 from jsonrpc.jsonrpc2 import JSONRPC20Response
 
-from blehid import blehid_send_keyboardcode, blehid_init_serial
+from blehid import blehid_send_keyboardcode, blehid_init_serial, \
+  blehid_send_movemouse, blehid_send_mousebutton
 
 # from pygame.locals import *
 # from pygame.compat import as_bytes
@@ -44,9 +47,10 @@ from blehid import blehid_send_keyboardcode, blehid_init_serial
 
 #Use AT+BAUDRATE=115200 but make sure hardware flow control CTS/RTS works
 BAUD = 115200
-#Doesnt do much currently
-#OS = 'ios' 
+nrfVID = '239A'
+nrfPID = '8029'
 RETRY_TIMEOUT=10
+QUEUE_TIMEOUT=3
 
 parser = argparse.ArgumentParser(description='Relay keys daemon, BLEHID controller.')
 parser.add_argument('--noserial', dest='noserial', action='store_const',
@@ -64,6 +68,9 @@ parser.add_argument('--logfile', dest='logfile', default=None,
                     help='file to hold pid of daemon, posfix specific')
 parser.add_argument('--config', '-c', dest='config',
                     default=None, help='Path to config file')
+
+class CommandException (BaseException):
+  pass
 
 class RPCServExitException (BaseException):
   pass
@@ -83,6 +90,26 @@ def rpc_server_worker(host, port, username, password, queue):
   srv = None
   # prehash password
   password = int(sha256(bytes(password, "utf8")).hexdigest(), 16)
+
+  @dispatcher.add_method
+  def mousebutton (args):
+    btn, behavior = args
+    respqueue = Queue(1)
+    queue.put(("mousebutton", respqueue, btn, behavior), True)
+    try:
+      return respqueue.get(True, 5)
+    except QueueEmpty:
+      return "TIMEOUT"
+  
+  @dispatcher.add_method
+  def mousemove (args):
+    right, down = args
+    respqueue = Queue(1)
+    queue.put(("mousemove", respqueue, right, down), True)
+    try:
+      return respqueue.get(True, 5)
+    except QueueEmpty:
+      return "TIMEOUT"
   
   @dispatcher.add_method
   def keyevent (args):
@@ -144,7 +171,6 @@ def run_rpc_server (host, port, username, password):
     return None
   return queue
 
-
 def find_device_path (noserial):
   dev = None
   if noserial: 
@@ -177,9 +203,25 @@ def find_device_path (noserial):
         logging.debug('serial desc:'+ str(p))
         dev = p.device
         break
+      elif nrfVID and nrfPID in p.hwid:
+        logging.debug('serial desc:'+ str(p))
+        dev = p.device
+        break
   return dev
 
-def do_main (args, config):
+class DummySerial (object):
+  def __init__ (self, devpath, buad, **kwargs):
+    pass
+  def __enter__ (self):
+    return self
+  def __exit__ (self, a, b, c):
+    pass
+  def write (self, data):
+    print("{}".format(data))
+  def flushInput (self):
+    pass
+
+def do_main (args, config, interrupt=None):
   # actions queue
   queue = run_rpc_server(config.get("host", "localhost"),
                          config.getint("port", 5383),
@@ -193,46 +235,72 @@ def do_main (args, config):
     logging.critical("Could not start rpc server")
     return -1 # exit the process
   while True:
-    command = None
+    cmd = None
     try:
-      devicepath = find_device_path(args.noserial)
-      with serial.Serial(devicepath, BAUD, rtscts=1) as ser:
+      if interrupt is not None:
+        interrupt()
+      noserial = True if args.noserial else config.getboolean("noserial", False)
+      devicepath = find_device_path(noserial)
+      if os.name == 'nt' and noserial:
+        SerialCls = DummySerial
+      else:
+        SerialCls = serial.Serial
+      with SerialCls(devicepath, BAUD, rtscts=1) as ser:
         logging.info("serial device opened: {}".format(devicepath))
         blehid_init_serial(ser)
         # Six keys for USB keyboard HID report
         # uint8_t keys[6] = {0,0,0,0,0,0}
         keys = arr.array('B', [0, 0, 0, 0, 0, 0])
         while True:
-          #try:
-          #  command = queue.get(True, 1) # with timeout
-          #except QueueEmpty:
-          #  pass
-          command = queue.get(True) 
-          if command[0] == "keyevent":
-            key = command[2]
-            modifiers = command[3]
-            down = command[4]
-            blehid_send_keyboardcode(ser, key, modifiers, down, keys)
-            ser.flushInput()
-          queue.task_done()
-          # response queue given by command
-          command[1].put("SUCCESS")
-          if command[0] == "exit":
-            return 0
-          command = None
+          if interrupt is not None:
+            interrupt()
+          try:
+            cmd = queue.get(True, QUEUE_TIMEOUT) # with timeout
+            if cmd[0] == "keyevent":
+              key = cmd[2]
+              modifiers = cmd[3]
+              down = cmd[4]
+              blehid_send_keyboardcode(ser, key, modifiers, down, keys)
+              ser.flushInput()
+            elif cmd[0] == "mousemove":
+              right = int(cmd[2])
+              down = int(cmd[3])
+              blehid_send_movemouse(ser, right, down)
+            elif cmd[0] == "mousebutton":
+              btn = str(cmd[2]).lower() if cmd[2] is not None else None
+              behavior = str(cmd[3]).lower() if cmd[3] is not None else None
+              if len(btn) > 1 or btn not in  "lrmbf0":
+                raise CommandException("Unknown mousebutton: {}".format(btn))
+              if behavior is not None and behavior not in ("press","click","doubleclick","hold"):
+                raise CommandException("Unknown mousebutton behavior: {}".format(behavior))
+              blehid_send_mousebutton(ser, btn, behavior)
+            queue.task_done()
+            # response queue given by cmd
+            cmd[1].put("SUCCESS")
+            if cmd[0] == "exit":
+              return 0
+            cmd = None
+          except QueueEmpty:
+            pass
+          except CommandException:
+            if cmd != None:
+              cmd[1].put("FAIL")
+            cmd = None
+            logging.error(traceback.format_exc())
     except (KeyboardInterrupt,SystemExit):
-      if command != None:
-        command[1].put("FAIL")
+      if cmd != None:
+        cmd[1].put("FAIL")
       break # exit
     except:
-      if command != None:
-        command[1].put("FAIL")
+      if cmd != None:
+        cmd[1].put("FAIL")
       logging.error(traceback.format_exc())
-      print("Will retry in {} seconds".format(RETRY_TIMEOUT))
+      logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
       sleep(RETRY_TIMEOUT)
+  logging.info("relaykeysd exit!")
   return 0
 
-def init_logger (isdaemon, args, config):
+def init_logger (dirname, isdaemon, args, config):
   # init logger
   loggerformatter = logging.Formatter('%(asctime)-15s: %(message)s')
   logger = logging.getLogger()
@@ -242,69 +310,70 @@ def init_logger (isdaemon, args, config):
     handler.setFormatter(loggerformatter)
     logger.addHandler(handler)
   # logging file handler
-  logfile = config.get("logfile", None) if args.logfile is None else args.logfile
+  if args.logfile is None:
+    logfile = config.get("logfile", None)
+    if os.path.abspath(logfile) != logfile:
+      logfile = os.path.join(dirname, logfile)
+  else:
+    logfile = args.logfile
   if logfile is not None:
     handler = logging.FileHandler(logfile)
     handler.setFormatter(loggerformatter)
     logger.addHandler(handler)
   logger.setLevel(logging.INFO)
-  if args.debug:
+  if args.debug or config.getboolean("debug", False):
     logger.setLevel(logging.DEBUG)
   if logfile is None and isdaemon: # disable logger
     logging.disable(sys.maxsize)
+
+def mkpasswd(n, chars):
+  ret = ""
+  charsn=len(chars)
+  while n > 0:
+    index = int(floor((int.from_bytes(urandom(4), byteorder='little', signed=False) / 2**(8*4)) * charsn))
+    ret += chars[index]
+    n -= 1
+  return ret
   
-def main ():
+def main (interrupt=None):
   args = parser.parse_args()
   config = ConfigParser()
-  config.read([os.path.expanduser('~/.relaykeys.cfg') if args.config is None else args.config])
+  dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
+  if args.config is None:
+    configfile = None
+    for afile in [ os.path.expanduser('~/.relaykeys.cfg'),
+                    os.path.join(dirname, 'relaykeys.cfg') ]:
+      if len(config.read([afile])) > 0:
+        configfile = afile
+        break
+  else:
+    if len(config.read([args.config])) == 0:
+      raise ValueError("Could not read config file: {}".format(args.config))
+    configfile = args.config
   if "server" not in config.sections():
     config["server"] = {}
   serverconfig = config["server"]
+  if serverconfig.getboolean("rewritepasswordonce", False):
+    serverconfig["password"] = mkpasswd(24, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+    del serverconfig["rewritepasswordonce"]
+    if "client" in config.sections():
+      config["client"]["password"] = serverconfig["password"]
+    with open(configfile, "w") as f:
+      config.write(f)
   isdaemon = args.daemon or serverconfig.getboolean("daemon", False) if os.name =='posix' else False
   if isdaemon:
     pidfile = os.path.realpath(args.pidfile or serverconfig.get("pidfile", None))
     with DaemonContext(working_directory=os.getcwd(),
                        pidfile=PIDLockFile(pidfile)):
-      init_logger(True, args, serverconfig)
-      return do_main(args, serverconfig)
+      init_logger(dirname, True, args, serverconfig)
+      return do_main(args, serverconfig, interrupt)
   else:
-    init_logger(False, args, serverconfig)
-    return do_main(args, serverconfig)
+    init_logger(dirname, False, args, serverconfig)
+    return do_main(args, serverconfig, interrupt)
 
   
 # MAIN
 if __name__ == '__main__':
-  if os.name == 'nt':
-    # win32 service impl
-    import win32serviceutil
-    import win32service
-    import win32event
-    import servicemanager
-    import socket
-    class AppServerSvc (win32serviceutil.ServiceFramework):
-      _svc_name_ = "RelayKeysDameon"
-      _svc_display_name_ = "Relay Keys Daemon"
-
-      def __init__(self,args):
-        win32serviceutil.ServiceFramework.__init__(self,args)
-        self.hWaitStop = win32event.CreateEvent(None,0,0,None)
-        socket.setdefaulttimeout(60)
-
-      def SvcStop(self):
-        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-        win32event.SetEvent(self.hWaitStop)
-
-      def SvcDoRun(self):
-        servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
-                              servicemanager.PYS_SERVICE_STARTED,
-                              (self._svc_name_,''))
-        self.main()
-
-      def main(self):
-        main()
-
-    win32serviceutil.HandleCommandLine(AppServerSvc)
-  else:
-    ret = main()
-    exit(ret)
+  ret = main()
+  exit(ret)
     

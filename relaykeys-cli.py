@@ -2,6 +2,7 @@
 import os
 from time import sleep
 from sys import exit
+import sys
 
 # util modules
 import logging
@@ -17,8 +18,7 @@ parser.add_argument('--debug', dest='debug', action='store_const',
                     help='set logger to debug level')
 parser.add_argument('--config', '-c', dest='config',
                     default=None, help='Path to config file')
-parser.add_argument('--url', '-u', dest='url',
-                    default=None,
+parser.add_argument('--url', '-u', dest='url', default=None,
                     help='rpc http url, default: http://localhost:5383/')
 parser.add_argument('--delay', dest='delay', type=int, default=0,
                     help='delay between each call, in miliseconds')
@@ -36,10 +36,26 @@ class CommandErrorResponse (BaseException):
 def do_keyevent (client, key, modifiers, isdown):
   ret = client.keyevent(key, modifiers, isdown)
   if 'result' not in ret:
-    logging.error("keyevent ({}, {}, {}) response error: {}", key, modifiers, isdown, ret.get("error", "undefined"))
+    logging.error("keyevent ({}, {}, {}) response error: {}".format(key, modifiers, isdown, ret.get("error", "undefined")))
     raise CommandErrorResponse()
   else:
     logging.info("keyevent ({}, {}, {}) response: {}".format(key, modifiers, isdown, ret["result"]))
+
+def do_mousemove (client, right, down):
+  ret = client.mousemove(right, down)
+  if 'result' not in ret:
+    logging.error("mousemove ({}, {}) response error: {}".format(right, down, ret.get("error", "undefined")))
+    raise CommandErrorResponse()
+  else:
+    logging.info("mousemove ({}, {}) response: {}".format(right, down, ret["result"]))
+
+def do_mousebutton (client, btn, behavior=None):
+  ret = client.mousebutton(btn, behavior)
+  if 'result' not in ret:
+    logging.error("mousebutton ({}, {}) response error: {}".format(btn, behavior, ret.get("error", "undefined")))
+    raise CommandErrorResponse()
+  else:
+    logging.info("mousebutton ({}, {}) response: {}".format(btn, behavior, ret["result"]))
 
 nonchars_key_map = {
   "\r": (None, None),
@@ -131,6 +147,20 @@ def do_main (args, config):
       do_keyevent(client, key, modifiers, False)
       if delay > 0:
         sleep(delay/1000.0)
+    elif name == "mousemove":
+      parts = data.split(",")
+      right = parts[0]
+      down = parts[1]
+      do_mousemove(client, right, down)
+      if delay > 0:
+        sleep(delay/1000.0)
+    elif name == "mousebutton":
+      parts = data.split(",")
+      btn = parts[0]
+      behavior = None if len(parts) < 2 else parts[1]
+      do_mousebutton(client, btn, behavior)
+      if delay > 0:
+        sleep(delay/1000.0)
     else:
       raise ValueError("Unknown command: {}".format(cmd))
 
@@ -144,7 +174,14 @@ def main ():
   if args.debug:
     logger.setLevel(logging.DEBUG)
   config = ConfigParser()
-  config.read([os.path.expanduser('~/.relaykeys.cfg') if args.config is None else args.config])
+  dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
+  if args.config is None:
+    config.read([
+      os.path.expanduser('~/.relaykeys.cfg'),
+      os.path.join(dirname, 'relaykeys.cfg'),
+    ])
+  else:
+    config.read([args.config])
   if "client" not in config.sections():
     config["client"] = {}
   return do_main(args, config["client"])
