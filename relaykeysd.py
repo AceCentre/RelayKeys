@@ -56,6 +56,8 @@ parser = argparse.ArgumentParser(description='Relay keys daemon, BLEHID controll
 parser.add_argument('--noserial', dest='noserial', action='store_const',
                     const=True, default=False,
                     help='debug option to run the daemon with no hardware (with help of demoSerial.py')
+parser.add_argument('--dev', dest='dev', default=None,
+                    help='device to use as bluetooth serial')
 parser.add_argument('--debug', dest='debug', action='store_const',
                     const=True, default=False,
                     help='set logger to debug level')
@@ -171,7 +173,7 @@ def run_rpc_server (host, port, username, password):
     return None
   return queue
 
-def find_device_path (noserial):
+def find_device_path (noserial, seldev):
   dev = None
   if noserial: 
     if os.name =='posix':
@@ -183,30 +185,31 @@ def find_device_path (noserial):
         logging.critical('no-serial is set to true.. Please make sure you have already run \'python resources\demoSerial.py\' from a different shell')
         exit(-1)
     elif (os.name=='nt'):
-      dev = 'COM7'
+      dev = 'COM7' if seldev is None else seldev
   else:
     # Default names
     if (os.name=='posix'):
-      dev = '/dev/ttyUSB0'
+      dev = '/dev/ttyUSB0' if seldev is None else seldev
     else:
-      dev = 'COM6'
+      dev = 'COM6' if seldev is None else seldev
       # Look for Adafruit CP2104 break out board or Feather nRF52. Use the first 
       # one found. Default is /dev/ttyUSB0 Or COM6 (Windows)
       # tty for Bluetooth device with baud
       # NB: Could be p.device with a suitable name we are looking for. Noticed some variation around this
-    for p in serial.tools.list_ports.comports():
-      if "CP2104" in p.description:
-        logging.debug('serial desc:'+ str(p))
-        dev = p.device
-        break
-      elif "nRF52" in p.description:
-        logging.debug('serial desc:'+ str(p))
-        dev = p.device
-        break
-      elif nrfVID and nrfPID in p.hwid:
-        logging.debug('serial desc:'+ str(p))
-        dev = p.device
-        break
+    if seldev is None:
+      for p in serial.tools.list_ports.comports():
+        if "CP2104" in p.description:
+          logging.debug('serial desc:'+ str(p))
+          dev = p.device
+          break
+        elif "nRF52" in p.description:
+          logging.debug('serial desc:'+ str(p))
+          dev = p.device
+          break
+        elif nrfVID and nrfPID in p.hwid:
+          logging.debug('serial desc:'+ str(p))
+          dev = p.device
+          break
   return dev
 
 class DummySerial (object):
@@ -239,8 +242,9 @@ def do_main (args, config, interrupt=None):
     try:
       if interrupt is not None:
         interrupt()
+      seldev = args.dev if args.dev is not None else config.get("dev", None)
       noserial = True if args.noserial else config.getboolean("noserial", False)
-      devicepath = find_device_path(noserial)
+      devicepath = find_device_path(noserial, seldev)
       if os.name == 'nt' and noserial:
         SerialCls = DummySerial
       else:
