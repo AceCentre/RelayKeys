@@ -75,6 +75,9 @@ keymap = dict([
   ("KP_MINUS", 0x56),
   ("KP_PLUS", 0x57),
   ("KP_ENTER", 0x58),
+  ("KP_EQUAL", 0x67), # Keypad =
+  ("KP_COMMA", 0x85), # Keypad Comma
+  ("KP_EQSIGN", 0x86), # Keypad Equal Sign
   ("UP", 0x52),
   ("DOWN", 0x51),
   ("RIGHT", 0x4f),
@@ -103,10 +106,38 @@ keymap = dict([
   ("LEFTARROW", 0x50),
   ("DOWNARROW", 0x51),
   ("UPARROW", 0x52),
-  ("MENU", 0x76), # Keyboard Menu
   ("APP", 0x65), # Keyboard Application
   ("LGUI", 0xE3), # Keyboard Left GUI
   ("RGUI", 0xE7), # Keyboard Right GUI
+  ("CUSTOM~", 0x32), # Keyboard Non-US # and ~
+  ("PRINTSCREEN", 0x46), # Keyboard PrintScreen
+  ("POWER", 0x66), # Keyboard Power
+  ("EXECUTE", 0x74), # Keyboard Execute
+  ("HELP", 0x75), # Keyboard Help
+  ("MENU", 0x76), # Keyboard Menu
+  ("SELECT", 0x77), # Keyboard Select
+  ("STOP", 0x78), # Keyboard Stop
+  ("AGAIN", 0x79), # Keyboard Again
+  ("UNDO", 0x7A), # Keyboard Undo
+  ("CUT", 0x7B), # Keyboard Cut
+  ("COPY", 0x7C), # Keyboard Copy
+  ("PASTE", 0x7D), # Keyboard Paste
+  ("FIND", 0x7E), # Keyboard Find
+  ("MUTE", 0x7F), # Keyboard Mute
+  ("VOLUP", 0x80), # Keyboard Volume Up
+  ("VOLDOWN", 0x81), # Keyboard Volume Down
+  ("LOCKING_CAPSLOCK", 0x82), # Keyboard Locking Caps Lock
+  ("LOCKING_NUMLOCK", 0x83), # Keyboard Locking Num Lock
+  ("LOCKING_SCROLLOCK", 0x84), # Keyboard Locking Scroll Lock
+  ("ALTERASE", 0x99), # Keyboard Alternate Erase
+  ("ATTENTION", 0x9A), # Keyboard SysReq/Attention
+  ("CANCEL", 0x9B), # Keyboard Cancel
+  ("CLEAR", 0x9C), # Keyboard Clear
+  ("PRIOR", 0x9D), # Keyboard Prior
+  ("RETURN", 0x9E), # Keyboard Return
+  ("SEPARATOR", 0x9F), # Keyboard Separator
+  ("OUT", 0xA0), # Keyboard Out
+  ("OPER", 0xA1), # Keyboard Oper
 ])
 
 def blehid_init_serial (ser):
