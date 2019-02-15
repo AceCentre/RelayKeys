@@ -86,8 +86,7 @@ keysmap = dict([
   (190, "PERIOD"),
   (188, "COMMA"),
   (186, "SEMICOLON"),
-  (107, "PLUS"),
-  (109, "MINUS"),
+  (0xBD, "MINUS"), # VK_OEM_MINUS
   (187, "EQUALS"),
   (191, "SLASH"),
   (220, "BACKSLASH"),
@@ -110,7 +109,6 @@ keysmap = dict([
   (35, "END"),
   (45, "INSERT"),
   (46, "DELETE"),
-  # (18, "MENU"),
   (0x5B, "LGUI"),
   (0x5C, "RGUI"),
   (93, "APP"), # Applications key
@@ -127,10 +125,43 @@ keysmap = dict([
   (121, "F10"),
   (122, "F11"),
   (123, "F12"),
-])
+  (0xC0, "BACKQUOTE"), # Keyboard Non-US # and ~
+  (0x2C, "PRINTSCREEN"), # Keyboard PrintScreen, VK_SNAPSHOT
+  (0x2B, "EXECUTE"), # VK_EXECUTE
+  (0x2F, "HELP"), # VK_HELP
+  (0x12, "MENU"), # VK_MENU
+  (0x13, "PAUSE"), # VK_PAUSE
+  (0x29, "SELECT"), # VK_SELECT
+  (0xB2, "STOP"), # VK_MEDIA_STOP, Keyboard Stop
+  (0xAD, "MUTE"), # VK_VOLUME_MUTE
+  (0xAF, "VOLUP"), # VK_VOLUME_UP, Keyboard Volume Up
+  (0xAE, "VOLDOWN"), # VK_VOLUME_DOWN, Keyboard Volume Down
+  (0x03, "CANCEL"), # VK_CANCEL
+  (0x0C, "CLEAR"), # VK_CLEAR, Keyboard Clear
+  (0x21, "PRIOR"), # VK_PRIOR, Keyboard Prior
+  (0x0D, "RETURN"), # VK_RETURN
+  (0x6C, "SEPARATOR"), # VK_SEPARATOR
+  (0x5F, "POWER"), # VK_SLEEP
+  (0x60, "KP_0"), # VK_NUMPAD0
+  (0x61, "KP_1"), # VK_NUMPAD1
+  (0x62, "KP_2"), # VK_NUMPAD2
+  (0x63, "KP_3"), # VK_NUMPAD3
+  (0x64, "KP_4"), # VK_NUMPAD4
+  (0x65, "KP_5"), # VK_NUMPAD5
+  (0x66, "KP_6"), # VK_NUMPAD6
+  (0x67, "KP_7"), # VK_NUMPAD7
+  (0x68, "KP_8"), # VK_NUMPAD8
+  (0x69, "KP_9"), # VK_NUMPAD9
+  (0x6E, "KP_PERIOD"), # VK_DECIMAL
+  (0x6A, "KP_MULTIPLY"), # keypad multiply, VK_MULTIPLY
+  (0x6F, "KP_DIVIDE"), # keypad divide, VK_DIVIDE
+  (0x6B, "KP_PLUS"),
+  (0x6D, "KP_MINUS"),
+  (0x03, "CANCEL"), # VK_CANCEL
+ ])
 
 class KeyboardStatusWidget (QWidget):
-  updateStatusSignal = pyqtSignal(list, list)
+  updateStatusSignal = pyqtSignal(list, list, list)
 
   def __init__(self):
     super(KeyboardStatusWidget, self).__init__()
@@ -153,7 +184,7 @@ class KeyboardStatusWidget (QWidget):
     self.items.append(item)
     self.hlayout.addLayout(item)
 
-  def onUpdateStatus (self, keys, modifiers):
+  def onUpdateStatus (self, keys, modifiers, unknown_keys):
     def layout_del_inner (layout):
       for i in reversed(range(layout.count())): 
         layout.itemAt(i).widget().setParent(None)
@@ -188,7 +219,22 @@ class KeyboardStatusWidget (QWidget):
       item.addWidget(label)
       self.items.append(item)
       self.hlayout.addLayout(item)
-      if i + 1 != len(modifiers):
+      if i + 1 != len(modifiers) or len(unknown_keys) > 0:
+        self.addPlusLabel()
+    
+    for i in range(len(unknown_keys)):
+      key = unknown_keys[i]
+      label = QLabel()
+      label.setContentsMargins(5, 5, 5, 5)
+      label.setAlignment(Qt.AlignVCenter)
+      fontsize = 10
+      label.setText("<font style='font-weight:bold;color:darkred;' size='{fontsize}'>{text}</font>"
+                   .format(text="??(0x{:02x})".format(key), fontsize=fontsize))
+      item = QVBoxLayout()
+      item.addWidget(label)
+      self.items.append(item)
+      self.hlayout.addLayout(item)
+      if i + 1 != len(unknown_keys):
         self.addPlusLabel()
 
 class Window (QDialog):
@@ -203,6 +249,7 @@ class Window (QDialog):
     self._keystate_update_timer = None
     self._keys = []
     self._modifiers = []
+    self._unknown_keys = []
     self._toggle_key = args.togglekey if args.togglekey != None else clientconfig.get("togglekey", None)
     self._toggle_modifiers = (args.togglemods if args.togglemods != None else clientconfig.get("togglemods", "")).split(",")
 
@@ -311,13 +358,14 @@ class Window (QDialog):
     return None
     
   def onKeyboardDown (self, event):
-    print(event.KeyID)
     key = keysmap.get(event.KeyID, None)
     mod = modifiers_map.get(event.KeyID, None)
     if key is not None and key not in self._keys:
       self._keys.append(key)
     elif mod is not None and mod not in self._modifiers:
       self._modifiers.append(mod)
+    else:
+      self._unknown_keys.append(event.KeyID)
     ret = self._keyboardToggleCheck(key)
     if ret is not None:
       return ret
@@ -340,6 +388,8 @@ class Window (QDialog):
       self._keys.remove(key)
     elif mod is not None and mod in self._modifiers:
       self._modifiers.remove(mod)
+    else:
+      self._unknown_keys.remove(event.KeyID)
     if self._disabled:
       return True
     self.updateKeyboardState()
@@ -355,7 +405,7 @@ class Window (QDialog):
   def onUpdateKeyState (self):
     """This update event handler is used to update shown state of keyboard
     """
-    self.keyboardStatusWidget.updateStatusSignal.emit(self._keys, self._modifiers)
+    self.keyboardStatusWidget.updateStatusSignal.emit(self._keys, self._modifiers, self._unknown_keys)
     
   def updateKeyboardState (self):
     if self._keystate_update_timer != None:
