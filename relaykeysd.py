@@ -39,7 +39,7 @@ from jsonrpc import JSONRPCResponseManager, Dispatcher
 from jsonrpc.jsonrpc2 import JSONRPC20Response
 
 from blehid import blehid_send_keyboardcode, blehid_init_serial, \
-  blehid_send_movemouse, blehid_send_mousebutton
+  blehid_send_movemouse, blehid_send_mousebutton, blehid_send_devicecommand
 
 # from pygame.locals import *
 # from pygame.compat import as_bytes
@@ -122,6 +122,17 @@ def rpc_server_worker(host, port, username, password, queue):
       return respqueue.get(True, 5)
     except QueueEmpty:
       return "TIMEOUT"
+
+  @dispatcher.add_method
+  def devicecommand (args):
+    devcommand = args
+    respqueue = Queue(1)
+    queue.put(("devicecommand", respqueue, devcommand), True)
+    try:
+      return respqueue.get(True, 5)
+    except QueueEmpty:
+      return "TIMEOUT"
+
   
   @dispatcher.add_method
   def exit (args):

@@ -199,3 +199,11 @@ def blehid_send_keyboardcode (ser, key, modifiers, down, keys):
     atcmd += zerocmd + "\r"
     logging.debug('atcmd:'+ atcmd)
     ser.write(atcmd.encode());
+
+def blehid_send_devicecommand(ser, devicecommand):
+    logging.debug('device command:'+str(devicecommand))
+    if devicecommand == 'drop-bonded-device':
+        atcmd = "AT+GAPDISCONNECT"
+        ser.write(atcmd.encode())
+        atcmd = "AT+GAPDELBONDS"
+        ser.write(atcmd.encode())

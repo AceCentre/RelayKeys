@@ -57,6 +57,15 @@ def do_mousebutton (client, btn, behavior=None):
   else:
     logging.info("mousebutton ({}, {}) response: {}".format(btn, behavior, ret["result"]))
 
+def do_devicecommand(client, devcommand):
+  ret = client.devicecommand(devcommand)
+  if 'result' not in ret:
+    logging.error("devicecommand ({}) response error: {}".format(command, ret.get("error", "undefined")))
+    raise CommandErrorResponse()
+  else:
+    logging.info("devicecommand ({}) response : {}".format(btn, behavior, ret["result"]))
+
+
 nonchars_key_map = {
   "\r": (None, None),
   "\t": ("TAB", []),
@@ -161,6 +170,10 @@ def do_main (args, config):
       do_mousebutton(client, btn, behavior)
       if delay > 0:
         sleep(delay/1000.0)
+    elif name == "device-cmd":
+      parts = data.split(",")
+      command = parts[0]
+      do_devicecommand(command)
     else:
       raise ValueError("Unknown command: {}".format(cmd))
 
