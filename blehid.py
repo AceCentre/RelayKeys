@@ -203,7 +203,6 @@ def blehid_send_keyboardcode (ser, key, modifiers, down, keys):
 def blehid_send_devicecommand(ser, devicecommand):
     logging.debug('device command:'+str(devicecommand))
     if devicecommand == 'drop-bonded-device':
-        atcmd = "AT+GAPDISCONNECT"
-        ser.write(atcmd.encode())
-        atcmd = "AT+GAPDELBONDS"
-        ser.write(atcmd.encode())
+        ser.write("AT+GAPDISCONNECT\r".encode())
+        ser.write("AT+GAPDELBONDS\r".encode())
+        logging.debug('Reset BT device')

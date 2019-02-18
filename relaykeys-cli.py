@@ -60,10 +60,10 @@ def do_mousebutton (client, btn, behavior=None):
 def do_devicecommand(client, devcommand):
   ret = client.devicecommand(devcommand)
   if 'result' not in ret:
-    logging.error("devicecommand ({}) response error: {}".format(command, ret.get("error", "undefined")))
+    logging.error("devicecommand ({}) response error: {}".format(devcommand, ret.get("error", "undefined")))
     raise CommandErrorResponse()
   else:
-    logging.info("devicecommand ({}) response : {}".format(btn, behavior, ret["result"]))
+    logging.info("devicecommand ({}) response : {}".format(devcommand, ret["result"]))
 
 
 nonchars_key_map = {
@@ -172,8 +172,9 @@ def do_main (args, config):
         sleep(delay/1000.0)
     elif name == "device-cmd":
       parts = data.split(",")
+      print(parts)
       command = parts[0]
-      do_devicecommand(command)
+      do_devicecommand(client,command)
     else:
       raise ValueError("Unknown command: {}".format(cmd))
 
