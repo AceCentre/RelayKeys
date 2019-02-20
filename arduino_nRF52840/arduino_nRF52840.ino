@@ -22,26 +22,21 @@
 BLEDis bledis;
 BLEHidAdafruit blehid;
 
+void set_keyboard_led(uint8_t led_bitmap);
+
 void setup() 
 {
   Serial.begin(115200);
   while ( !Serial && millis() < 2000) delay(10);   // for nrf52840 with native usb
 
-  Serial.println("Bluefruit52 HID Keyboard Example");
-  Serial.println("--------------------------------\n");
-
-  Serial.println();
-  Serial.println("Go to your phone's Bluetooth settings to pair your device");
-  Serial.println("then open an application that accepts keyboard input");
-
   Bluefruit.begin();
   // Set max power. Accepted values are: -40, -30, -20, -16, -12, -8, -4, 0, 4
   Bluefruit.setTxPower(4);
-  Bluefruit.setName("RelayKeys");
+  Bluefruit.setName("Bluefruit52");
 
   // Configure and Start Device Information Service
-  bledis.setManufacturer("AceCentre");
-  bledis.setModel("RelayKeys 1 / Feather 52");
+  bledis.setManufacturer("Adafruit Industries");
+  bledis.setModel("Bluefruit Feather 52");
   bledis.begin();
 
   /* Start BLE HID
@@ -111,7 +106,116 @@ void toLower(char *s) {
   }
 }
 
-void sendHIDReport(char *myLine) {
+void sendBLEMouseMove (char *line) {
+  char buff[256];
+  err_t ret;
+  int32_t x = 0;
+  int32_t y = 0;
+  // expected input, X,Y
+  char *p = strtok(line, ",");
+  for (size_t i = 0; p != NULL; i++) {
+    if (i == 0) { // X
+      x = strtol(p, NULL, 10);
+    } else  if (i == 1) { // Y
+      y = strtol(p, NULL, 10);
+    } else {
+      // Invalid input
+      Serial.println("INVALID_INPUT");
+      return;
+    }
+    p = strtok(NULL, ",");
+  }
+  ret = blehid.mouseMove(x, y);
+  if ((int)ret != 1) {
+    snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
+    Serial.println();
+  } else {
+    Serial.println("OK");
+  }
+}
+
+typedef struct {
+  char thechar;
+  uint8_t button;
+} mouse_button_map_t;
+
+const mouse_button_map_t mouse_buttons_map[] = {
+  {'l',MOUSE_BUTTON_LEFT},
+  {'r',MOUSE_BUTTON_RIGHT},
+  {'m',MOUSE_BUTTON_MIDDLE},
+  {'b',MOUSE_BUTTON_BACKWARD},
+  {'f',MOUSE_BUTTON_FORWARD},
+  {'0',0},
+};
+
+void sendBLEMouseButton (char *line) {
+  char buff[256];
+  err_t ret;
+  int b = 0;
+  int mode = 0;
+  // expected input, Button[,Action]
+  char *p = strtok(line, ",");
+  for (size_t i = 0; p != NULL; i++) {
+    if (i == 0) { // Button
+      for (int c = 0; c < sizeof(mouse_buttons_map)/sizeof(mouse_buttons_map[0]);
+           c++) {
+        if (mouse_buttons_map[c].thechar == p[0]) {
+          b = mouse_buttons_map[c].button;
+          break;
+        }
+      }
+    } else  if (i == 1) { // Action
+      toLower(p);
+      if (strcmp(p, "click")) {
+        mode = 1;
+      } else if (strcmp(p, "doubleclick")) {
+        mode = 2;
+      }
+      // PRESS/HOLD and no action all are PRESS action
+    } else {
+      // Invalid input
+      Serial.println("INVALID_INPUT");
+      return;
+    }
+    p = strtok(NULL, ",");
+  }
+  if (b != 0 && mode == 1) { // CLICK
+    ret = blehid.mouseButtonPress(b);
+    if (ret == 1) {
+      delay(40);
+      ret = blehid.mouseButtonRelease();
+    }
+  } else if (b != 0 && mode == 2) { // DOUBLECLICK
+    ret = blehid.mouseButtonPress(b);
+    if (ret == 1) {
+      delay(40);
+      ret = blehid.mouseButtonRelease();
+    }
+    if (ret == 1) {
+      ret = blehid.mouseButtonPress(b);
+    }
+    if (ret == 1) {
+      delay(40);
+      ret = blehid.mouseButtonRelease();
+    }
+  } else { // PRESS/RELEASE
+    if (b == 0) {
+      ret = blehid.mouseButtonRelease();
+    } else {
+      ret = blehid.mouseButtonPress(b);
+    }
+  }
+  if ((int)ret != 1) {
+    snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
+    Serial.println();
+  } else {
+    Serial.println("OK");
+  }
+}
+
+void sendBLEKeyboardCode(char *myLine) {
+  char buff[256];
+  err_t ret;
   uint8_t keys[8];  // USB keyboard HID report
 
   memset(keys, 0, sizeof(keys));
@@ -121,14 +225,22 @@ void sendHIDReport(char *myLine) {
     keys[i] = strtoul(p, NULL, 16);
     p = strtok(NULL, "-");
   }
-  blehid.keyboardReport(keys[0], &keys[2]);
-  Serial.println("OK");
+  ret = blehid.keyboardReport(keys[0], &keys[2]);
+  if ((int)ret != 1) {
+    snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
+    Serial.println();
+  } else {
+    Serial.println("OK");
+  }
 }
 
 const command_action_t commands[] = {
   // Name of command user types, function that implements the command.
   // TODO add other commands, some day
-  {"at+blekeyboardcode", sendHIDReport},
+  {"at+blekeyboardcode", sendBLEKeyboardCode},
+  {"at+blehidmousemove", sendBLEMouseMove},
+  {"at+blehidmousebutton", sendBLEMouseButton},
+
 };
 
 void execute(char *myLine) {
@@ -143,7 +255,7 @@ void execute(char *myLine) {
     }
   }
   // Command not found so just send OK. Should send ERROR at some point.
-  Serial.println("OK");
+  Serial.println("UNKNOWN CMD");
 }
 
 void cli_loop()
