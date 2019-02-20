@@ -389,7 +389,10 @@ class Window (QDialog):
     elif mod is not None and mod in self._modifiers:
       self._modifiers.remove(mod)
     else:
-      self._unknown_keys.remove(event.KeyID)
+      try:
+        self._unknown_keys.remove(event.KeyID)
+      except:
+        pass
     if self._disabled:
       return True
     self.updateKeyboardState()

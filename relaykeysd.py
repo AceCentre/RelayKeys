@@ -262,6 +262,7 @@ def do_main (args, config, interrupt=None):
         SerialCls = serial.Serial
       with SerialCls(devicepath, BAUD, rtscts=1) as ser:
         logging.info("serial device opened: {}".format(devicepath))
+        #logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
         blehid_init_serial(ser)
         # Six keys for USB keyboard HID report
         # uint8_t keys[6] = {0,0,0,0,0,0}
@@ -271,16 +272,18 @@ def do_main (args, config, interrupt=None):
             interrupt()
           try:
             cmd = queue.get(True, QUEUE_TIMEOUT) # with timeout
+            didsendcmd = False
             if cmd[0] == "keyevent":
               key = cmd[2]
               modifiers = cmd[3]
               down = cmd[4]
               blehid_send_keyboardcode(ser, key, modifiers, down, keys)
-              ser.flushInput()
+              didsendcmd = True
             elif cmd[0] == "mousemove":
               right = int(cmd[2])
               down = int(cmd[3])
               blehid_send_movemouse(ser, right, down)
+              didsendcmd = True
             elif cmd[0] == "mousebutton":
               btn = str(cmd[2]).lower() if cmd[2] is not None else None
               behavior = str(cmd[3]).lower() if cmd[3] is not None else None
@@ -289,6 +292,12 @@ def do_main (args, config, interrupt=None):
               if behavior is not None and behavior not in ("press","click","doubleclick","hold"):
                 raise CommandException("Unknown mousebutton behavior: {}".format(behavior))
               blehid_send_mousebutton(ser, btn, behavior)
+              didsendcmd = True
+
+            if didsendcmd:
+              ser.flushInput()
+              msg = ser.readline()
+              logging.debug("response: {}".format(str(ser.readline(), "utf8")))
             queue.task_done()
             # response queue given by cmd
             cmd[1].put("SUCCESS")
