@@ -1,5 +1,28 @@
 import os, glob, subprocess
 
+def moveTree(sourceRoot, destRoot):
+    if not os.path.exists(destRoot):
+        return False
+    ok = True
+    for path, dirs, files in os.walk(sourceRoot):
+        relPath = os.path.relpath(path, sourceRoot)
+        destPath = os.path.join(destRoot, relPath)
+        if not os.path.exists(destPath):
+            os.makedirs(destPath)
+        for file in files:
+            destFile = os.path.join(destPath, file)
+            if os.path.isfile(destFile):
+                print("Skipping existing file: " + os.path.join(relPath, file))
+                ok = False
+                continue
+            srcFile = os.path.join(path, file)
+            #print "rename", srcFile, destFile
+            os.rename(srcFile, destFile)
+    for path, dirs, files in os.walk(sourceRoot, False):
+        if len(files) == 0 and len(dirs) == 0:
+            os.rmdir(path)
+    return ok
+
 # Build the spec files
 for script, exename, console in [ \
     ('relaykeysd.py', 'relaykeysd', True),
@@ -29,9 +52,12 @@ for doc in ['README.md']:
     os.system("python -m markdown "+doc+ "> README.html")
 
 # Copy all the exe's into one dir - we will use the relaykeysd directory for this
-for item in ["blehid.pyd",r".\dist\relaykeysd-service\relaykeysd-service.exe",r".\dist\relaykeys-cli\relaykeys-cli.exe",r".\dist\relaykeys-cli-win\relaykeys-cli-win.exe",r".\dist\relaykeys-qt\relaykeys-qt.exe"]:
-    os.system("copy " + item + r' dist\relaykeysd ')
+#for item in ["blehid.pyd",r".\dist\relaykeysd-service\relaykeysd-service.exe",r".\dist\relaykeys-cli\relaykeys-cli.exe",r".\dist\relaykeys-cli-win\relaykeys-cli-win.exe",r".\dist\relaykeys-qt\relaykeys-qt.exe"]:
+#    os.system("copy " + item + r' dist\relaykeysd ')
 
+# Merge all directories
+for item in [r"dist\relaykeysd-service",r"dist\relaykeys-cli",r"dist\relaykeys-cli-win",r"dist\relaykeys-qt"]:
+    moveTree(item, r'dist\relaykeysd')
 
 # Copy some other stuff to Dist
 for item in ['relaykeys.cfg','logfile.txt','LICENSE','README.html']:

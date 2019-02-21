@@ -119,7 +119,7 @@ SetOutPath "$InstDir"
 File dist\relaykeysd\*
 CreateShortCut "$SMPROGRAMS\new shortcut.lnk" "$INSTDIR\uninstall.exe"
 Exec '"$INSTDIR\relaykeysd-service.exe" install # --startup auto ##' 
-Exec '"$INSTDIR\relaykeysd-service.exe" start #"
+Exec '"$INSTDIR\relaykeysd-service.exe" start #'
 
 ${If} $PortableMode = 0
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTKEY}" "DisplayName" "${NAME}"
