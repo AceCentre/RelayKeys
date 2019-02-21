@@ -5,3 +5,4 @@ Werkzeug==0.14.1
 configparser==3.7.1
 python-daemon==2.2.3
 requests==2.21.0
+markdown==3.0.1

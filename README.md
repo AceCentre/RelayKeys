@@ -87,17 +87,29 @@ This is easy. On your other device connect to the unit as you would any bluetoot
 
 ### 3. Setup: Run the software. 
 
-- You will need Python3 running on your machine
-- Install the libraries 
+You currently have two options for this - 1. Run the precompiled binaries or 2. Use the python code on its own
 
-		pip install -r requirements.txt
-		
-- run it
+#### 3.1 Precompiled binaries
 
-		python relayKeys.py
+There is a number of exe's available
 
-- A window will appear. Type in it. 
-- Done! 
+You can try running the installer package (see releases). Note that on Windows - finding your dongle isn't reliable yet. You will more than likely need to find which COM port the device is on (look in device manager) - and add it to the relaykeys.cfg under the server. e.g.
+
+	dev = COM6
+
+Once installed - you can test it by opening the C:\Program Files(x86)\AceCentre\RelayKeys\relaykeys-qt.exe  and type in the box. For working with the Grid etc you will want to call the relaykeys-cli-win.exe in this directory. 
+
+
+
+## To build
+
+You need [nsis](http://nsis.sourceforge.io) installed for this next part. 
+
+	pip install -r requirements.txt
+	python build.py 
+
+You will then get a setup.exe
+
 
 ## How does this all work? 
 
