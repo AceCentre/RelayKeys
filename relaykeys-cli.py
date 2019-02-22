@@ -9,6 +9,7 @@ import logging
 import argparse
 from configparser import ConfigParser
 import traceback
+import pyperclip
 
 from relaykeysclient import RelayKeysClient
 
@@ -124,6 +125,17 @@ def do_main (args, config):
   for cmd in args.commands:
     name, data = parse_commamd(cmd)
     if name == "type":
+      for char in data:
+        key, mods = char_to_keyevent_params(char)
+        if key is not None:
+          do_keyevent(client, key, mods, True)
+          if delay > 0:
+            sleep(delay/1000.0)
+          do_keyevent(client, key, mods, False)
+          if delay > 0:
+            sleep(delay/1000.0)
+    elif name == "paste":
+      data = pyperclip.paste()
       for char in data:
         key, mods = char_to_keyevent_params(char)
         if key is not None:
