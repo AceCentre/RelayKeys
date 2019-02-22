@@ -61,7 +61,7 @@ for item in [r"dist\relaykeysd-service",r"dist\relaykeys-cli",r"dist\relaykeys-c
 
 # Copy some other stuff to Dist
 for item in ['relaykeys.cfg','logfile.txt','LICENSE','README.html']:
-    os.system("copy "+item+" dist\relaykeysd")
+    os.system("copy "+item+ " "+r"dist\relaykeysd")
 
 # Run the nsis 
 subprocess.run([r"C:\Program Files (x86)\NSIS\makensis.exe","build-installer.nsi"])    
