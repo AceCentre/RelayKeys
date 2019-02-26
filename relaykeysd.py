@@ -234,6 +234,8 @@ class DummySerial (object):
     print("{}".format(data))
   def flushInput (self):
     pass
+  def readline (self):
+    return "OK\n"
 
 def do_main (args, config, interrupt=None):
   # actions queue
