@@ -9,7 +9,7 @@ import relaykeysd
 
 
 class RelayKeysService(ServiceFramework):
-  _svc_name_ = "RelayKeysDameon"
+  _svc_name_ = "RelayKeysDaemon"
   _svc_display_name_ = "Relay Keys Daemon"
 
   def __init__(self, args):

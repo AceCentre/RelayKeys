@@ -5,6 +5,7 @@
 Name "${NAME}"
 Outfile "${NAME} setup.exe"
 RequestExecutionlevel highest
+; RequestExecutionLevel admin ;Require admin rights on NT6+ (When UAC is turned on)
 SetCompressor LZMA
 
 Var NormalDestDir
@@ -24,6 +25,7 @@ Page Custom PortableModePageCreate PortableModePageLeave
 
 
 Function .onInit
+Call RequireAdmin
 StrCpy $NormalDestDir "${DEFAULTNORMALDESTINATON}"
 StrCpy $PortableDestDir "${DEFAULTPORTABLEDESTINATON}"
 
@@ -116,10 +118,14 @@ FunctionEnd
 
 Section
 SetOutPath "$InstDir"
-File dist\relaykeysd\*
+File "relaykeysd-service-restart.bat"
+File /r dist\relaykeysd\*
 CreateShortCut "$SMPROGRAMS\new shortcut.lnk" "$INSTDIR\uninstall.exe"
-Exec '"$INSTDIR\relaykeysd-service.exe" install # --startup auto ##' 
-Exec '"$INSTDIR\relaykeysd-service.exe" start #'
+; SimpleSC Plugin: https://nsis.sourceforge.io/NSIS_Simple_Service_Plugin
+SimpleSC::InstallService "RelayKeysDaemon" "Relay Keys Daemon" 16 2 "$INSTDIR\relaykeysd-service.exe"
+Pop $0
+SimpleSC::StartService "RelayKeysDaemon" "" 30
+Pop $0
 
 ${If} $PortableMode = 0
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTKEY}" "DisplayName" "${NAME}"
@@ -136,10 +142,9 @@ SectionEnd
 
 Section Uninstall
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTKEY}"
-Exec '"$INSTDIR\relaykeysd-service.exe" stop'
-Exec '"sc" delete RelayKeysDameon'
+SimpleSC::StopService "RelayKeysDaemon" 10 30
+SimpleSC::RemoveService "RelayKeysDaemon"
 Delete "$INSTDIR\uninstall.exe"
-Delete $INSTDIR\*
 Delete "$SMPROGRAMS\new shortcut.lnk"
-RMDir "$InstDir"
+RMDir /r "$INSTDIR"
 SectionEnd
