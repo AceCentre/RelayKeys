@@ -1,3 +1,6 @@
+# To build you need to install NSIS, And the Simple Service plugin: https://nsis.sourceforge.io/NSIS_Simple_Service_Plugin
+# You also need pyinstaller installed
+
 import os, glob, subprocess
 
 def moveTree(sourceRoot, destRoot):
