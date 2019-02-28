@@ -10,6 +10,16 @@ Welcome to RelayKeys's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   start
+   usage/quickstart
+   usage/installation
+   usage/command-line
+   usage/commercial/grid3
+   usage/commercial/mindexpress
+   usage/commercial/communicator
+   technical/architecture
+   technical/reference
+   technical/supported-boards
 
 
 Indices and tables

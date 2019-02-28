@@ -27,6 +27,16 @@ parser.add_argument('commands', metavar='COMMAND', nargs='+',
                     help='One or more commands, format: <cmdname>:<data>')
 
 def parse_commamd (cmd):
+  """Parses a command provide from the command line.
+
+    Parses a command found on the command line. I 
+
+    Args:
+        cmd: The command, e.g. `paste` or `type:hello` 
+
+    Returns:
+         a list of command, data
+  """
   parts = cmd.split(":")
   data = ":".join(parts[1:])
   return (parts[0], data)
@@ -35,6 +45,20 @@ class CommandErrorResponse (BaseException):
   pass
 
 def do_keyevent (client, key, modifiers, isdown):
+  """Sends a key event to the daemon
+
+    For example - press a key with modifiers - and note is the key down or up
+
+    Args:
+        client: the RPC client already created 
+        key:key (letter, number or one of the defined keycodes), modifiers, isDown:0/1
+
+    Returns:
+         client.keyevent object
+         
+    Raises:
+        Logging error 
+  """
   ret = client.keyevent(key, modifiers, isdown)
   if 'result' not in ret:
     logging.error("keyevent ({}, {}, {}) response error: {}".format(key, modifiers, isdown, ret.get("error", "undefined")))
@@ -43,6 +67,21 @@ def do_keyevent (client, key, modifiers, isdown):
     logging.info("keyevent ({}, {}, {}) response: {}".format(key, modifiers, isdown, ret["result"]))
 
 def do_mousemove (client, right, down):
+  """Sends a mouse move event to the daemon
+
+    For example - move mouse right n pixels and down n pixels. To move left or up - use negative numbers. 
+
+    Args:
+        client: the RPC client already created 
+        right: pixels to move right - or if left use negative number
+        down: pixels to move down - or up - use a negative number
+
+    Returns:
+         client.keyevent object
+         
+    Raises:
+        Logging error
+  """
   ret = client.mousemove(right, down)
   if 'result' not in ret:
     logging.error("mousemove ({}, {}) response error: {}".format(right, down, ret.get("error", "undefined")))
@@ -51,6 +90,21 @@ def do_mousemove (client, right, down):
     logging.info("mousemove ({}, {}) response: {}".format(right, down, ret["result"]))
 
 def do_mousebutton (client, btn, behavior=None):
+  """Sends a mouse button event to the daemon
+
+    For example - click left mouse button 
+
+    Args:
+        client: the RPC client already created 
+        right: Button: L or R, M for middle. Scroll: F (Forward), B (Backward)
+        behavior: click or doubleclick. Default is a Hold and Release for 0 secs.
+
+    Returns:
+         client.keyevent object
+         
+    Raises:
+        Logging error
+  """
   ret = client.mousebutton(btn, behavior)
   if 'result' not in ret:
     logging.error("mousebutton ({}, {}) response error: {}".format(btn, behavior, ret.get("error", "undefined")))
