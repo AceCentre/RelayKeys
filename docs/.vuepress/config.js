@@ -32,10 +32,10 @@ module.exports = {
       { text: 'AceCentre', link: 'https://acecentre.org.uk' },
     ],
     sidebarDepth: 1,
-    // 🧠 📡 🤖 ✨ 💥 🔥 🌈 ⭐️ 🍄 🍹 🎱 🎨 🏆 🚨 🚀 💡 ⚙️ 🔮 🛠 🔑 🎁 🎈 🎀 ❤️ 💯
+    // ⌨️ 🧠 📡 🤖 ✨ 💥 🔥 🌈 ⭐️ 🍄 🍹 🎱 🎨 🏆 🚨 🚀 💡 ⚙️ 🔮 🛠 🔑 🎁 🎈 🎀 ❤️ 💯
     sidebar: [
       {
-        title: '🐰 Getting Started',
+        title: '⌨️ Getting Started',
         collapsable: false,
         children: [
           ['/getting-started/introduction', 'Introduction'],
