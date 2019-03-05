@@ -54,7 +54,7 @@ NB: Only tested on MacOS but should work on any posix system
 
 ### 1. Setup: Adafruit Feather nRF52840 Express
 
-- Check the setup of your [Arduino IDE](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/arduino-bsp-setup)
+- Check the setup of your [Arduino IDE](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/arduino-bsp-setup) (remember we're using the nRF52840 board!)
 - Upload the [sketch](arduino_nRF52840/arduino_nRF52840.ino) to your feather. 
 - Run the server side code
 - Done!  
