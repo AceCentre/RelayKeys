@@ -1,41 +1,34 @@
 # 👩‍💻 Contributing
 
-> Our small team truly appreciates every contribution made by our community: feature requests, bug reports, and especially pull requests!. If you have _any_ questions please reach out to our Core team on [Slack](https://slack.directus.io).
+> Our small team truly appreciates every contribution made by our community: user stories, feature requests, bug reports, and especially pull requests!. If you have _any_ questions please reach out to our Core team at [AceCentre](https://acecentre.org.uk).
 
-## Repositories
+## User stories
 
-It is important to understand how our codebases are organized and why. Directus is decoupled, which means that the Application and API have separate codebases within two different GitHub repositories. Let's go through each of our main repositories in more detail.
+So you use RelayKeys? Like what we are doing? Got a real problem that needs fixing but don't understand all this code stuff? Please [get in touch](https://acecentre.org.uk/contact/). We will try and help - but please note; **this is very much a open source, and fundraised project**. If you can please consider donating the project
 
-### [directus/api](https://github.com/directus/api)
 
-An API wrapper for custom SQL databases. It allows _projects_ to easily communicate with the SQL databases, and is the "engine" of the Directus Suite.
+## RelayKeys Repository
 
-::: warning Why are the App's extensions in the API?
-You may be wondering why the App's extensionsare in the API codebase. Learn more about the reasoning for this in our [Architecture Explanation](/extensions/architecture.md).
-:::
 
-### [directus-app](https://github.com/directus/app)
+### [acecentre/relaykeys](https://github.com/acecentre/relaykeys)
 
-An admin GUI for managing Directus API instances. It allows _humans_ to interact with the API, and wraps the API with a friendly user interface so that anyone can manage content through their web browser.
+This is the home to the project. Please fork and make changes on this project going forward. A quick overview of the contents:
 
-### [directus/directus](https://github.com/directus/directus)
+* **arduino/** contains sketches to make the board work. A massive thanks to Adafruit as the nrf52840 is _their_ board with _their_ firmware and this code is largley _their_ example code. We have added mouse functionality
+* **docs/** The folder containing the docs (these docs that you are reading!). Its all made with [vuepress](https://vuepress.vuejs.org/guide/#how-it-works).
+* **resources/** a dumping ground of resources/tools that may be useful in development. Of Note is [demoSerial.py](https://github.com/AceCentre/RelayKeys/blob/master/resources/demoSerial.py) - a way of programming this without the board to hand on Linux/Mac. Also see [viewComPorts.py](https://github.com/AceCentre/RelayKeys/blob/master/resources/viewComPorts.py) to debug your COM Ports
+* blehid.py - this is the module used in relaykeysclient and relaykeysd. If you want to view things like keycode conversion and the like - see here. 
+* buildinstaller.py - this is a script that "builds" the pyinstaller binaries - and the NSIS setup.exe. 
+* relaykeys-cli.py - the CLI programme
+* relaykeys.py - the original code we used to test this. Redundant largely now - but if you want to get your head around how all this works look here first 
 
-A readonly combined build of the API and App. There is no unique code here, it is simply a convenient way to install the Directus API, App, and all dependencies.
-
-### [directus/docs](https://github.com/directus/directus)
-
-This is what you're looking at right now. It stores all of the Documentation for Directus in markdown files that are easily editable by the community. [Our web Docs](https://docs.directus.io/) are automatically generated from these files using [VuePress](https://vuepress.vuejs.org/).
-
-### [directus/docker](https://github.com/directus/docker)
-
-This is the code used to generate the official Docker images for Directus 7. These images are available through our [Docker Hub](https://hub.docker.com/u/directus/) and can be accessed via: `docker pull directus/app` and `docker pull directus/api`... the Dockerized combined build for Directus 7 is coming soon.
 
 ## Simple Pull Requests
 
 Before we get into the full-blown "proper" way to do a pull request, let's quickly cover an easier method you can use for _small_ fixes. This way is especailly useful for fixing quick typos in the docs, but is not as safe for code changes since it bypasses validation and linting.
 
 1. Sign in to GitHub
-2. Go to the file you want to edit (eg: [this page](https://github.com/directus/docs/blob/master/feature-requests.md))
+2. Go to the file you want to edit (eg: [this page](https://github.com/acecentre/relaykeys/docs/blob/master/feature-requests.md))
 3. Click the pencil icon to "Edit this file"
 4. Make any changes
 5. Describe and submit your changes within "Propose file change"
@@ -54,11 +47,11 @@ To help you out in your Git(Hub) adventures, we've put together the (fairly stan
 
 Whether you're working on the API or the App, you will need to have your own copy of the codebase to work on. Head to the repo of the project you want to help out with and hit the Fork button. This will create a full copy of the whole project for you on your own account.
 
-To work on this copy, you can install the project locally according to the normal installation instructions, substituting the name `directus` with the name of your github account.
+To work on this copy, you can install the project locally according to the normal installation instructions, substituting the name `acecentre` with the name of your github account.
 
 ### Keeping your fork up to date
 
-If you're doing more work than just a tiny fix, it's a good idea to keep your fork up to date with the "live" or _upstream_ repo. This is the main Directus repo that contains the latest code. If you don't keep your fork up to date with the upstream one, you'll run into conflicts pretty fast. These conflicts will arise when you made a change in a file that changed in the upstream repo in the meantime.
+If you're doing more work than just a tiny fix, it's a good idea to keep your fork up to date with the "live" or _upstream_ repo. This is the main acecentre repo that contains the latest code. If you don't keep your fork up to date with the upstream one, you'll run into conflicts pretty fast. These conflicts will arise when you made a change in a file that changed in the upstream repo in the meantime.
 
 #### On git remotes
 
@@ -90,7 +83,7 @@ A local git repo can have multiple remotes. While it's not very common to push y
 
 ```bash
 # Add 'upstream' to remotes
-git remote add upstream git@github.com:directus/app.git
+git remote add upstream git@github.com:acecentre/relaykeys.git
 ```
 
 When you want to update your fork with the latest changes from the upstream project, you first have to fetch all the (new) branches and commits by running
@@ -147,7 +140,7 @@ git rebase master
 ```
 
 ::: warning
-Make sure to check if your branch is up to date with the `master` branch of upstream. An outdated branch makes it near impossible for the maintainers of Directus to check and review the pull request and will most likely result in a delayed merge.
+Make sure to check if your branch is up to date with the `master` branch of upstream. An outdated branch makes it near impossible for the maintainers of acecentre to check and review the pull request and will most likely result in a delayed merge.
 :::
 
 Once you've commited and pushed all the changes on your branch to your fork on GitHub, head over to GitHub, select your branch and hit the pull request button.
@@ -162,15 +155,11 @@ Please allow the maintainers of upstream to push commits to your fork by leaving
 
 ### 80/20 Rule
 
-The main thing to be aware of when submitting a new Directus feature request, is our rule on edge-cases. To keep the Directus core codebase as clean and simple as possible we will only consider adding features that at least 80% of our user-base will use. If we feel that less than 80% of our users will find the feature valuable then we will not implement it. Instead, those edge-case features should be added as Extensions.
-
-### Which Repository?
-
-If your new feature is specific to the App (the part you see and use in the browser) then you'll want to submit [here](https://github.com/directus/app/issues/new?template=Feature_request.md). Otherwise, if it is an API feature you can submit [here](https://github.com/directus/api/issues/new?template=Feature_request.md). If you're not sure or the feature is more conceptual or global, then submit it to the App and we'll organize it for you!
+The main thing to be aware of when submitting a new acecentre feature request, is our rule on edge-cases. To keep the acecentre core codebase as clean and simple as possible we will only consider adding features that at least 80% of our user-base will use. If we feel that less than 80% of our users will find the feature valuable then we will not implement it. Instead, those edge-case features should be added as Extensions.
 
 ### Browsing Existing Requests
 
-Before adding a new request, you should also first [search](https://github.com/directus/app/issues?q=is%3Aissue+is%3Aopen+sort%3Areactions-%2B1-desc) to see if it has already been submitted. All feature requests should include the `enhancement` label, so you can filter by that. And remember to also check _closed_ issues since your feature might have already been submitted in the past and either [rejected](#Our-80/20-Rule) or already implemented.
+Before adding a new request, you should also first [search](https://github.com/acecentre/relaykeys/issues?q=is%3Aissue+is%3Aopen+sort%3Areactions-%2B1-desc) to see if it has already been submitted. All feature requests should include the `enhancement` label, so you can filter by that. And remember to also check _closed_ issues since your feature might have already been submitted in the past and either [rejected](#Our-80/20-Rule) or already implemented.
 
 Also, if you want to see the most highly requested features you can sort by `:+1:` (the thumbs-up emoji).
 
@@ -184,4 +173,4 @@ You can also vote on existing feature requests. As mentioned above, the `:+1:` a
 
 ### Fulfilling a Request
 
-Our core team is always working hard to implement the most highly-requested community features, but we're a small team. If you need the feature faster than we can provide it, or simply want to help improve the Directus platform, we'd love to receive a pull-request from you!
+Our core team is always working hard to implement the most highly-requested community features, but we're a small team. If you need the feature faster than we can provide it, or simply want to help improve the acecentre platform, we'd love to receive a pull-request from you!

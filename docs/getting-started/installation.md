@@ -1,73 +1,77 @@
 # ⚙️ Installation
 
-> The easiest way to get up-and-running is with the [Directus Suite](https://github.com/directus/directus), which includes the [Directus API](https://github.com/directus/api), the [Directus App](https://github.com/directus/app), and all dependencies.
+> The easiest way to get up-and-running is with the [Windows Installer](https://github.com/AceCentre/RelayKeys/releases/latest), which includes the RelayKeys-CLI, and the RelayKeys-QT software. Read on to see how to install and setup.  
+
+## A quick reminder of how this works
+
+So RelayKeys consists of a hardware solution that talks Bluetooth HID to secondary devices - anything that can pair with bluetooth and understand a keyboard works, and some software on the 'server' device; i.e. the device sending the key/mouse movements. So for our installation we really focus on the 'server' since the client needs no additional hardware or software.  
+
+![RelayKeys Overview](../img/overview.png)
 
 ## Requirements
 
-Directus is developed and tested on the LAMP stack, and therefore this is the only officially supported environment. Alternate stacks (NGINX, Caddy, MariaDB, Percona, etc) may also work but you should proceed at your own risk. Please ensure your server meets the following requirements:
+RelayKeys is designed to work on Windows, Linux, Mac Operating Systems. We have built a Windows installer that makes the process a lot easier on that platform. For Mac & Linux you will need to build the app from source. 
 
-* **Apache**
-* **MySQL 5.2+**
-    * A Database (empty or existing)
-    * A Database User (with access to database)
-* **PHP 7.1+**
-    * Extensions:  `pdo`, `mysql`, `curl`, `gd`, `fileinfo`, and `mbstring`
+* **Windows 7-10**
+* **A USB Port**
+* **Ability to Install software as Administrator**
+* **A second device to connect to** Could be a Windows computer, a Mac, an iPad etc
 
-::: tip Detailed Requirements
-View our [detailed requirements page](/advanced/requirements.md) to learn more about these requirements, neccesary permissions, and other server-specific prerequisites.
+and most importantly:
+
+* **A supported piece of RelayKeys ready hardware**
+    * Right now:  this is designed to work with the Adafruit nrf52840 express. Others will be added to the list as this is developed. 
+
+::: tip If you have a RelayKeys stick provided by the AceCentre 
+Carry on reading below. If you wish to by your own hardware read this guide. 
 :::
 
 ## Setup
 
-Running the following `git` command from your server's command line is the preferred method of installing the codebase.
+Download the installer from [here](https://github.com/AceCentre/RelayKeys/releases/latest). When downloaded 'Run' the program 
 
-```bash
-git clone https://github.com/directus/directus.git
-```
-
-::: tip Other Install Methods
-Alternatively, you can choose from one of these other installation methods.
-* [Docker](/advanced/other-install-methods.md#docker)
-* [Zip, Tar, or FTP](/advanced/other-install-methods.md#manual)
-* [Standalone](/advanced/other-install-methods.md#standalone)
-* [Source](/advanced/other-install-methods.md#source)
+::: warning The programme is not 'signed' 
+This means that you may need to allow it access to your computer to run. Hit 'more' to allow this
 :::
 
-::: tip
-If you are using Apache, make sure `mod_rewrite` and `AllowOverride` are enabled. [Read more](../advanced/server-setup.md#apache)
+Step-through the install procedure. Select 'Normal install' and let the RelayKeys setup software do its thing to install the software in the correct place (By default: C:\Program Files (x86)\AceCentre). 
+
+::: warning If you use 'Portable' or change the location of the software:
+Make a note of where you have stored the programme as you will need this when linking it with your software. 
 :::
 
-::: tip
-If after installation you are experiencing missing functions or packages errors, [follow these steps](https://github.com/directus/api/issues/620#issuecomment-449905619) to recreate `composer.json` and update the composer autoloader. If there's already a `composer.json`, either run [`composer dump-autoload`](https://getcomposer.org/doc/03-cli.md#dump-autoload-dumpautoload-).
-:::
 
-## Configure
+## Plug-in Your RelayKeys stick & pair with a computer
 
-1. Set your document root to the `/public` directory
-2. Navigate your browser to the App at `/admin`
-3. Follow the prompts to complete configuration (see below)
+1. Make sure the Micro-USB connector is attached to the stick and then attach the female end of the USB lead into your computer 
+2. You should see your stick light a solid blue ("Paired") or flashing blue ("Un-paired")
 
-Field          | Description
-:------------- | :-----------
-Project Name   | The name of your project
-Project Key    | For now, only the `_` default is available through the installer
-Admin Email    | The email address of your first administrator
-Admin Password | The password for your first administrator
-Host           | The server/host of your database
-Port           | The port for the database (default is 3306)
-Database User  | The database user
-Database Password | The database user's password
-Database Name  | The name of the database
-Database Type  | As of now, Directus only supports MySQL
+If "Flashing". This means you have yet to pair the RelayKeys device with another computer. 
 
-:::tip Manual Configuration
-Alternatively, you can [manually configure Directus](/advanced/api/configuration.md).
-:::
+### Pair with a Windows Computer 
 
-## Logging In
+So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys"
+![Pairing Windows](../img/screenshots/windows-pairing.gif)
 
-Once you've completed the installer you will automatically be taken to the login page of the Directus App (again, at `/admin`). You can then login with the credentials you provided during configuration, or the default credentials (`admin@example.com` and `password`) if configured manually.
+### Pair with an iOS device
+
+To connect to an iPad/iPhone, go to Settings, Bluetooth and add "Bluefruit52" or "RelayKeys"
+![Pairing iPad](../img/screenshots/ipad-pairing.gif)
+
+### Pair with a Mac
+
+To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
+
+![Pairing Mac](../img/screenshots/mac-pairing.gif)
+
+## Checking it works
+
+1. Open up something on the second computer that you can enter text into. E.g. Notes on the iPad, Notepad on Windows or Notes on a mac
+2. On your server computer (the one with RelayKeys attached) run "RelayKeys" (search for it in your Windows search bar). Alternatively find it in C:\Program Files(x86)\AceCentre\RelayKeys\relaykeys-qt.exe
+3. With the window having focus - type into it. You should see the keystrokes appear on the second computer 
 
 ---
 
-👍 You've successfully installed Directus! Now you're ready to [add your first collection](/guides/collections.md).
+👍 You've successfully installed and setup RelayKeys! Now you may want to use the CLI or QT program. Read on to find out how these work. 
+
+😞 Got a problem? Dang! See our [troubleshooting](/getting-started/contributing.md) guide. 

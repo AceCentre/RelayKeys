@@ -1,3 +1,0 @@
-Using with MindExpress
-===========================
-
