@@ -14,7 +14,7 @@ or if running it in pure python
 
 Where 'command' and 'data' are provided below
 
-### Command: paste
+## Command: paste
 
 This takes the pasteboard of the computer (i.e. when you copy some text) and pastes the resulting string to RelayKeys
 
@@ -23,14 +23,15 @@ i.e.
 ``relaykeys-cli.exe paste``
 
 
-### Command: type:text
+## Command: type:text
 
 Types the string following the :. Note you will need to escape spaces etc 
 
 ``relaykeys-cli.exe type:Hello\ World``
 
 
-### Command: keypress:KEY,MODIFIER
+## Command: keypress:KEY,MODIFIER
+
 
 Sends the KEY and any modifier, For example:
 
@@ -44,7 +45,7 @@ Will emulate pressing and releasing the letter `A`. What about a shift?
 Will emulate pressing the A with Left Shift. i.e. Upper casing the A. 
 
 
-#### Modifiers
+### Modifiers
 
 * Left Control/CTRL: ``LCTRL``
 * Left Shift/🔼 : ``LSHIFT``
@@ -54,6 +55,10 @@ Will emulate pressing the A with Left Shift. i.e. Upper casing the A.
 * Right Shift/🔼 : ``RSHIFT``
 * (Right) Meta/Windows Key/Mac Key/Command Key: ``RMETA``` 
 
+
+### Keys
+
+So the keys are defined below. 
 
 | Defined Key | Detail | Defined Key          | Detail             | Defined Key | Detail                    | Defined Key       | Detail |
 |-------------|--------|----------------------|--------------------|-------------|---------------------------|-------------------|--------|
@@ -114,7 +119,7 @@ Bear in mind it can only send one at a time. So a classic example is to emulate 
 	relaykeys-cli.exe keyevent:TAB,0
 
 
-### Command: mousemove:PixelsLeft,PixelsDown
+## Command: mousemove:PixelsLeft,PixelsDown
 
 Sends the command to move the mouse x Pixels Left and x Pixels Down. To go in the other direction send negative numbers. Eg. To go Left by 10 and Down by 10
 
@@ -141,7 +146,7 @@ Straight right:
 ``relaykeys-cli.exe keyevent:-10,0``
 
 
-### Command: mousebutton:Button,Behaviour
+## Command: mousebutton:Button,Behaviour
 
 Sends the Mouse button press. Mouse buttons available:
 
