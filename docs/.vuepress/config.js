@@ -1,5 +1,5 @@
 module.exports = {
-  base: '/',
+  base: '/RelayKeys/',
   title: 'RelayKeys Docs',
   description: 'Emulate a Keyboard Mouse with a computer! (and arduino)',
   ga: 'UA-24637628-7',
