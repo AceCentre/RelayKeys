@@ -26,7 +26,7 @@ It looks like this:
 Feel free to change any of the settings but **Be careful that you make the username/password the same** - otherwise the CLI programme can't talk to the service. 
 
 
-### Dev - Defining your port of the RelayKeys hardware
+## Dev - Defining your port of the RelayKeys hardware
 
 
 RelayKeys software tries to find the RelayKeys board automagically. If you have a device with a number of COM ports attached - or ones that have similar functionality you may have some difficulties. If so try *fixing* the COM port.

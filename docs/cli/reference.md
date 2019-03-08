@@ -30,6 +30,31 @@ Types the string following the :. Note you will need to escape spaces etc
 ``relaykeys-cli.exe type:Hello\ World``
 
 
+### A special note about type/paste
+
+You can send special characters, ones that are usually shifted, by sending the key and the shift modifier (see **keyevent** below). But for the type and paste commands we have some other characters that are hardcoded and it will do the conversion on the fly.
+
+So for example, to send the @ symbol:
+
+``relaykeys-cli.exe type:@``
+
+All codes which are converted can be seen below. **NB: \t = Tab \r\n are line breaks**
+
+| \\r | &  | {    |
+|-----|----|------|
+| \\t | \* | ]    |
+|     | (  | }    |
+| \`  | )  | \\ |
+| \~  | \_ | \|   |
+| !   | \+ | \\n  |
+| \@  | \- |      |
+| \#  | =  | .    |
+| \$  | ;  | \<   |
+| %   | :  | \>   |
+| \^  | [  | /    |
+
+
+
 ## Command: keypress:KEY,MODIFIER
 
 
@@ -99,7 +124,8 @@ So the keys are defined below.
 | Y           |        | KP_EQUAL \# Keypad = |                    | POWER       |                           |                   |        |
 | Z           |        | KP_COMMA             |                    | EXECUTE     |                           |                   |        |
 
-### Command: keyevent:KEY,MODIFIER,Up/Down
+
+## Command: keyevent:KEY,MODIFIER,Up/Down
 
 
 Emulates holding or releasing one key with a modifer. For example:
@@ -119,13 +145,13 @@ Bear in mind it can only send one at a time. So a classic example is to emulate 
 	relaykeys-cli.exe keyevent:TAB,0
 
 
-## Command: mousemove:PixelsLeft,PixelsDown
+## Command: mousemove:PixelsRight,PixelsDown
 
-Sends the command to move the mouse x Pixels Left and x Pixels Down. To go in the other direction send negative numbers. Eg. To go Left by 10 and Down by 10
+Sends the command to move the mouse x Pixels Right and x Pixels Down. To go in the other direction send negative numbers. Eg. To go Right by 10 and Down by 10
 
 ``relaykeys-cli.exe mousemove:10,10``
 
-and Right by 10, Up by 10: 
+and Left by 10, Up by 10: 
 
 ``relaykeys-cli.exe keyevent:-10,-10``
 
@@ -137,11 +163,11 @@ Straight down:
 
 ``relaykeys-cli.exe keyevent:0,10``
 
-Straight left:
+Straight right:
 
 ``relaykeys-cli.exe keyevent:10,0``
 
-Straight right:
+Straight left:
 
 ``relaykeys-cli.exe keyevent:-10,0``
 
