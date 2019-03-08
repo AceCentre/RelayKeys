@@ -14,14 +14,10 @@ We accept memberships through our Patreon account. These monthly donations are t
 
 Please donate to us via [JustGiving](https://www.justgiving.com/onecheckout/donation/direct/charity/139889). Small or large donations welcome! 
 
-### Commissions
-
-Another great way to get something back for your financial support (other than our amazing software) is to commission RelayKeys work. If you need an interface, layout, or other custom feature – just [reach out to our parent company](mailto:contact@rngr.org?subject=RelayKeys+Commission+Inquiry) to design and build it for you. If it can be merged into our Core codebase then it even benefits the entire community!
-
 
 ### Pull Requests
 
-Whether squashing [bugs](https://github.com/RelayKeys/app/issues?q=is%3Aopen+is%3Aissue+label%3Abug), [optimizing](https://github.com/RelayKeys/app/issues?q=is%3Aopen+is%3Aissue+label%3Aoptimization) the codebase, increasing test coverage, or adding [new features](https://github.com/RelayKeys/app/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement), submitting pull-requests through GitHub is extremely valuable. The best places to contribute are our [App](https://github.com/RelayKeys/app) (front-end) and [API](https://github.com/RelayKeys/api) (back-end).
+Whether squashing [bugs](https://github.com/AceCentre/RelayKeys/issues?q=is%3Aopen+is%3Aissue+label%3Abug), [optimizing](https://github.com/AceCentre/RelayKeys/issues?q=is%3Aopen+is%3Aissue+label%3Aoptimization) the codebase, increasing test coverage, or adding [new features](https://github.com/AceCentre/RelayKeys/issues?q=is%3Aopen+is%3Aissue+label%3Aenhancement), submitting pull-requests through GitHub is extremely valuable.
 
 [Learn more about Contributing](/getting-started/contributing.md)
 
@@ -40,7 +36,7 @@ This one is surprisingly underutilized. If you encounter a bug within RelayKeys,
 
 ## Social Posts
 
-Have a few followers on Twitter? A quick post mentioning our [@RelayKeys](https://twitter.com/acecentre) account goes a long way. We've even been known to re-tweet some of our favorite shout-outs. And be sure to follow us to get the most up-to-date info on new features, releases, and sneak-peeks.
+Have a few followers on Twitter? A quick post mentioning our [@AceCentre](https://twitter.com/acecentre) account goes a long way. We've even been known to re-tweet some of our favorite shout-outs. And be sure to follow us to get the most up-to-date info on new features, releases, and sneak-peeks.
 
 ### Testimonials
 
