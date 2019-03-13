@@ -120,7 +120,6 @@ def do_devicecommand(client, devcommand):
   else:
     logging.info("devicecommand ({}) response : {}".format(devcommand, ret["result"]))
 
-
 nonchars_key_map = {
   "\r": (None, None),
   "\t": ("TAB", []),
@@ -157,11 +156,16 @@ nonchars_key_map = {
   "/": ("SLASH", []),
   "?": ("SLASH", ["LSHIFT"]),
 }
+
 def char_to_keyevent_params (char):
   ret = nonchars_key_map.get(char, None)
   if ret is not None:
     return ret
-  return (char.upper(), ["LSHIFT"] if char.upper() == char else [])
+  if (char.isdigit()):
+    return (char,[])
+  if (char.upper() == char):
+    return (char,["LSHIFT"])
+  return (char,[])
     
 def do_main (args, config):
   url = config.get("url", None) if args.url == None else args.url
