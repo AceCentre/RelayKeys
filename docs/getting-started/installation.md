@@ -23,7 +23,7 @@ and most importantly:
     * Right now:  this is designed to work with the Adafruit nrf52840 express. Others will be added to the list as this is developed. 
 
 ::: tip If you have a RelayKeys stick provided by the AceCentre 
-Carry on reading below. If you wish to by your own hardware read this guide. 
+Carry on reading below. If you wish to by your own hardware [read this guide](/technical/supported-boards.html). 
 :::
 
 ## Setup

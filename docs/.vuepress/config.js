@@ -70,6 +70,17 @@ module.exports = {
           ['/sdk/python', 'Python'],
           ['/sdk/swift', 'Swift'],
         ]
+      },
+      {
+        title: '🚧️ Technical Details',
+        collapsable: true,
+        children: [
+          ['/technical/architecture', 'Architecture'],
+          ['/technical/supported-boards', 'Supported Boards and Build Instructions'],
+          ['/technical/reference', 'RPC Daemon Details'],
+          ['/technical/other-projects', 'Other Projects'],
+          ['/technical/credits', 'Credits']
+        ]
       }
     ]
   }
