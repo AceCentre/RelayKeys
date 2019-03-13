@@ -164,8 +164,8 @@ def char_to_keyevent_params (char):
   if (char.isdigit()):
     return (char,[])
   if (char.upper() == char):
-    return (char,["LSHIFT"])
-  return (char,[])
+    return (char.upper(),["LSHIFT"])
+  return (char.upper(),[])
     
 def do_main (args, config):
   url = config.get("url", None) if args.url == None else args.url
