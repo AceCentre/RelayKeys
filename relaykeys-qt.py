@@ -353,18 +353,20 @@ class Window (QDialog):
           break
       if match:
         self._disabled = not self._disabled
-        self.keyboardStatusWidget.updateStatusSignal.emit(["DISABLED"], [])
+        self.keyboardStatusWidget.updateStatusSignal.emit(["DISABLED"], [], [])
         return True
     return None
     
   def onKeyboardDown (self, event):
     key = keysmap.get(event.KeyID, None)
     mod = modifiers_map.get(event.KeyID, None)
-    if key is not None and key not in self._keys:
-      self._keys.append(key)
-    elif mod is not None and mod not in self._modifiers:
-      self._modifiers.append(mod)
-    else:
+    if key is not None:
+      if key not in self._keys:
+        self._keys.append(key)
+    elif mod is not None:
+      if mod not in self._modifiers:
+        self._modifiers.append(mod)
+    elif event.KeyID not in self._unknown_keys:
       self._unknown_keys.append(event.KeyID)
     ret = self._keyboardToggleCheck(key)
     if ret is not None:

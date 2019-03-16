@@ -299,7 +299,7 @@ def do_main (args, config, interrupt=None):
             if didsendcmd:
               ser.flushInput()
               msg = ser.readline()
-              logging.debug("response: {}".format(str(ser.readline(), "utf8")))
+              logging.debug("response: {}".format(msg if isinstance(msg, str) else str(msg, "utf8")))
             queue.task_done()
             # response queue given by cmd
             cmd[1].put("SUCCESS")
