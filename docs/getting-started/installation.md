@@ -26,7 +26,7 @@ and most importantly:
 Carry on reading below. If you wish to by your own hardware [read this guide](/technical/supported-boards.html). 
 :::
 
-## Setup
+## Download and Setup
 
 Download the installer from [here](https://github.com/AceCentre/RelayKeys/releases/latest). When downloaded 'Run' the program 
 
