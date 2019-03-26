@@ -70,6 +70,17 @@ To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
 2. On your server computer (the one with RelayKeys attached) run "RelayKeys" (search for it in your Windows search bar). Alternatively find it in C:\Program Files(x86)\AceCentre\RelayKeys\relaykeys-qt.exe
 3. With the window having focus - type into it. You should see the keystrokes appear on the second computer 
 
+## Using it with your AAC software
+
+You can get going by using one of these example files that work with your AAC Software:
+
+* [The Grid 3](https://www.dropbox.com/s/3mcvnpnyi36lpdh/RelayKeysDemo.gridset?dl=1)
+* [MindExpress]()
+* Tobii Communicator
+* Dynavox Series 5
+
+ 
+
 ---
 
 👍 You've successfully installed and setup RelayKeys! Now you may want to use the CLI or QT program. Read on to find out how these work. 
