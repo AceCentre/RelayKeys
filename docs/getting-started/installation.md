@@ -75,7 +75,7 @@ To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
 You can get going by using one of these example files that work with your AAC Software:
 
 * [The Grid 3](https://www.dropbox.com/s/3mcvnpnyi36lpdh/RelayKeysDemo.gridset?dl=1)
-* [MindExpress]()
+* [MindExpress](https://www.dropbox.com/s/4z194iwf90kzfwj/RelayKeys%20sample%20demo.jmm?dl=1)
 * Tobii Communicator
 * Dynavox Series 5
 
