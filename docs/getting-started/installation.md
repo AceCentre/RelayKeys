@@ -67,7 +67,7 @@ To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
 ## Checking it works
 
 1. Open up something on the second computer that you can enter text into. E.g. Notes on the iPad, Notepad on Windows or Notes on a mac
-2. On your server computer (the one with RelayKeys attached) run "RelayKeys" (search for it in your Windows search bar). Alternatively find it in C:\Program Files(x86)\AceCentre\RelayKeys\relaykeys-qt.exe
+2. On your server computer (the one with RelayKeys attached) run "RelayKeys" (search for it in your Windows search bar). Alternatively find it in ``C:\Program Files(x86)\AceCentre\RelayKeys\relaykeys-qt.exe``
 3. With the window having focus - type into it. You should see the keystrokes appear on the second computer 
 
 ## Using it with your AAC software
@@ -79,7 +79,7 @@ You can get going by using one of these example files that work with your AAC So
 * Tobii Communicator
 * Dynavox Series 5
 
- 
+When you are ready, [have a read of how to integrate the features you need](/guides/basic-principles.html). 
 
 ---
 
