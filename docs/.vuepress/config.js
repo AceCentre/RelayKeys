@@ -4,7 +4,7 @@ module.exports = {
   description: 'Emulate a Keyboard Mouse with a computer! (and arduino)',
   ga: 'UA-24637628-7',
   plugins: [
-    '@vuepress/medium-zoom'
+    '@vuepress/medium-zoom', 'vuepress-plugin-export'
   ],
   head: [
     ['link', { rel: "manifest",  href: "/site.webmanifest" }],
@@ -23,6 +23,7 @@ module.exports = {
     lastUpdated: 'Last Updated',
     repo: 'acecentre/relaykeys',
     docsDir: 'docs',
+    logo: 'AceLogo.png',
     editLinks: true,
     serviceWorker: true,
     hiddenLinks: [],
