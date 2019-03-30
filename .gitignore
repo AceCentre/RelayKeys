@@ -117,3 +117,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 RelayKeys setup.exe
+logfile.txt
+
