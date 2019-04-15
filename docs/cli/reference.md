@@ -69,6 +69,9 @@ Will emulate pressing and releasing the letter `A`. What about a shift?
 
 Will emulate pressing the A with Left Shift. i.e. Upper casing the A. 
 
+``relaykeys-cliexe keypress:RIGHTARROW,LSHIFT,LCTRL``
+
+Will press the right arrow, left shit and left control (would select the next word in programs like word)`
 
 ### Modifiers
 
@@ -137,13 +140,10 @@ To release:
 
 ``relaykeys-cli.exe keyevent:A,LSHIFT,0``
 
-Bear in mind it can only send one at a time. So a classic example is to emulate pressing the Windows key and tab. Commonly used to switch applications. To do this you would need to send two commands
+So a classic example is to emulate pressing the Alt key and Tab key. Commonly used to switch applications. To do this you would need to send two commands. 
 
-	relaykeys-cli.exe keyevent:LMETA,1
-	relaykeys-cli.exe keyevent:TAB,1
-	relaykeys-cli.exe keyvent:LMETA,0
-	relaykeys-cli.exe keyevent:TAB,0
-
+        relaykeys-cli-win.exe" keyevent:TAB,LALT,1
+        relaykeys-cli-win.exe" keyevent:TAB,LALT,0
 
 ## Command: mousemove:PixelsRight,PixelsDown
 
@@ -153,23 +153,23 @@ Sends the command to move the mouse x Pixels Right and x Pixels Down. To go in t
 
 and Left by 10, Up by 10: 
 
-``relaykeys-cli.exe keyevent:-10,-10``
+``relaykeys-cli.exe mousemove:-10,-10``
 
 Straight up:
 
-``relaykeys-cli.exe keyevent:0,-10``
+``relaykeys-cli.exe mousemove:0,-10``
 
 Straight down:
 
-``relaykeys-cli.exe keyevent:0,10``
+``relaykeys-cli.exe mousemove:0,10``
 
 Straight right:
 
-``relaykeys-cli.exe keyevent:10,0``
+``relaykeys-cli.exe mousemove:10,0``
 
 Straight left:
 
-``relaykeys-cli.exe keyevent:-10,0``
+``relaykeys-cli.exe mousemove:-10,0``
 
 
 ## Command: mousebutton:Button,Behaviour
