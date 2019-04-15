@@ -23,7 +23,7 @@ module.exports = {
     lastUpdated: 'Last Updated',
     repo: 'acecentre/relaykeys',
     docsDir: 'docs',
-    logo: 'AceLogo.png',
+    logo: '/img/AceLogo.png',
     editLinks: true,
     serviceWorker: true,
     hiddenLinks: [],
