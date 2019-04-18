@@ -12,7 +12,16 @@ or if running it in pure python
 
 ``python relaykeys-cli.py command:data``
 
-Where 'command' and 'data' are provided below
+
+and the non-verbose, non-windowed version
+
+``python relaykeys-cli-win.py command:data``
+
+Where 'command' and 'data' are provided below.
+
+::: tip Remember to change your application accordingly
+We regularly use the verbose command line application 'relaykeys-cli' in this documentation. Often though you will want to use the 'relaykeys-cli-win' application that will run a little quicker and has no printed output. 
+:::
 
 ## Command: paste
 
@@ -71,7 +80,7 @@ Will emulate pressing the A with Left Shift. i.e. Upper casing the A.
 
 ``relaykeys-cliexe keypress:RIGHTARROW,LSHIFT,LCTRL``
 
-Will press the right arrow, left shit and left control (would select the next word in programs like word)`
+Will press the right arrow, left shit and left control (would select the next word in programs like word)
 
 ### Modifiers
 

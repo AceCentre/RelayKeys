@@ -9,11 +9,16 @@ Currently RelayKeys is designed to work with the [Adafruit Feather nRF52840 Expr
 ## Setup for Adafruit Feather nRF52840 Express
 
 - Check the setup of your [Arduino IDE](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/arduino-bsp-setup) (remember we're using the nRF52840 board!)
-- Upload the [sketch](arduino_nRF52840/arduino_nRF52840.ino) to your feather. 
+- Upload the [sketch](https://github.com/AceCentre/RelayKeys/blob/master/arduino/arduino_nRF52840/arduino_nRF52840.ino) to your feather. 
 - Run the server side code
 - Done!  
 
 ## Setup for Bluefruit LE Friend 
+
+
+::: warning  This isnt working currently!
+Although it *should* work - and we promise you it *did* work - something has broken functionality working with the LE friend. Watch this space.. 
+::: 
 
 - [Install the CP2104 Driver](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers)
 - Update it to 0.8.0. Easiest way to do this is to connect to using the Bluefruit app - it will auto update it if required. 
