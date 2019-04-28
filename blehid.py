@@ -140,31 +140,55 @@ keymap = dict([
   ("OPER", 0xA1), # Keyboard Oper
 ])
 
-def blehid_init_serial (ser):
-  # TODO check for OK or ERROR
-  ser.write("AT\r".encode())
-  sleep(1)
+def _write_atcmd (ser, msg):
+  if not isinstance(msg, bytes):
+    msg = msg.encode()
+  logging.debug("request: {}".format(msg if isinstance(msg, str) else str(msg, "utf8")))
+  ser.write(msg)
   ser.flushInput()
-  # ser.write("ATI\r".encode())
-  # time.sleep(1)
-  ser.write("ATE=0\r".encode())
-  sleep(1)
-  ser.flushInput()
-  ser.write("AT+BLEHIDEN=1\r".encode())
-  sleep(1)
-  ser.flushInput()
-  ser.write("ATZ\r".encode())
 
+def _read_response (ser, n=1):
+  v = b""
+  while n > 0:
+    v += ser.readline()
+    n -= 1
+  msg = str(v, "utf8").strip()
+  logging.debug("response: {}".format(msg))
+  return msg
+
+def blehid_init_serial (ser):
+  _write_atcmd(ser, "AT\r")
+  _read_response(ser)
+  # _write_atcmd(ser, "ATI\r")
+  # _read_response(ser, n=8)
+  _write_atcmd(ser, "ATE=0\r")
+  _read_response(ser)
+  _write_atcmd(ser, "AT+BLEHIDEN=1\r")
+  if _read_response(ser).upper() == "ERROR":
+    # running older framework < 0.6.6, fallback to enable keyboard
+    _write_atcmd(ser, "AT+BLEKEYBOARDEN=1\r")
+    _read_response(ser)
+  _write_atcmd(ser, "ATZ\r")
+  _read_response(ser)
+
+MOUSE_MAX_MOVE=2500
 
 def blehid_send_movemouse (ser, right, down):
-  atcmd = "AT+BLEHIDMOUSEMOVE={},{}\r".format(right, down)
-  logging.debug('atcmd:'+ atcmd)
-  ser.write(atcmd.encode())
+  right = max(-1 * MOUSE_MAX_MOVE, right) if right < 0 else min(MOUSE_MAX_MOVE, right)
+  down = max(-1 * MOUSE_MAX_MOVE, down) if down < 0 else min(MOUSE_MAX_MOVE, down)
+  while right != 0 or down != 0:
+    rmove = max(-128, min(right, 127))
+    dmove = max(-128, min(down, 127))
+    atcmd = "AT+BLEHIDMOUSEMOVE={},{}\r".format(rmove, dmove)
+    _write_atcmd(ser, atcmd)
+    _read_response(ser)
+    right -= rmove
+    down -= dmove
 
 def blehid_send_mousebutton (ser, btn, behavior=None):
   atcmd = "AT+BLEHIDMOUSEBUTTON={}{}\r".format(btn, "" if behavior is None else "," + behavior)
-  logging.debug('atcmd:' + atcmd)
-  ser.write(atcmd.encode())
+  _write_atcmd(ser, atcmd)
+  _read_response(ser)
 
 def blehid_send_keyboardcode (ser, key, modifiers, down, keys):
     logging.debug('key:'+str(key)+'  modifiers:'+str(modifiers))
@@ -197,12 +221,14 @@ def blehid_send_keyboardcode (ser, key, modifiers, down, keys):
         else:
             zerocmd += "-00"
     atcmd += zerocmd + "\r"
-    logging.debug('atcmd:'+ atcmd)
-    ser.write(atcmd.encode());
+    _write_atcmd(ser, atcmd)
+    _read_response(ser)
 
 def blehid_send_devicecommand(ser, devicecommand):
     logging.debug('device command:'+str(devicecommand))
     if devicecommand == 'drop-bonded-device':
-        ser.write("AT+GAPDISCONNECT\r".encode())
-        ser.write("AT+GAPDELBONDS\r".encode())
+        _write_atcmd(ser, "AT+GAPDISCONNECT\r")
+        _read_response(ser)
+        _write_atcmd(ser, "AT+GAPDELBONDS\r")
+        _read_response(ser)
         logging.debug('Reset BT device')
