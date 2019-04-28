@@ -46,7 +46,8 @@ from blehid import blehid_send_keyboardcode, blehid_init_serial, \
 # BytesIO = pygame.compat.get_BytesIO()
 
 #Use AT+BAUDRATE=115200 but make sure hardware flow control CTS/RTS works
-BAUD = 115200
+DEFAULT_BAUD = 115200
+# BAUD = 9600
 nrfVID = '239A'
 nrfPID = '8029'
 RETRY_TIMEOUT=10
@@ -58,6 +59,8 @@ parser.add_argument('--noserial', dest='noserial', action='store_const',
                     help='debug option to run the daemon with no hardware (with help of demoSerial.py')
 parser.add_argument('--dev', dest='dev', default=None,
                     help='device to use as bluetooth serial')
+parser.add_argument('--baud', dest='baud', default=None,
+                    help='specify serial baud, default: {}'.format(DEFAULT_BAUD))
 parser.add_argument('--debug', dest='debug', action='store_const',
                     const=True, default=False,
                     help='set logger to debug level')
@@ -224,7 +227,7 @@ def find_device_path (noserial, seldev):
   return dev
 
 class DummySerial (object):
-  def __init__ (self, devpath, buad, **kwargs):
+  def __init__ (self, devpath, baud, **kwargs):
     pass
   def __enter__ (self):
     return self
@@ -255,6 +258,7 @@ def do_main (args, config, interrupt=None):
     try:
       if interrupt is not None:
         interrupt()
+      baud = args.baud if args.baud is not None else config.get("baud", DEFAULT_BAUD)
       seldev = args.dev if args.dev is not None else config.get("dev", None)
       noserial = True if args.noserial else config.getboolean("noserial", False)
       devicepath = find_device_path(noserial, seldev)
@@ -262,7 +266,7 @@ def do_main (args, config, interrupt=None):
         SerialCls = DummySerial
       else:
         SerialCls = serial.Serial
-      with SerialCls(devicepath, BAUD, rtscts=1) as ser:
+      with SerialCls(devicepath, baud, rtscts=1) as ser:
         logging.info("serial device opened: {}".format(devicepath))
         #logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
         blehid_init_serial(ser)
@@ -274,18 +278,15 @@ def do_main (args, config, interrupt=None):
             interrupt()
           try:
             cmd = queue.get(True, QUEUE_TIMEOUT) # with timeout
-            didsendcmd = False
             if cmd[0] == "keyevent":
               key = cmd[2]
               modifiers = cmd[3]
               down = cmd[4]
               blehid_send_keyboardcode(ser, key, modifiers, down, keys)
-              didsendcmd = True
             elif cmd[0] == "mousemove":
               right = int(cmd[2])
               down = int(cmd[3])
               blehid_send_movemouse(ser, right, down)
-              didsendcmd = True
             elif cmd[0] == "mousebutton":
               btn = str(cmd[2]).lower() if cmd[2] is not None else None
               behavior = str(cmd[3]).lower() if cmd[3] is not None else None
@@ -294,12 +295,6 @@ def do_main (args, config, interrupt=None):
               if behavior is not None and behavior not in ("press","click","doubleclick","hold"):
                 raise CommandException("Unknown mousebutton behavior: {}".format(behavior))
               blehid_send_mousebutton(ser, btn, behavior)
-              didsendcmd = True
-
-            if didsendcmd:
-              ser.flushInput()
-              msg = ser.readline()
-              logging.debug("response: {}".format(msg if isinstance(msg, str) else str(msg, "utf8")))
             queue.task_done()
             # response queue given by cmd
             cmd[1].put("SUCCESS")

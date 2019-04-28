@@ -118,4 +118,5 @@ dmypy.json
 .pyre/
 RelayKeys setup.exe
 logfile.txt
+relaykeys.cfg
 
