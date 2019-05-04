@@ -26,6 +26,11 @@ def moveTree(sourceRoot, destRoot):
             os.rmdir(path)
     return ok
 
+# Copy the example relaykeys example. This is hacky. 
+with open("relaykeys-example.cfg", "r") as f:
+    with open("relaykeys.cfg", "w") as wf:
+        wf.write(f.read())
+
 # Build the spec files
 for script, exename, console in [ \
     ('relaykeysd.py', 'relaykeysd', True),
