@@ -103,15 +103,11 @@ def rpc_server_worker(host, port, username, password, queue):
   def actions (args):
     try:
       actionlist = args[0]
-      respqueue = Queue(1)
       for action in actionlist:
         if action[0] not in ('mousemove', 'mousebutton', 'keyevent'):
           raise ValueError('unknown action')
-      queue.put((respqueue, 'actions', actionlist), True)
-      try:
-        return respqueue.get(True, 5)
-      except QueueEmpty:
-        return "TIMEOUT"
+      queue.put((None, 'actions', actionlist), True)
+      return "OK"
     except:
       return "UNEXPECTED_INPUT"
 
@@ -297,7 +293,8 @@ def do_main (args, config, interrupt=None):
             try:
               cmd = queue.get(True, QUEUE_TIMEOUT) # with timeout
               output = process_action(ser, keys, cmd[1:])
-              cmd[0].put(output)
+              if cmd[0] is not None:
+                cmd[0].put(output)
               queue.task_done()
             except QueueEmpty:
               pass

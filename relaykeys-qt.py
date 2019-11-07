@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from time import sleep
+from time import sleep, time
 from sys import exit, argv
 import sys
 
@@ -160,6 +160,62 @@ keysmap = dict([
   (0x03, "CANCEL"), # VK_CANCEL
  ])
 
+char_keysmap = dict([
+  (65, ("a","A")),
+  (66, ("b","B")),
+  (67, ("c","C")),
+  (68, ("d","D")),
+  (69, ("e","E")),
+  (70, ("f","F")),
+  (71, ("g","G")),
+  (72, ("h","H")),
+  (73, ("i","I")),
+  (74, ("j","J")),
+  (75, ("k","K")),
+  (76, ("l","L")),
+  (77, ("m","M")),
+  (78, ("n","N")),
+  (79, ("o","O")),
+  (80, ("p","P")),
+  (81, ("q","Q")),
+  (82, ("r","R")),
+  (83, ("s","S")),
+  (84, ("t","T")),
+  (85, ("u","U")),
+  (86, ("v","V")),
+  (87, ("w","W")),
+  (88, ("x","X")),
+  (89, ("y","Y")),
+  (90, ("z","Z")),
+  (49, "1"),
+  (50, "2"),
+  (51, "3"),
+  (52, "4"),
+  (53, "5"),
+  (54, "6"),
+  (55, "7"),
+  (56, "8"),
+  (57, "9"),
+  (48, "0"),
+  (190, "."),
+  (188, ","),
+  (186, ";"),
+  (0xBD, "-"), # VK_OEM_MINUS
+  (187, "="),
+  (191, "/"),
+  (220, "\\"),
+  (222, "'"),
+  (219, ("[","{")),
+  (221, ("]","}")),
+  (13, ""), # "ENTER"
+  (32, ""), # "SPACE"
+  (8, ""), # "BACKSPACE"
+  (9, ""), # "TAB"
+  (445, "_"), # "UNDERSCORE"
+  (0xC0, "~"), # Keyboard Non-US # and ~
+  (0x0D, ""), # VK_RETURN, ENTER
+ ])
+
 class KeyboardStatusWidget (QWidget):
   updateStatusSignal = pyqtSignal(list, list, list)
 
@@ -281,10 +337,41 @@ class Window (QDialog):
     self.keyboardStatusWidget = KeyboardStatusWidget()
     mainLayout = QVBoxLayout()
     mainLayout.addWidget(self.keyboardStatusWidget)
+
+    try:
+      self._show_last_n_chars = int(clientconfig.get("show_last_n_chars", "20"), 10)
+    except ValueError:
+      self._show_last_n_chars = 0
+
+    if self._show_last_n_chars > 0:
+      self._last_n_chars = []
+      self._show_last_n_chars_label = QLabel()
+      label = self._show_last_n_chars_label
+      label.setContentsMargins(5, 5, 5, 5)
+      label.setAlignment(Qt.AlignVCenter)
+      label.setAutoFillBackground(True)
+      p = label.palette()
+      p.setColor(label.backgroundRole(), Qt.white)
+      label.setPalette(p)
+      fontsize = 10
+      label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
+                   .format(text="", fontsize=fontsize))
+      mainLayout.addWidget(label)
+
     self.setLayout(mainLayout)
+    self.setContentsMargins(0, 0, 0, 0)
 
     self.setWindowTitle("Relay Keys Display")
     self.resize(400, 250)
+
+  def updateShowLastChars (self):
+    label = self._show_last_n_chars_label
+    if label is None:
+      return
+    fontsize = 10
+    text = " ".join(self._last_n_chars)
+    label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
+                    .format(text=text, fontsize=fontsize))
 
   def createTrayIcon (self):
     self.trayIconMenu = QMenu(self)
@@ -315,8 +402,13 @@ class Window (QDialog):
     QMessageBox.critical(None, "MorseWriter Error", msg)
 
   def client_worker (self, queue):
+    lasttime = time()
     while True:
-      sleep(0.050)
+      ctime = time()
+      sleeptime = 0.050 - (ctime - lasttime)
+      if sleeptime > 0:
+        sleep(sleeptime)
+      lasttime = ctime
       inputlist = []
       try:
         while True:
@@ -328,6 +420,15 @@ class Window (QDialog):
         if have_exit:
           break
         # expecting the rest are actions
+        # merge mousemove actions
+        mousemove_list = tuple(filter(lambda a: a[0] == 'mousemove', inputlist))
+        if len(mousemove_list) > 1:
+          inputlist = list(filter(lambda a: a[0] != 'mousemove', inputlist))
+          mousemove = [ 'mousemove' ]
+          for i in range(1, 5):
+            mousemove.append(sum(map(lambda a: a[i] if len(a) > i else 0, mousemove_list)))
+          inputlist.append(tuple(mousemove))
+        # send actions
         self.client_send_actions(inputlist)
 
   def client_send_actions (self, actions):
@@ -398,6 +499,16 @@ class Window (QDialog):
       return True
     self.updateKeyboardState()
     if key is not None:
+      if self._show_last_n_chars > 0:
+        chr = char_keysmap.get(event.KeyID, None)
+        if chr is not None and len(chr) > 0:
+          if isinstance(chr, (tuple)):
+            chr = chr[0] if len(chr) == 1 or \
+              ("LSHIFT" not in self._modifiers and "RSHIFT" not in self._modifiers) else chr[1]
+          while len(self._last_n_chars) >= self._show_last_n_chars:
+            self._last_n_chars.pop(0)
+          self._last_n_chars.append(chr)
+          self.updateShowLastChars()
       self.send_action('keyevent', key, self._modifiers, True)
       return False
     elif mod is not None:
