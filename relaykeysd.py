@@ -80,6 +80,9 @@ class CommandException (BaseException):
 class RPCServExitException (BaseException):
   pass
 
+class AppExitException (BaseException):
+  pass
+
 class RequestHandler (BaseRequestHandler):
   def log(self, type, message, *args):
     # treat `info` logs as `debug
@@ -97,10 +100,25 @@ def rpc_server_worker(host, port, username, password, queue):
   password = int(sha256(bytes(password, "utf8")).hexdigest(), 16)
 
   @dispatcher.add_method
+  def actions (args):
+    try:
+      actionlist = args[0]
+      respqueue = Queue(1)
+      for action in actionlist:
+        if action[0] not in ('mousemove', 'mousebutton', 'keyevent'):
+          raise ValueError('unknown action')
+      queue.put((respqueue, 'actions', actionlist), True)
+      try:
+        return respqueue.get(True, 5)
+      except QueueEmpty:
+        return "TIMEOUT"
+    except:
+      return "UNEXPECTED_INPUT"
+
+  @dispatcher.add_method
   def mousebutton (args):
-    btn, behavior = args
     respqueue = Queue(1)
-    queue.put(("mousebutton", respqueue, btn, behavior), True)
+    queue.put((respqueue, "mousebutton") + tuple(args), True)
     try:
       return respqueue.get(True, 5)
     except QueueEmpty:
@@ -108,9 +126,8 @@ def rpc_server_worker(host, port, username, password, queue):
   
   @dispatcher.add_method
   def mousemove (args):
-    right, down = args
     respqueue = Queue(1)
-    queue.put(("mousemove", respqueue, right, down), True)
+    queue.put(("mousemove", respqueue) + tuple(args), True)
     try:
       return respqueue.get(True, 5)
     except QueueEmpty:
@@ -120,7 +137,7 @@ def rpc_server_worker(host, port, username, password, queue):
   def keyevent (args):
     key, modifiers, down = args
     respqueue = Queue(1)
-    queue.put(("keyevent", respqueue, key, modifiers or [], down), True)
+    queue.put((respqueue, "keyevent", key, modifiers or [], down), True)
     try:
       return respqueue.get(True, 5)
     except QueueEmpty:
@@ -130,7 +147,7 @@ def rpc_server_worker(host, port, username, password, queue):
   def devicecommand (args):
     devcommand = args
     respqueue = Queue(1)
-    queue.put(("devicecommand", respqueue, devcommand), True)
+    queue.put((respqueue, "devicecommand", devcommand), True)
     try:
       return respqueue.get(True, 5)
     except QueueEmpty:
@@ -140,7 +157,7 @@ def rpc_server_worker(host, port, username, password, queue):
   @dispatcher.add_method
   def exit (args):
     respqueue = Queue(1)
-    queue.put(("exit", respqueue), True)
+    queue.put((respqueue, "exit"), True)
     try:
       respqueue.get(True, 5)
     except:
@@ -253,8 +270,8 @@ def do_main (args, config, interrupt=None):
   if queue is None:
     logging.critical("Could not start rpc server")
     return -1 # exit the process
-  while True:
-    cmd = None
+  quit = False
+  while not quit:
     try:
       if interrupt is not None:
         interrupt()
@@ -273,53 +290,60 @@ def do_main (args, config, interrupt=None):
         # Six keys for USB keyboard HID report
         # uint8_t keys[6] = {0,0,0,0,0,0}
         keys = arr.array('B', [0, 0, 0, 0, 0, 0])
-        while True:
-          if interrupt is not None:
-            interrupt()
-          try:
-            cmd = queue.get(True, QUEUE_TIMEOUT) # with timeout
-            if cmd[0] == "keyevent":
-              key = cmd[2]
-              modifiers = cmd[3]
-              down = cmd[4]
-              blehid_send_keyboardcode(ser, key, modifiers, down, keys)
-            elif cmd[0] == "mousemove":
-              right = int(cmd[2])
-              down = int(cmd[3])
-              blehid_send_movemouse(ser, right, down)
-            elif cmd[0] == "mousebutton":
-              btn = str(cmd[2]).lower() if cmd[2] is not None else None
-              behavior = str(cmd[3]).lower() if cmd[3] is not None else None
-              if len(btn) > 1 or btn not in  "lrmbf0":
-                raise CommandException("Unknown mousebutton: {}".format(btn))
-              if behavior is not None and behavior not in ("press","click","doubleclick","hold"):
-                raise CommandException("Unknown mousebutton behavior: {}".format(behavior))
-              blehid_send_mousebutton(ser, btn, behavior)
-            queue.task_done()
-            # response queue given by cmd
-            cmd[1].put("SUCCESS")
-            if cmd[0] == "exit":
-              return 0
-            cmd = None
-          except QueueEmpty:
-            pass
-          except CommandException:
-            if cmd != None:
-              cmd[1].put("FAIL")
-            cmd = None
-            logging.error(traceback.format_exc())
-    except (KeyboardInterrupt,SystemExit):
-      if cmd != None:
-        cmd[1].put("FAIL")
-      break # exit
+        try:
+          while True:
+            if interrupt is not None:
+              interrupt()
+            try:
+              cmd = queue.get(True, QUEUE_TIMEOUT) # with timeout
+              output = process_action(ser, keys, cmd[1:])
+              cmd[0].put(output)
+              queue.task_done()
+            except QueueEmpty:
+              pass
+        except AppExitException:
+          quit = True
     except:
-      if cmd != None:
-        cmd[1].put("FAIL")
       logging.error(traceback.format_exc())
       logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
       sleep(RETRY_TIMEOUT)
   logging.info("relaykeysd exit!")
   return 0
+
+
+def process_action (ser, keys, cmd):
+  try:
+    if cmd[0] == "actions":
+      outputs = []
+      for action in cmd[1]:
+        outputs.append(process_action(ser, keys, action))
+      return ", ".join(outputs)
+    if cmd[0] == "keyevent":
+      key = cmd[1]
+      modifiers = cmd[2]
+      down = cmd[3]
+      blehid_send_keyboardcode(ser, key, modifiers, down, keys)
+    elif cmd[0] == "mousemove":
+      right = int(cmd[1])
+      down = int(cmd[2])
+      wheely = int(cmd[3] if len(cmd) > 3 else 0)
+      wheelx = int(cmd[4] if len(cmd) > 4 else 0)
+      blehid_send_movemouse(ser, right, down, wheely, wheelx)
+    elif cmd[0] == "mousebutton":
+      btn = str(cmd[1]).lower() if cmd[1] is not None else None
+      behavior = str(cmd[2]).lower() if len(cmd) > 2 and cmd[2] is not None else None
+      if len(btn) > 1 or btn not in  "lrmbf0":
+        raise CommandException("Unknown mousebutton: {}".format(btn))
+      if behavior is not None and behavior not in ("press","click","doubleclick","hold"):
+        raise CommandException("Unknown mousebutton behavior: {}".format(behavior))
+      blehid_send_mousebutton(ser, btn, behavior)
+    # response queue given by cmd
+    return "SUCCESS"
+  except:
+    logging.error(traceback.format_exc())
+    return "FAIL"
+  if cmd[0] == "exit":
+    raise AppExitException()
 
 def init_logger (dirname, isdaemon, args, config):
   # init logger

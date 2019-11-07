@@ -139,7 +139,7 @@ keysmap = dict([
   (0x03, "CANCEL"), # VK_CANCEL
   (0x0C, "CLEAR"), # VK_CLEAR, Keyboard Clear
   (0x21, "PRIOR"), # VK_PRIOR, Keyboard Prior
-  (0x0D, "RETURN"), # VK_RETURN
+  (0x0D, "ENTER"), # VK_RETURN, ENTER
   (0x6C, "SEPARATOR"), # VK_SEPARATOR
   (0x5F, "POWER"), # VK_SLEEP
   (0x60, "KP_0"), # VK_NUMPAD0
@@ -252,6 +252,7 @@ class Window (QDialog):
     self._unknown_keys = []
     self._toggle_key = args.togglekey if args.togglekey != None else clientconfig.get("togglekey", None)
     self._toggle_modifiers = (args.togglemods if args.togglemods != None else clientconfig.get("togglemods", "")).split(",")
+    self._last_mouse_pos = None
 
     url = clientconfig.get("url", None) if args.url == None else args.url
     host = clientconfig.get("host", None)
@@ -268,8 +269,8 @@ class Window (QDialog):
     t = Thread(target=self.client_worker, args=(self._client_queue,))
     t.start()
 
-    self.initKeyboardHook()
-    
+    self.initHooks()
+
     #self.createTrayIcon()
     # icon = QIcon(':/.ico')
     # self.trayIcon.setIcon(icon)
@@ -281,7 +282,7 @@ class Window (QDialog):
     mainLayout = QVBoxLayout()
     mainLayout.addWidget(self.keyboardStatusWidget)
     self.setLayout(mainLayout)
-    
+
     self.setWindowTitle("Relay Keys Display")
     self.resize(400, 250)
 
@@ -293,17 +294,20 @@ class Window (QDialog):
     self.trayIcon.setContextMenu(self.trayIconMenu)
 
   def onQuit (self):
+    self._client_queue.put(("EXIT",))
     app.quit()
     # exit(0)
   
   def closeEvent(self, event):
     self._client_queue.put(("EXIT",))
 
-  def initKeyboardHook (self):
+  def initHooks (self):
     hm = PyHook3.HookManager()
     hm.KeyDown = self.onKeyboardDown
     hm.KeyUp = self.onKeyboardUp
     hm.HookKeyboard()
+    hm.MouseAll = self.onMouseEvent
+    hm.HookMouse()
     self._hookmanager = hm
     #pythoncom.PumpMessages()
 
@@ -312,34 +316,53 @@ class Window (QDialog):
 
   def client_worker (self, queue):
     while True:
-      data = queue.get(True)
-      if data[0] == "EXIT":
-        break
-      elif data[0] == "keyevent":
-        if not self.do_keyevent(*data[1:]):
-          # free the queue, to avoid multiple error messages
-          try:
-            while True:
-              queue.get(False)
-          except EmptyQueue:
-            pass
-  
-  def do_keyevent (self, key, modifiers, isdown):
+      sleep(0.050)
+      inputlist = []
+      try:
+        while True:
+          inputlist.append(queue.get(False))
+      except EmptyQueue:
+        if len(inputlist) == 0:
+          continue
+        have_exit = len(list(filter(lambda a: a[0] == 'EXIT', inputlist))) > 0
+        if have_exit:
+          break
+        # expecting the rest are actions
+        self.client_send_actions(inputlist)
+
+  def client_send_actions (self, actions):
     try:
-      ret = self.client.keyevent(key, modifiers, isdown)
+      ret = self.client.actions(actions)
       if 'result' not in ret:
-        logging.error("keyevent ({}, {}, {}) response error: {}".format(key, modifiers, isdown, ret.get("error", "undefined")))
+        logging.error("actions {} response error: {}".format(", ".join(map(str, actions)), ret.get("error", "undefined")))
         self.showErrorMessageSignal.emit("Failed to send the message!")
       else:
-        logging.info("keyevent ({}, {}, {}) response: {}".format(key, modifiers, isdown, ret["result"]))
+        logging.info("actions {} response: {}".format(", ".join(map(str, actions)), ret["result"]))
         return True
     except:
-      logging.error("keyevent ({}, {}, {}) raise: {}".format(key, modifiers, isdown, traceback.format_exc()))
+      logging.error("actions {} raise: {}".format(", ".join(map(str, actions)), traceback.format_exc()))
+      self.showErrorMessageSignal.emit("Failed to send the message!")
+    return False
+
+  def client_send_action (self, action, *args):
+    try:
+      func = getattr(self.client, action, None)
+      if func == None:
+        raise ValueError("unknown action: {}".format(action))
+      ret = func(*args)
+      if 'result' not in ret:
+        logging.error("{} ({}) response error: {}".format(action, ", ".join(map(str, args)), ret.get("error", "undefined")))
+        self.showErrorMessageSignal.emit("Failed to send the message!")
+      else:
+        logging.info("{} ({}) response: {}".format(action, ", ".join(map(str, args)), ret["result"]))
+        return True
+    except:
+      logging.error("{} ({}) raise: {}".format(action, ", ".join(map(str, args)), traceback.format_exc()))
       self.showErrorMessageSignal.emit("Failed to send the message!")
     return False
   
-  def keyevent (self, key, modifiers, isdown):
-    self._client_queue.put(("keyevent", key, modifiers, isdown))
+  def send_action (self, action, *args):
+    self._client_queue.put((action,) + args)
 
   def _keyboardToggleCheck (self, key):
     mods = self._modifiers
@@ -375,11 +398,11 @@ class Window (QDialog):
       return True
     self.updateKeyboardState()
     if key is not None:
-      self.keyevent(key, self._modifiers, True)
+      self.send_action('keyevent', key, self._modifiers, True)
       return False
     elif mod is not None:
       # set the modifiers
-      self.keyevent(None, self._modifiers, False)
+      self.send_action('keyevent', None, self._modifiers, False)
       return False
     return True
   
@@ -399,13 +422,44 @@ class Window (QDialog):
       return True
     self.updateKeyboardState()
     if key is not None:
-      self.keyevent(key, self._modifiers, False)
+      self.send_action('keyevent', key, self._modifiers, False)
       return False
     elif mod is not None:
       # set the modifiers
-      self.keyevent(None, self._modifiers, False)
+      self.send_action('keyevent', None, self._modifiers, False)
       return False
     return True
+
+  def onMouseEvent (self, event):
+    if self._disabled:
+      return True
+    if event.Message == PyHook3.HookConstants.WM_MOUSEMOVE:
+      if self._last_mouse_pos is None:
+        self._last_mouse_pos = event.Position
+        return True
+      dx, dy = event.Position[0] - self._last_mouse_pos[0], event.Position[1] - self._last_mouse_pos[1]
+      self.send_action('mousemove', dx, dy)
+    elif event.Message == PyHook3.HookConstants.WM_LBUTTONDOWN:
+      self.send_action('mousebutton', 'l', 'press')
+    elif event.Message == PyHook3.HookConstants.WM_LBUTTONUP:
+      self.send_action('mousebutton', '0')
+    elif event.Message == PyHook3.HookConstants.WM_LBUTTONDBLCLK:
+      self.send_action('mousebutton', 'l', 'doubleclick')
+    elif event.Message == PyHook3.HookConstants.WM_RBUTTONDOWN:
+      self.send_action('mousebutton', 'r', 'press')
+    elif event.Message == PyHook3.HookConstants.WM_RBUTTONUP:
+      self.send_action('mousebutton', '0')
+    elif event.Message == PyHook3.HookConstants.WM_RBUTTONDBLCLK:
+      self.send_action('mousebutton', 'r', 'doubleclick')
+    elif event.Message == PyHook3.HookConstants.WM_MBUTTONDOWN:
+      self.send_action('mousebutton', 'm', 'press')
+    elif event.Message == PyHook3.HookConstants.WM_MBUTTONUP:
+      self.send_action('mousebutton', '0')
+    elif event.Message == PyHook3.HookConstants.WM_MBUTTONDBLCLK:
+      self.send_action('mousebutton', 'm', 'doubleclick')
+    elif event.Message == PyHook3.HookConstants.WM_MOUSEWHEEL:
+      self.send_action('mousemove', 0, 0, event.Wheel)
+    return False
 
   def onUpdateKeyState (self):
     """This update event handler is used to update shown state of keyboard
@@ -414,7 +468,7 @@ class Window (QDialog):
     
   def updateKeyboardState (self):
     if self._keystate_update_timer != None:
-        self._keystate_update_timer.cancel()
+      self._keystate_update_timer.cancel()
     self._keystate_update_timer = Timer(0.05, self.onUpdateKeyState)
     self._keystate_update_timer.start()
 

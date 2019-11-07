@@ -108,16 +108,22 @@ void toLower(char *s) {
 
 void sendBLEMouseMove (char *line) {
   char buff[256];
-  err_t ret;
+  err_t ret = 1;
   int32_t x = 0;
   int32_t y = 0;
-  // expected input, X,Y
+  int32_t wy = 0;
+  int32_t wx = 0;
+  // expected input, X,Y,WY,WX
   char *p = strtok(line, ",");
   for (size_t i = 0; p != NULL; i++) {
     if (i == 0) { // X
       x = strtol(p, NULL, 10);
     } else  if (i == 1) { // Y
       y = strtol(p, NULL, 10);
+    } else if (i == 2) {
+      wy = strtol(p, NULL, 10);
+    } else if (i == 3) {
+      wx = strtol(p, NULL, 10);
     } else {
       // Invalid input
       Serial.println("INVALID_INPUT");
@@ -125,11 +131,27 @@ void sendBLEMouseMove (char *line) {
     }
     p = strtok(NULL, ",");
   }
-  ret = blehid.mouseMove(x, y);
+  if (x != 0 || y != 0) {
+    ret = blehid.mouseMove(x, y);
+  }
   if ((int)ret != 1) {
     snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
     Serial.println();
   } else {
+    if (wy != 0) {
+      ret = blehid.mouseScroll(wy);
+    }
+    if ((int)ret != 1) {
+      snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
+      Serial.println();
+    }
+    if (wx != 0) {
+      ret = blehid.mousePan(wx);
+    }
+    if ((int)ret != 1) {
+      snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
+      Serial.println();
+    }
     Serial.println("OK");
   }
 }

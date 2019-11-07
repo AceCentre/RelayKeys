@@ -144,7 +144,7 @@ def _write_atcmd (ser, msg):
   if not isinstance(msg, bytes):
     msg = msg.encode()
   logging.debug("request: {}".format(msg if isinstance(msg, str) else str(msg, "utf8")))
-  ser.write(msg)
+  ser.write(msg + b"\r\n")
   ser.flushInput()
 
 def _read_response (ser, n=1):
@@ -157,36 +157,42 @@ def _read_response (ser, n=1):
   return msg
 
 def blehid_init_serial (ser):
-  _write_atcmd(ser, "AT\r")
+  _write_atcmd(ser, "AT")
   _read_response(ser)
-  # _write_atcmd(ser, "ATI\r")
+  # _write_atcmd(ser, "ATI")
   # _read_response(ser, n=8)
-  _write_atcmd(ser, "ATE=0\r")
+  _write_atcmd(ser, "ATE=0")
   _read_response(ser)
-  _write_atcmd(ser, "AT+BLEHIDEN=1\r")
+  _write_atcmd(ser, "AT+BLEHIDEN=1")
   if _read_response(ser).upper() == "ERROR":
     # running older framework < 0.6.6, fallback to enable keyboard
-    _write_atcmd(ser, "AT+BLEKEYBOARDEN=1\r")
+    _write_atcmd(ser, "AT+BLEKEYBOARDEN=1")
     _read_response(ser)
-  _write_atcmd(ser, "ATZ\r")
+  _write_atcmd(ser, "ATZ")
   _read_response(ser)
 
 MOUSE_MAX_MOVE=2500
 
-def blehid_send_movemouse (ser, right, down):
+def blehid_send_movemouse (ser, right, down, wheely, wheelx):
   right = max(-1 * MOUSE_MAX_MOVE, right) if right < 0 else min(MOUSE_MAX_MOVE, right)
   down = max(-1 * MOUSE_MAX_MOVE, down) if down < 0 else min(MOUSE_MAX_MOVE, down)
-  while right != 0 or down != 0:
+  wheely = max(-1 * MOUSE_MAX_MOVE, wheely) if wheely < 0 else min(MOUSE_MAX_MOVE, wheely)
+  wheelx = max(-1 * MOUSE_MAX_MOVE, wheelx) if wheelx < 0 else min(MOUSE_MAX_MOVE, wheelx)
+  while right != 0 or down != 0 or wheelx != 0 or wheely != 0:
     rmove = max(-128, min(right, 127))
     dmove = max(-128, min(down, 127))
-    atcmd = "AT+BLEHIDMOUSEMOVE={},{}\r".format(rmove, dmove)
+    wymove = max(-128, min(wheely, 127))
+    wxmove = max(-128, min(wheelx, 127))
+    atcmd = "AT+BLEHIDMOUSEMOVE={},{},{},{}".format(rmove, dmove, wymove, wxmove)
     _write_atcmd(ser, atcmd)
     _read_response(ser)
     right -= rmove
     down -= dmove
+    wheely -= wymove
+    wheelx -= wxmove
 
 def blehid_send_mousebutton (ser, btn, behavior=None):
-  atcmd = "AT+BLEHIDMOUSEBUTTON={}{}\r".format(btn, "" if behavior is None else "," + behavior)
+  atcmd = "AT+BLEHIDMOUSEBUTTON={}{}".format(btn, "" if behavior is None else "," + behavior)
   _write_atcmd(ser, atcmd)
   _read_response(ser)
 
@@ -220,15 +226,15 @@ def blehid_send_keyboardcode (ser, key, modifiers, down, keys):
             atcmd += "-{:02x}".format(keys[i])
         else:
             zerocmd += "-00"
-    atcmd += zerocmd + "\r"
+    atcmd += zerocmd
     _write_atcmd(ser, atcmd)
     _read_response(ser)
 
 def blehid_send_devicecommand(ser, devicecommand):
     logging.debug('device command:'+str(devicecommand))
     if devicecommand == 'drop-bonded-device':
-        _write_atcmd(ser, "AT+GAPDISCONNECT\r")
+        _write_atcmd(ser, "AT+GAPDISCONNECT")
         _read_response(ser)
-        _write_atcmd(ser, "AT+GAPDELBONDS\r")
+        _write_atcmd(ser, "AT+GAPDELBONDS")
         _read_response(ser)
         logging.debug('Reset BT device')
