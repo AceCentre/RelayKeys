@@ -399,7 +399,7 @@ class Window (QDialog):
     #pythoncom.PumpMessages()
 
   def showErrorMessage (self, msg):
-    QMessageBox.critical(None, "MorseWriter Error", msg)
+    QMessageBox.critical(None, "RelayKeys Error", msg)
 
   def client_worker (self, queue):
     lasttime = time()
@@ -611,7 +611,7 @@ def main ():
     return app.exec_()
   except:
     raise
-    #QMessageBox.critical(None, "MorseWriter Fatal Error", "{}".format(traceback.format_exc()))
+    #QMessageBox.critical(None, "RelayKeys Fatal Error", "{}".format(traceback.format_exc()))
     #return 1
 
 if __name__ == '__main__':
