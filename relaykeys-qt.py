@@ -400,6 +400,7 @@ class Window (QDialog):
 
   def showErrorMessage (self, msg):
     QMessageBox.critical(None, "RelayKeys Error", msg)
+    self._disabled = True
 
   def client_worker (self, queue):
     lasttime = time()
@@ -429,7 +430,14 @@ class Window (QDialog):
             mousemove.append(sum(map(lambda a: a[i] if len(a) > i else 0, mousemove_list)))
           inputlist.append(tuple(mousemove))
         # send actions
-        self.client_send_actions(inputlist)
+        if not self.client_send_actions(inputlist):
+          # an error occurred, empty out the queue
+          try:
+            while True:
+              queue.get(False)
+          except EmptyQueue:
+            pass
+
 
   def client_send_actions (self, actions):
     try:
