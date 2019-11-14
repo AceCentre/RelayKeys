@@ -144,6 +144,7 @@ void sendBLEMouseMove (char *line) {
     if ((int)ret != 1) {
       snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
       Serial.println();
+      return;
     }
     if (wx != 0) {
       ret = blehid.mousePan(wx);
@@ -151,6 +152,7 @@ void sendBLEMouseMove (char *line) {
     if ((int)ret != 1) {
       snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
       Serial.println();
+      return;
     }
     Serial.println("OK");
   }
@@ -277,7 +279,7 @@ void execute(char *myLine) {
     }
   }
   // Command not found so just send OK. Should send ERROR at some point.
-  Serial.println("UNKNOWN CMD");
+  Serial.println("OK");
 }
 
 void cli_loop()
@@ -292,7 +294,6 @@ void cli_loop()
         case '\n':
           break;
         case '\r':
-          Serial.println();
           myLine[bytesIn] = '\0';
           execute(myLine);
           bytesIn = 0;
@@ -300,11 +301,9 @@ void cli_loop()
         case '\b':  // backspace
           if (bytesIn > 0) {
             bytesIn--;
-            Serial.print((char)b); Serial.print(' '); Serial.print((char)b);
           }
           break;
         default:
-          Serial.print((char)b);
           myLine[bytesIn++] = (char)b;
           if (bytesIn >= sizeof(myLine)-1) {
             myLine[bytesIn] = '\0';
