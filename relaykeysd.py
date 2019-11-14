@@ -123,7 +123,7 @@ def rpc_server_worker(host, port, username, password, queue):
   @dispatcher.add_method
   def mousemove (args):
     respqueue = Queue(1)
-    queue.put(("mousemove", respqueue) + tuple(args), True)
+    queue.put((respqueue, "mousemove") + tuple(args), True)
     try:
       return respqueue.get(True, 5)
     except QueueEmpty:
