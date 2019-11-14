@@ -136,14 +136,14 @@ void sendBLEMouseMove (char *line) {
   }
   if ((int)ret != 1) {
     snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
-    Serial.println();
+    Serial.println(buff);
   } else {
     if (wy != 0) {
       ret = blehid.mouseScroll(wy);
     }
     if ((int)ret != 1) {
       snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
-      Serial.println();
+      Serial.println(buff);
       return;
     }
     if (wx != 0) {
@@ -151,7 +151,7 @@ void sendBLEMouseMove (char *line) {
     }
     if ((int)ret != 1) {
       snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
-      Serial.println();
+      Serial.println(buff);
       return;
     }
     Serial.println("OK");
@@ -231,7 +231,7 @@ void sendBLEMouseButton (char *line) {
   }
   if ((int)ret != 1) {
     snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
-    Serial.println();
+    Serial.println(buff);
   } else {
     Serial.println("OK");
   }
@@ -252,7 +252,7 @@ void sendBLEKeyboardCode(char *myLine) {
   ret = blehid.keyboardReport(keys[0], &keys[2]);
   if ((int)ret != 1) {
     snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
-    Serial.println();
+    Serial.println(buff);
   } else {
     Serial.println("OK");
   }
