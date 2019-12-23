@@ -1,4 +1,4 @@
-pygame==1.9.4
+#pygame==1.9.4
 pyserial==3.4
 json-rpc==1.12.1
 Werkzeug==0.14.1

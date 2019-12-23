@@ -354,7 +354,7 @@ def init_logger (dirname, isdaemon, args, config):
   # logging file handler
   if args.logfile is None:
     logfile = config.get("logfile", None)
-    if os.path.abspath(logfile) != logfile:
+    if logfile is not None and os.path.abspath(logfile) != logfile:
       logfile = os.path.join(dirname, logfile)
   else:
     logfile = args.logfile

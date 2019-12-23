@@ -22,6 +22,8 @@
 BLEDis bledis;
 BLEHidAdafruit blehid;
 
+#define DEFAULT_CONN_HANDLE BLE_CONN_HANDLE_INVALID
+
 void set_keyboard_led(uint8_t led_bitmap);
 
 void setup() 
@@ -132,14 +134,14 @@ void sendBLEMouseMove (char *line) {
     p = strtok(NULL, ",");
   }
   if (x != 0 || y != 0) {
-    ret = blehid.mouseMove(x, y);
+    ret = blehid.mouseMove(DEFAULT_CONN_HANDLE, x, y);
   }
   if ((int)ret != 1) {
     snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
     Serial.println(buff);
   } else {
     if (wy != 0) {
-      ret = blehid.mouseScroll(wy);
+      ret = blehid.mouseScroll(DEFAULT_CONN_HANDLE, wy);
     }
     if ((int)ret != 1) {
       snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
@@ -147,7 +149,7 @@ void sendBLEMouseMove (char *line) {
       return;
     }
     if (wx != 0) {
-      ret = blehid.mousePan(wx);
+      ret = blehid.mousePan(DEFAULT_CONN_HANDLE, wx);
     }
     if ((int)ret != 1) {
       snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
@@ -204,29 +206,29 @@ void sendBLEMouseButton (char *line) {
     p = strtok(NULL, ",");
   }
   if (b != 0 && mode == 1) { // CLICK
-    ret = blehid.mouseButtonPress(b);
+    ret = blehid.mouseButtonPress(DEFAULT_CONN_HANDLE, b);
     if (ret == 1) {
       delay(40);
-      ret = blehid.mouseButtonRelease();
+      ret = blehid.mouseButtonRelease(DEFAULT_CONN_HANDLE);
     }
   } else if (b != 0 && mode == 2) { // DOUBLECLICK
-    ret = blehid.mouseButtonPress(b);
+    ret = blehid.mouseButtonPress(DEFAULT_CONN_HANDLE, b);
     if (ret == 1) {
       delay(40);
-      ret = blehid.mouseButtonRelease();
+      ret = blehid.mouseButtonRelease(DEFAULT_CONN_HANDLE);
     }
     if (ret == 1) {
-      ret = blehid.mouseButtonPress(b);
+      ret = blehid.mouseButtonPress(DEFAULT_CONN_HANDLE, b);
     }
     if (ret == 1) {
       delay(40);
-      ret = blehid.mouseButtonRelease();
+      ret = blehid.mouseButtonRelease(DEFAULT_CONN_HANDLE);
     }
   } else { // PRESS/RELEASE
     if (b == 0) {
-      ret = blehid.mouseButtonRelease();
+      ret = blehid.mouseButtonRelease(DEFAULT_CONN_HANDLE);
     } else {
-      ret = blehid.mouseButtonPress(b);
+      ret = blehid.mouseButtonPress(DEFAULT_CONN_HANDLE, b);
     }
   }
   if ((int)ret != 1) {
@@ -249,7 +251,7 @@ void sendBLEKeyboardCode(char *myLine) {
     keys[i] = strtoul(p, NULL, 16);
     p = strtok(NULL, "-");
   }
-  ret = blehid.keyboardReport(keys[0], &keys[2]);
+  ret = blehid.keyboardReport(DEFAULT_CONN_HANDLE, keys[0], &keys[2]);
   if ((int)ret != 1) {
     snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
     Serial.println(buff);
