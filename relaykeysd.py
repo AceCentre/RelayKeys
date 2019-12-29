@@ -251,7 +251,7 @@ class DummySerial (object):
   def flushInput (self):
     pass
   def readline (self):
-    return "OK\n"
+    return b"OK\n"
 
 def do_main (args, config, interrupt=None):
   # actions queue
