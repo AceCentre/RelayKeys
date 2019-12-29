@@ -66,7 +66,7 @@ def do_keyevent (client, key, modifiers, isdown):
   else:
     logging.info("keyevent ({}, {}, {}) response: {}".format(key, modifiers, isdown, ret["result"]))
 
-def do_mousemove (client, right, down):
+def do_mousemove (client, right, down, wy, wx):
   """Sends a mouse move event to the daemon
 
     For example - move mouse right n pixels and down n pixels. To move left or up - use negative numbers. 
@@ -82,7 +82,7 @@ def do_mousemove (client, right, down):
     Raises:
         Logging error
   """
-  ret = client.mousemove(right, down)
+  ret = client.mousemove(right, down, wy, wx)
   if 'result' not in ret:
     logging.error("mousemove ({}, {}) response error: {}".format(right, down, ret.get("error", "undefined")))
     raise CommandErrorResponse()
@@ -148,7 +148,7 @@ nonchars_key_map = {
   "}": ("RIGHTBRACKET", ["LSHIFT"]),
   "\\": ("BACKSLASH", []),
   "|": ("BACKSLASH", ["LSHIFT"]),
-  "\n": ("RETURN", ["LSHIFT"]),
+  "\n": ("ENTER", ["LSHIFT"]), # In some apps textfield requires holding shift in order to go to next line, Like most IMs
   ",": ("COMMA", []),
   ".": ("PERIOD", []),
   "<": ("COMMA", ["LSHIFT"]),
@@ -183,7 +183,7 @@ def do_main (args, config):
   for cmd in args.commands:
     name, data = parse_commamd(cmd)
     if name == "type":
-      for char in data:
+      def type_char (char):
         key, mods = char_to_keyevent_params(char)
         if key is not None:
           do_keyevent(client, key, mods, True)
@@ -192,6 +192,22 @@ def do_main (args, config):
           do_keyevent(client, key, mods, False)
           if delay > 0:
             sleep(delay/1000.0)
+      escapedict = { "t": "\t", "n": "\n", "r": "\r" }
+      escaped = False
+      for char in data:
+        if char == "\\":
+          if not escaped:
+            escaped = True
+            continue
+          else:
+            escaped = False
+        elif escaped:
+          escaped = False
+          if char in escapedict:
+            char = escapedict[char]
+          else:
+            type_char("\\")
+        type_char(char)
     elif name == "paste":
       data = pyperclip.paste()
       for char in data:
@@ -230,7 +246,9 @@ def do_main (args, config):
       parts = data.split(",")
       right = parts[0]
       down = parts[1]
-      do_mousemove(client, right, down)
+      wy = parts[2] if len(parts) > 2 else 0
+      wx = parts[3] if len(parts) > 3 else 0
+      do_mousemove(client, right, down, wy, wx)
       if delay > 0:
         sleep(delay/1000.0)
     elif name == "mousebutton":

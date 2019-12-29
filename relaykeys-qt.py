@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from time import sleep
+from time import sleep, time
 from sys import exit, argv
 import sys
 
@@ -14,10 +14,10 @@ from relaykeysclient import RelayKeysClient
 
 import PyHook3
 
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, pyqtSlot
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QApplication, QSystemTrayIcon, \
-  QMessageBox, QLabel, QAction, QMenu, QDialog
+  QMessageBox, QLabel, QAction, QMenu, QDialog, QPushButton
 from struct import pack, unpack
 import win32api, win32con
 import pythoncom
@@ -32,10 +32,6 @@ parser.add_argument('--config', '-c', dest='config',
                     default=None, help='Path to config file')
 parser.add_argument('--url', '-u', dest='url', default=None,
                     help='rpc http url, default: http://localhost:5383/')
-parser.add_argument('--togglekey', dest='togglekey', default=None,
-                    help='A key to disable/enable relay keys: default: None')
-parser.add_argument('--togglemods', dest='togglemods', default=None,
-                    help='List of required modifiers for toggle key separated by comma, default: None')
 
 modifiers_map = dict([
   (162, "LCTRL"),
@@ -44,6 +40,8 @@ modifiers_map = dict([
   (161, "RSHIFT"),
   (165, "RALT"),
   (164, "LALT"),
+  (0x5B, "LMETA"),
+  (0x5C, "RMETA"),
 ])
 
 keysmap = dict([
@@ -109,8 +107,6 @@ keysmap = dict([
   (35, "END"),
   (45, "INSERT"),
   (46, "DELETE"),
-  (0x5B, "LGUI"),
-  (0x5C, "RGUI"),
   (93, "APP"), # Applications key
   (20, "CAPSLOCK"),
   (112, "F1"),
@@ -139,7 +135,7 @@ keysmap = dict([
   (0x03, "CANCEL"), # VK_CANCEL
   (0x0C, "CLEAR"), # VK_CLEAR, Keyboard Clear
   (0x21, "PRIOR"), # VK_PRIOR, Keyboard Prior
-  (0x0D, "RETURN"), # VK_RETURN
+  (0x0D, "ENTER"), # VK_RETURN, ENTER
   (0x6C, "SEPARATOR"), # VK_SEPARATOR
   (0x5F, "POWER"), # VK_SLEEP
   (0x60, "KP_0"), # VK_NUMPAD0
@@ -158,6 +154,62 @@ keysmap = dict([
   (0x6B, "KP_PLUS"),
   (0x6D, "KP_MINUS"),
   (0x03, "CANCEL"), # VK_CANCEL
+ ])
+
+char_keysmap = dict([
+  (65, ("a","A")),
+  (66, ("b","B")),
+  (67, ("c","C")),
+  (68, ("d","D")),
+  (69, ("e","E")),
+  (70, ("f","F")),
+  (71, ("g","G")),
+  (72, ("h","H")),
+  (73, ("i","I")),
+  (74, ("j","J")),
+  (75, ("k","K")),
+  (76, ("l","L")),
+  (77, ("m","M")),
+  (78, ("n","N")),
+  (79, ("o","O")),
+  (80, ("p","P")),
+  (81, ("q","Q")),
+  (82, ("r","R")),
+  (83, ("s","S")),
+  (84, ("t","T")),
+  (85, ("u","U")),
+  (86, ("v","V")),
+  (87, ("w","W")),
+  (88, ("x","X")),
+  (89, ("y","Y")),
+  (90, ("z","Z")),
+  (49, "1"),
+  (50, "2"),
+  (51, "3"),
+  (52, "4"),
+  (53, "5"),
+  (54, "6"),
+  (55, "7"),
+  (56, "8"),
+  (57, "9"),
+  (48, "0"),
+  (190, "."),
+  (188, ","),
+  (186, ";"),
+  (0xBD, "-"), # VK_OEM_MINUS
+  (187, "="),
+  (191, "/"),
+  (220, "\\"),
+  (222, "'"),
+  (219, ("[","{")),
+  (221, ("]","}")),
+  (13, ""), # "ENTER"
+  (32, ""), # "SPACE"
+  (8, ""), # "BACKSPACE"
+  (9, ""), # "TAB"
+  (445, "_"), # "UNDERSCORE"
+  (0xC0, "~"), # Keyboard Non-US # and ~
+  (0x0D, ""), # VK_RETURN, ENTER
  ])
 
 class KeyboardStatusWidget (QWidget):
@@ -245,13 +297,17 @@ class Window (QDialog):
     clientconfig = config["client"]
 
     self.showErrorMessageSignal.connect(self.showErrorMessage)
-    self._disabled = False
+    self._keyboard_disabled = False
+    self._mouse_disabled = False
     self._keystate_update_timer = None
     self._keys = []
     self._modifiers = []
     self._unknown_keys = []
-    self._toggle_key = args.togglekey if args.togglekey != None else clientconfig.get("togglekey", None)
-    self._toggle_modifiers = (args.togglemods if args.togglemods != None else clientconfig.get("togglemods", "")).split(",")
+    self._keyboard_toggle_key = clientconfig.get("keyboard_togglekey", 'A')
+    self._keyboard_toggle_modifiers = clientconfig.get("keyboard_togglemods", "RALT").split(",")
+    self._mouse_toggle_key = clientconfig.get("mouse_togglekey", 'S')
+    self._mouse_toggle_modifiers = clientconfig.get("mouse_togglemods", "RALT").split(",")
+    self._last_mouse_pos = None
 
     url = clientconfig.get("url", None) if args.url == None else args.url
     host = clientconfig.get("host", None)
@@ -268,8 +324,8 @@ class Window (QDialog):
     t = Thread(target=self.client_worker, args=(self._client_queue,))
     t.start()
 
-    self.initKeyboardHook()
-    
+    self.initHooks()
+
     #self.createTrayIcon()
     # icon = QIcon(':/.ico')
     # self.trayIcon.setIcon(icon)
@@ -277,13 +333,98 @@ class Window (QDialog):
     # self.trayIcon.show()
 
     # self.setWindowFlags(Qt.WindowStaysOnTopHint)
-    self.keyboardStatusWidget = KeyboardStatusWidget()
     mainLayout = QVBoxLayout()
+
+    controlBar = QHBoxLayout()
+
+    keyboardControlSect = QVBoxLayout()
+    self.keyboardControlLabel = QLabel()
+    keyboardControlSect.addWidget(self.keyboardControlLabel)
+    self.keyboardToggleButton = QPushButton()
+    self.keyboardToggleButton.setText('Toggle: {}'.format(self.getShortcutText(self._keyboard_toggle_key, self._keyboard_toggle_modifiers)))
+    self.keyboardToggleButton.setToolTip('Keyboard disable toggle')
+    self.keyboardToggleButton.clicked.connect(self.didClickKeyboardToggle)
+    keyboardControlSect.addWidget(self.keyboardToggleButton)
+
+    mouseControlSect = QVBoxLayout()
+    self.mouseControlLabel = QLabel()
+    mouseControlSect.addWidget(self.mouseControlLabel)
+    self.mouseToggleButton = QPushButton()
+    self.mouseToggleButton.setText('Toggle: {}'.format(self.getShortcutText(self._mouse_toggle_key, self._mouse_toggle_modifiers)))
+    self.mouseToggleButton.setToolTip('Mouse disable toggle')
+    self.mouseToggleButton.clicked.connect(self.didClickMouseToggle)
+    mouseControlSect.addWidget(self.mouseToggleButton)
+
+    self.updateTogglesStatus()
+    controlBar.addLayout(keyboardControlSect)
+    controlBar.addLayout(mouseControlSect)
+    mainLayout.addLayout(controlBar)
+
+    self.keyboardStatusWidget = KeyboardStatusWidget()
     mainLayout.addWidget(self.keyboardStatusWidget)
+
+    try:
+      self._show_last_n_chars = int(clientconfig.get("show_last_n_chars", "20"), 10)
+    except ValueError:
+      self._show_last_n_chars = 0
+
+    if self._show_last_n_chars > 0:
+      self._last_n_chars = []
+      self._show_last_n_chars_label = QLabel()
+      label = self._show_last_n_chars_label
+      label.setContentsMargins(5, 5, 5, 5)
+      label.setAlignment(Qt.AlignVCenter)
+      label.setAutoFillBackground(True)
+      p = label.palette()
+      p.setColor(label.backgroundRole(), Qt.white)
+      label.setPalette(p)
+      fontsize = 10
+      label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
+                   .format(text="", fontsize=fontsize))
+      mainLayout.addWidget(label)
+
     self.setLayout(mainLayout)
-    
+    self.setContentsMargins(0, 0, 0, 0)
+
     self.setWindowTitle("Relay Keys Display")
     self.resize(400, 250)
+
+  def didShowWindow (self):
+    wpos = self.pos()
+    win32api.SetCursorPos((wpos.x() + 200, wpos.y() + 100))
+    print("POS", self.pos().x(), self.pos().y())
+
+  @pyqtSlot()
+  def didClickKeyboardToggle (self):
+    self._keyboard_disabled = not self._keyboard_disabled
+    self.keyboardStatusWidget.updateStatusSignal.emit([], [], [])
+    self.updateTogglesStatus()
+
+  @pyqtSlot()
+  def didClickMouseToggle (self):
+    self._mouse_disabled = not self._mouse_disabled
+    self.updateTogglesStatus()
+
+  def getShortcutText (self, key, modifiers):
+    return " + ".join(( key, ) + tuple(modifiers))
+
+  def updateTogglesStatus (self):
+    fontsize = 5
+    self.keyboardControlLabel.setText("<font style='color: {color}; font-weight:bold;' size='{fontsize}'>{text}</font>"
+                   .format(text="Keyboard Disabled" if self._keyboard_disabled else "Keyboard Enabled", fontsize=fontsize,
+                           color="#777" if self._keyboard_disabled else "#222"))
+    self.mouseControlLabel.setText("<font style='color: {color}; font-weight:bold;' size='{fontsize}'>{text}</font>"
+                   .format(text="Mouse Disabled" if self._mouse_disabled else "Mouse Enabled", fontsize=fontsize,
+                           color="#777" if self._mouse_disabled else "#222"))
+
+  def updateShowLastChars (self):
+    label = self._show_last_n_chars_label
+    if label is None:
+      return
+    fontsize = 10
+    text = " ".join(self._last_n_chars)
+    label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
+                    .format(text=text, fontsize=fontsize))
 
   def createTrayIcon (self):
     self.trayIconMenu = QMenu(self)
@@ -293,68 +434,119 @@ class Window (QDialog):
     self.trayIcon.setContextMenu(self.trayIconMenu)
 
   def onQuit (self):
+    self._client_queue.put(("EXIT",))
     app.quit()
     # exit(0)
   
   def closeEvent(self, event):
     self._client_queue.put(("EXIT",))
 
-  def initKeyboardHook (self):
+  def initHooks (self):
     hm = PyHook3.HookManager()
     hm.KeyDown = self.onKeyboardDown
     hm.KeyUp = self.onKeyboardUp
     hm.HookKeyboard()
+    hm.MouseAll = self.onMouseEvent
+    hm.HookMouse()
     self._hookmanager = hm
     #pythoncom.PumpMessages()
 
   def showErrorMessage (self, msg):
-    QMessageBox.critical(None, "MorseWriter Error", msg)
+    QMessageBox.critical(None, "RelayKeys Error", msg)
+    self._keyboard_disabled = True
 
   def client_worker (self, queue):
+    lasttime = time()
     while True:
-      data = queue.get(True)
-      if data[0] == "EXIT":
-        break
-      elif data[0] == "keyevent":
-        if not self.do_keyevent(*data[1:]):
-          # free the queue, to avoid multiple error messages
+      ctime = time()
+      sleeptime = 0.050 - (ctime - lasttime)
+      if sleeptime > 0:
+        sleep(sleeptime)
+      lasttime = ctime
+      inputlist = []
+      try:
+        while True:
+          inputlist.append(queue.get(False))
+      except EmptyQueue:
+        if len(inputlist) == 0:
+          continue
+        have_exit = len(list(filter(lambda a: a[0] == 'EXIT', inputlist))) > 0
+        if have_exit:
+          break
+        # expecting the rest are actions
+        # merge mousemove actions
+        mousemove_list = tuple(filter(lambda a: a[0] == 'mousemove', inputlist))
+        if len(mousemove_list) > 1:
+          inputlist = list(filter(lambda a: a[0] != 'mousemove', inputlist))
+          mousemove = [ 'mousemove' ]
+          for i in range(1, 5):
+            mousemove.append(sum(map(lambda a: a[i] if len(a) > i else 0, mousemove_list)))
+          inputlist.append(tuple(mousemove))
+        # send actions
+        if not self.client_send_actions(inputlist):
+          # an error occurred, empty out the queue
           try:
             while True:
               queue.get(False)
           except EmptyQueue:
             pass
-  
-  def do_keyevent (self, key, modifiers, isdown):
+
+
+  def client_send_actions (self, actions):
     try:
-      ret = self.client.keyevent(key, modifiers, isdown)
+      ret = self.client.actions(actions)
       if 'result' not in ret:
-        logging.error("keyevent ({}, {}, {}) response error: {}".format(key, modifiers, isdown, ret.get("error", "undefined")))
+        logging.error("actions {} response error: {}".format(", ".join(map(str, actions)), ret.get("error", "undefined")))
         self.showErrorMessageSignal.emit("Failed to send the message!")
       else:
-        logging.info("keyevent ({}, {}, {}) response: {}".format(key, modifiers, isdown, ret["result"]))
+        logging.info("actions {} response: {}".format(", ".join(map(str, actions)), ret["result"]))
         return True
     except:
-      logging.error("keyevent ({}, {}, {}) raise: {}".format(key, modifiers, isdown, traceback.format_exc()))
+      logging.error("actions {} raise: {}".format(", ".join(map(str, actions)), traceback.format_exc()))
+      self.showErrorMessageSignal.emit("Failed to send the message!")
+    return False
+
+  def client_send_action (self, action, *args):
+    try:
+      func = getattr(self.client, action, None)
+      if func == None:
+        raise ValueError("unknown action: {}".format(action))
+      ret = func(*args)
+      if 'result' not in ret:
+        logging.error("{} ({}) response error: {}".format(action, ", ".join(map(str, args)), ret.get("error", "undefined")))
+        self.showErrorMessageSignal.emit("Failed to send the message!")
+      else:
+        logging.info("{} ({}) response: {}".format(action, ", ".join(map(str, args)), ret["result"]))
+        return True
+    except:
+      logging.error("{} ({}) raise: {}".format(action, ", ".join(map(str, args)), traceback.format_exc()))
       self.showErrorMessageSignal.emit("Failed to send the message!")
     return False
   
-  def keyevent (self, key, modifiers, isdown):
-    self._client_queue.put(("keyevent", key, modifiers, isdown))
+  def send_action (self, action, *args):
+    self._client_queue.put((action,) + args)
 
-  def _keyboardToggleCheck (self, key):
-    mods = self._modifiers
-    if ((self._toggle_key is None and len(self._toggle_modifiers) > 0) or \
-        key == self._toggle_key) and \
-        len(self._toggle_modifiers) == len(mods):
+  def checkShortcutTrigger (self, key, mods, tkey, tmods):
+    match = False
+    if ((tkey is None and len(tmods) > 0) or key == tkey) and \
+        len(tmods) == len(mods):
       match = True
-      for mod in self._toggle_modifiers:
-        if mod not in mods:
+      for tmod in tmods:
+        if tmod not in mods:
           match = False
           break
-      if match:
-        self._disabled = not self._disabled
-        self.keyboardStatusWidget.updateStatusSignal.emit(["DISABLED"], [], [])
-        return True
+      return match
+
+  def _keyboardToggleCheck (self, key):
+    if self.checkShortcutTrigger(key, self._modifiers, self._keyboard_toggle_key, self._keyboard_toggle_modifiers):
+      self._keyboard_disabled = not self._keyboard_disabled
+      self.keyboardStatusWidget.updateStatusSignal.emit([], [], [])
+      self.updateTogglesStatus()
+      return False
+    elif self.checkShortcutTrigger(key, self._modifiers, self._mouse_toggle_key, self._mouse_toggle_modifiers):
+      self._mouse_disabled = not self._mouse_disabled
+      self.updateTogglesStatus()
+      return False
     return None
     
   def onKeyboardDown (self, event):
@@ -371,15 +563,25 @@ class Window (QDialog):
     ret = self._keyboardToggleCheck(key)
     if ret is not None:
       return ret
-    if self._disabled:
+    if self._keyboard_disabled:
       return True
     self.updateKeyboardState()
     if key is not None:
-      self.keyevent(key, self._modifiers, True)
+      if self._show_last_n_chars > 0:
+        chr = char_keysmap.get(event.KeyID, None)
+        if chr is not None and len(chr) > 0:
+          if isinstance(chr, (tuple)):
+            chr = chr[0] if len(chr) == 1 or \
+              ("LSHIFT" not in self._modifiers and "RSHIFT" not in self._modifiers) else chr[1]
+          while len(self._last_n_chars) >= self._show_last_n_chars:
+            self._last_n_chars.pop(0)
+          self._last_n_chars.append(chr)
+          self.updateShowLastChars()
+      self.send_action('keyevent', key, self._modifiers, True)
       return False
     elif mod is not None:
       # set the modifiers
-      self.keyevent(None, self._modifiers, False)
+      self.send_action('keyevent', None, self._modifiers, False)
       return False
     return True
   
@@ -395,17 +597,48 @@ class Window (QDialog):
         self._unknown_keys.remove(event.KeyID)
       except:
         pass
-    if self._disabled:
+    if self._keyboard_disabled:
       return True
     self.updateKeyboardState()
     if key is not None:
-      self.keyevent(key, self._modifiers, False)
+      self.send_action('keyevent', key, self._modifiers, False)
       return False
     elif mod is not None:
       # set the modifiers
-      self.keyevent(None, self._modifiers, False)
+      self.send_action('keyevent', None, self._modifiers, False)
       return False
     return True
+
+  def onMouseEvent (self, event):
+    if self._mouse_disabled:
+      return True
+    if event.Message == PyHook3.HookConstants.WM_MOUSEMOVE:
+      if self._last_mouse_pos is None:
+        self._last_mouse_pos = event.Position
+        return True
+      dx, dy = event.Position[0] - self._last_mouse_pos[0], event.Position[1] - self._last_mouse_pos[1]
+      self.send_action('mousemove', dx, dy)
+    elif event.Message == PyHook3.HookConstants.WM_LBUTTONDOWN:
+      self.send_action('mousebutton', 'l', 'press')
+    elif event.Message == PyHook3.HookConstants.WM_LBUTTONUP:
+      self.send_action('mousebutton', '0')
+    elif event.Message == PyHook3.HookConstants.WM_LBUTTONDBLCLK:
+      self.send_action('mousebutton', 'l', 'doubleclick')
+    elif event.Message == PyHook3.HookConstants.WM_RBUTTONDOWN:
+      self.send_action('mousebutton', 'r', 'press')
+    elif event.Message == PyHook3.HookConstants.WM_RBUTTONUP:
+      self.send_action('mousebutton', '0')
+    elif event.Message == PyHook3.HookConstants.WM_RBUTTONDBLCLK:
+      self.send_action('mousebutton', 'r', 'doubleclick')
+    elif event.Message == PyHook3.HookConstants.WM_MBUTTONDOWN:
+      self.send_action('mousebutton', 'm', 'press')
+    elif event.Message == PyHook3.HookConstants.WM_MBUTTONUP:
+      self.send_action('mousebutton', '0')
+    elif event.Message == PyHook3.HookConstants.WM_MBUTTONDBLCLK:
+      self.send_action('mousebutton', 'm', 'doubleclick')
+    elif event.Message == PyHook3.HookConstants.WM_MOUSEWHEEL:
+      self.send_action('mousemove', 0, 0, event.Wheel)
+    return False
 
   def onUpdateKeyState (self):
     """This update event handler is used to update shown state of keyboard
@@ -414,7 +647,7 @@ class Window (QDialog):
     
   def updateKeyboardState (self):
     if self._keystate_update_timer != None:
-        self._keystate_update_timer.cancel()
+      self._keystate_update_timer.cancel()
     self._keystate_update_timer = Timer(0.05, self.onUpdateKeyState)
     self._keystate_update_timer.start()
 
@@ -443,10 +676,11 @@ def main ():
     QApplication.setQuitOnLastWindowClosed(True)
     window = Window(args, config)
     window.show()
+    window.didShowWindow()
     return app.exec_()
   except:
     raise
-    #QMessageBox.critical(None, "MorseWriter Fatal Error", "{}".format(traceback.format_exc()))
+    #QMessageBox.critical(None, "RelayKeys Fatal Error", "{}".format(traceback.format_exc()))
     #return 1
 
 if __name__ == '__main__':

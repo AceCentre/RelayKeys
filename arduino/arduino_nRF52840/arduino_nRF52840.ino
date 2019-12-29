@@ -22,6 +22,8 @@
 BLEDis bledis;
 BLEHidAdafruit blehid;
 
+#define DEFAULT_CONN_HANDLE BLE_CONN_HANDLE_INVALID
+
 void set_keyboard_led(uint8_t led_bitmap);
 
 void setup() 
@@ -108,16 +110,22 @@ void toLower(char *s) {
 
 void sendBLEMouseMove (char *line) {
   char buff[256];
-  err_t ret;
+  err_t ret = 1;
   int32_t x = 0;
   int32_t y = 0;
-  // expected input, X,Y
+  int32_t wy = 0;
+  int32_t wx = 0;
+  // expected input, X,Y,WY,WX
   char *p = strtok(line, ",");
   for (size_t i = 0; p != NULL; i++) {
     if (i == 0) { // X
       x = strtol(p, NULL, 10);
     } else  if (i == 1) { // Y
       y = strtol(p, NULL, 10);
+    } else if (i == 2) {
+      wy = strtol(p, NULL, 10);
+    } else if (i == 3) {
+      wx = strtol(p, NULL, 10);
     } else {
       // Invalid input
       Serial.println("INVALID_INPUT");
@@ -125,11 +133,29 @@ void sendBLEMouseMove (char *line) {
     }
     p = strtok(NULL, ",");
   }
-  ret = blehid.mouseMove(x, y);
+  if (x != 0 || y != 0) {
+    ret = blehid.mouseMove(DEFAULT_CONN_HANDLE, x, y);
+  }
   if ((int)ret != 1) {
     snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
-    Serial.println();
+    Serial.println(buff);
   } else {
+    if (wy != 0) {
+      ret = blehid.mouseScroll(DEFAULT_CONN_HANDLE, wy);
+    }
+    if ((int)ret != 1) {
+      snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
+      Serial.println(buff);
+      return;
+    }
+    if (wx != 0) {
+      ret = blehid.mousePan(DEFAULT_CONN_HANDLE, wx);
+    }
+    if ((int)ret != 1) {
+      snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
+      Serial.println(buff);
+      return;
+    }
     Serial.println("OK");
   }
 }
@@ -180,34 +206,34 @@ void sendBLEMouseButton (char *line) {
     p = strtok(NULL, ",");
   }
   if (b != 0 && mode == 1) { // CLICK
-    ret = blehid.mouseButtonPress(b);
+    ret = blehid.mouseButtonPress(DEFAULT_CONN_HANDLE, b);
     if (ret == 1) {
       delay(40);
-      ret = blehid.mouseButtonRelease();
+      ret = blehid.mouseButtonRelease(DEFAULT_CONN_HANDLE);
     }
   } else if (b != 0 && mode == 2) { // DOUBLECLICK
-    ret = blehid.mouseButtonPress(b);
+    ret = blehid.mouseButtonPress(DEFAULT_CONN_HANDLE, b);
     if (ret == 1) {
       delay(40);
-      ret = blehid.mouseButtonRelease();
+      ret = blehid.mouseButtonRelease(DEFAULT_CONN_HANDLE);
     }
     if (ret == 1) {
-      ret = blehid.mouseButtonPress(b);
+      ret = blehid.mouseButtonPress(DEFAULT_CONN_HANDLE, b);
     }
     if (ret == 1) {
       delay(40);
-      ret = blehid.mouseButtonRelease();
+      ret = blehid.mouseButtonRelease(DEFAULT_CONN_HANDLE);
     }
   } else { // PRESS/RELEASE
     if (b == 0) {
-      ret = blehid.mouseButtonRelease();
+      ret = blehid.mouseButtonRelease(DEFAULT_CONN_HANDLE);
     } else {
-      ret = blehid.mouseButtonPress(b);
+      ret = blehid.mouseButtonPress(DEFAULT_CONN_HANDLE, b);
     }
   }
   if ((int)ret != 1) {
     snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
-    Serial.println();
+    Serial.println(buff);
   } else {
     Serial.println("OK");
   }
@@ -225,10 +251,10 @@ void sendBLEKeyboardCode(char *myLine) {
     keys[i] = strtoul(p, NULL, 16);
     p = strtok(NULL, "-");
   }
-  ret = blehid.keyboardReport(keys[0], &keys[2]);
+  ret = blehid.keyboardReport(DEFAULT_CONN_HANDLE, keys[0], &keys[2]);
   if ((int)ret != 1) {
     snprintf(buff, sizeof(buff), "ERROR %d", (int)ret);
-    Serial.println();
+    Serial.println(buff);
   } else {
     Serial.println("OK");
   }
@@ -255,7 +281,7 @@ void execute(char *myLine) {
     }
   }
   // Command not found so just send OK. Should send ERROR at some point.
-  Serial.println("UNKNOWN CMD");
+  Serial.println("OK");
 }
 
 void cli_loop()
@@ -270,7 +296,6 @@ void cli_loop()
         case '\n':
           break;
         case '\r':
-          Serial.println();
           myLine[bytesIn] = '\0';
           execute(myLine);
           bytesIn = 0;
@@ -278,11 +303,9 @@ void cli_loop()
         case '\b':  // backspace
           if (bytesIn > 0) {
             bytesIn--;
-            Serial.print((char)b); Serial.print(' '); Serial.print((char)b);
           }
           break;
         default:
-          Serial.print((char)b);
           myLine[bytesIn++] = (char)b;
           if (bytesIn >= sizeof(myLine)-1) {
             myLine[bytesIn] = '\0';
@@ -309,7 +332,7 @@ void loop()
  * The LED bit map is as follows: (also defined by KEYBOARD_LED_* )
  *    Kana (4) | Compose (3) | ScrollLock (2) | CapsLock (1) | Numlock (0)
  */
-void set_keyboard_led(uint8_t led_bitmap)
+void set_keyboard_led(uint16_t conn_handle, uint8_t led_bitmap)
 {
   // light up Red Led if any bits is set
   if ( led_bitmap )
