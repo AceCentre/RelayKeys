@@ -1,9 +1,9 @@
 #pygame==1.9.4
-pyserial==3.4
-json-rpc==1.12.1
-Werkzeug==0.14.1
-configparser==3.7.1
-python-daemon==2.2.3
-requests==2.21.0
-markdown==3.0.1
-pyperclip==1.7.0
+pyserial>=3.4,<4
+json-rpc>=1.12.1,<2
+Werkzeug>=0.14.1,<1
+configparser>=3.7.1,<4
+python-daemon>=2.2.3,<3
+requests>=2.21.0,<3
+markdown>=3.0.1,<4
+pyperclip>=1.7.0,<2
