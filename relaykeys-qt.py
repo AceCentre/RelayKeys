@@ -298,15 +298,15 @@ class Window (QDialog):
 
     self.showErrorMessageSignal.connect(self.showErrorMessage)
     self._keyboard_disabled = False
-    self._mouse_disabled = False
+    self._mouse_disabled = True
     self._keystate_update_timer = None
     self._keys = []
     self._modifiers = []
     self._unknown_keys = []
-    self._keyboard_toggle_key = clientconfig.get("keyboard_togglekey", 'A')
-    self._keyboard_toggle_modifiers = clientconfig.get("keyboard_togglemods", "RALT").split(",")
-    self._mouse_toggle_key = clientconfig.get("mouse_togglekey", 'S')
-    self._mouse_toggle_modifiers = clientconfig.get("mouse_togglemods", "RALT").split(",")
+    self._keyboard_toggle_key = clientconfig.get("keyboard_togglekey", "A")
+    self._keyboard_toggle_modifiers = clientconfig.get("keyboard_togglemods", "LALT").split(",")
+    self._mouse_toggle_key = clientconfig.get("mouse_togglekey", "S")
+    self._mouse_toggle_modifiers = clientconfig.get("mouse_togglemods", "LALT").split(",")
     self._last_mouse_pos = None
 
     url = clientconfig.get("url", None) if args.url == None else args.url
@@ -390,9 +390,7 @@ class Window (QDialog):
     self.resize(400, 250)
 
   def didShowWindow (self):
-    wpos = self.pos()
-    win32api.SetCursorPos((wpos.x() + 200, wpos.y() + 100))
-    print("POS", self.pos().x(), self.pos().y())
+    pass
 
   @pyqtSlot()
   def didClickKeyboardToggle (self):
