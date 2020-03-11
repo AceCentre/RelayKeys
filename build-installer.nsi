@@ -121,12 +121,12 @@ SetOutPath "$InstDir"
 File "relaykeysd-service-restart.bat"
 File /r dist\relaykeysd\*
 ;create start-menu items
-  CreateDirectory "$SMPROGRAMS\AceCentre\RelayKeys"
-  CreateShortCut "$SMPROGRAMS\AceCentre\RelayKeys\RelayKeys.lnk" "$INSTDIR\relaykeys-qt.exe" "" "$INSTDIR\relaykeys-qt.exe" 0
-  CreateShortCut "$SMPROGRAMS\AceCentre\RelayKeys\RelayKeys-Config.lnk" "$INSTDIR\relaykeys.cfg" "" "$INSTDIR\relaykeys.cfg" 0
-  CreateShortCut "$SMPROGRAMS\AceCentre\RelayKeys\Help.lnk" "$INSTDIR\README.html" "" "$INSTDIR\README.html" 0
-  CreateShortCut "$SMPROGRAMS\AceCentre\RelayKeys\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\AceCentre\RelayKeys\Restart-RelayKeys.lnk" "$INSTDIR\relaykeysd-service-restart.bat" "" "$INSTDIR\relaykeysd-service-restart.bat" 0
+  CreateDirectory "$SMPROGRAMS\Ace Centre\RelayKeys"
+  CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk" "$INSTDIR\relaykeys-qt.exe" "" "$INSTDIR\relaykeys-qt.exe" 0
+  CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-Config.lnk" "$INSTDIR\relaykeys.cfg" "" "$INSTDIR\relaykeys.cfg" 0
+  CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Help.lnk" "$INSTDIR\README.html" "" "$INSTDIR\README.html" 0
+  CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
+  CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Restart-RelayKeys.lnk" "$INSTDIR\relaykeysd-service-restart.bat" "" "$INSTDIR\relaykeysd-service-restart.bat" 0
 
 ; SimpleSC Plugin: https://nsis.sourceforge.io/NSIS_Simple_Service_Plugin
 SimpleSC::InstallService "RelayKeysDaemon" "Relay Keys Daemon" 16 2 "$INSTDIR\relaykeysd-service.exe"
@@ -152,10 +152,10 @@ DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTK
 SimpleSC::StopService "RelayKeysDaemon" 10 30
 SimpleSC::RemoveService "RelayKeysDaemon"
 Delete "$INSTDIR\uninstall.exe"
-Delete "$SMPROGRAMS\RelayKeys\RelayKeys.lnk"
-Delete "$SMPROGRAMS\RelayKeys\Help.lnk"
-Delete "$SMPROGRAMS\RelayKeys\Uninstall.lnk"
-Delete "$SMPROGRAMS\RelayKeys\Restart-RelayKeys.lnk"
-Delete "$SMPROGRAMS\RelayKeys\Restart-Config.lnk"
+Delete "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk"
+Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Help.lnk"
+Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Uninstall.lnk"
+Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Restart-RelayKeys.lnk"
+Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Restart-Config.lnk"
 RMDir /r "$INSTDIR"
 SectionEnd
