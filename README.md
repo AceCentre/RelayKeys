@@ -122,6 +122,8 @@ Although there are two bits of hardware identified you can do this with other Bl
 - **bbx10** on the adafruit forums. **bbx10** developed the Ascii to HID translation function. A massive thanks - the code is currently mostly his. He also worked out some of the early problems on speed issues we were having. You can read the full thread [here](https://forums.adafruit.com/viewtopic.php?f=53&t=145081&start=15).
 - [HID-Relay](https://github.com/juancgarcia/HID-Relay) from [juancgarcia](https://github.com/juancgarcia). Not really spent much time looking at this - but looks neat. Converts hardware keyboards to Bluetooth. 
 - [232Key](https://www.232key.com/index.html) - Converts Serial devices to Keyboard. Kind of the other way round to what we want. 
+- [BL_keyboard_RPI](https://github.com/quangthanh010290/BL_keyboard_RPI). Turns a Pi into keyboard emulator
+- [ESP32_mouse_keyboard](https://github.com/RoganDawes/esp32_mouse_keyboard). Uses a ESP32 as a mouse/keyboard over serial. Very similar idea.  (See [issue 39](https://github.com/AceCentre/RelayKeys/issues/29) for details about this in relation to using VNC (TY [@RoganDawes](https://github.com/RoganDawes)))
 
 ### And on the AAC side of things:
 
