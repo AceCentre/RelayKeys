@@ -1,7 +1,7 @@
 module.exports = {
   base: '/RelayKeys/',
   title: 'RelayKeys Docs',
-  description: 'Emulate a Keyboard Mouse with a computer! (and arduino)',
+  description: 'Emulate a Keyboard and Mouse with a computer',
   ga: 'UA-24637628-7',
   plugins: [
     '@vuepress/medium-zoom', 'vuepress-plugin-export'
