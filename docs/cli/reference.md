@@ -1,6 +1,4 @@
-# Commands
-
-## Introduction
+## Command Line flags
 
 We have created a command line interface which allows you to send mouse and keyboard commands to your RelayKeys hardware. 
 
@@ -21,6 +19,10 @@ Where 'command' and 'data' are provided below.
 
 ::: tip Remember to change your application accordingly
 We regularly use the verbose command line application 'relaykeys-cli' in this documentation. Often though you will want to use the 'relaykeys-cli-win' application that will run a little quicker and has no printed output. 
+:::
+
+::: tip If you are developing with the code
+You must make sure the daemon code is running when you call the cli files. The daemon is the code that turns these commands into the correct AT syntax and access the com port
 :::
 
 ## Command: paste

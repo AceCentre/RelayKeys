@@ -55,11 +55,10 @@ module.exports = {
         ]
       },
       {
-        title: '🚀 CLI Reference',
+        title: '🚀 Command Line Interface (CLI) Details',
         collapsable: true,
         children: [
-          '/cli/reference',
-          '/cli/relaykeys-cfg',
+          '/cli/reference'
         ]
       },
       {
@@ -67,11 +66,12 @@ module.exports = {
         collapsable: true,
         children: [
           ['/developers/architecture', 'Architecture and Getting started'],
-          ['/developers/contributing', 'Contributing'],
           ['/developers/supported-boards', 'Supported Boards and Build Instructions'],
           ['/developers/reference', 'RPC Daemon Details'],
+          ['/developers/relaykeys-cfg', 'Config file details'],
           ['/developers/other-projects', 'Other Projects'],
-          ['/developers/credits', 'Credits']
+          ['/developers/credits', 'Credits'],
+          ['/developers/contributing', 'Contributing']
         ]
       },
     ]

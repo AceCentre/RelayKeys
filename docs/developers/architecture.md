@@ -23,7 +23,7 @@ RelayKeys is a mixture of a Open Hardware board that communicates in Bluetooth L
 * ``relaykeysd.py`` - The daemon. This is what is run in the background - and controlled by the service. If you want to test RelayKeys - run this file first - and leave it running. e.g. ``python relakyeysd.py &&``. Note the command line flags in the header. 
 
 
-## Steps to run RelayKeys (non-installer method) - Windows
+## Steps to run RelayKeys (non-installer method)
 
 *Prerequisites*
 
@@ -42,5 +42,5 @@ RelayKeys is a mixture of a Open Hardware board that communicates in Bluetooth L
 
 You should, if everything is working as expected, see it type on the second device. If not have a look at the log files. 
 
-One problem may be that the daemon cant find the COM port. You can fix this by fixing the com port you found in step 2 and putting it in the config file. e.g. add ``dev=COM6`` if the com port is 6. 
+One problem may be that the daemon cant find the COM port. You can fix this by fixing the com port you found in step 2 and putting it in the config file. e.g. add ``dev=COM6`` if the com port is 6. More information can be found [here](/developers/relaykeys-cfg.html#dev-defining-your-port-of-the-relaykeys-hardware)
 

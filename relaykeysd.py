@@ -70,7 +70,7 @@ parser.add_argument('--daemon', '-d', dest='daemon', action='store_const',
 parser.add_argument('--pidfile', dest='pidfile', default=None,
                     help='file to hold pid of daemon, posfix specific')
 parser.add_argument('--logfile', dest='logfile', default=None,
-                    help='file to hold pid of daemon, posfix specific')
+                    help='file to log messages too')
 parser.add_argument('--config', '-c', dest='config',
                     default=None, help='Path to config file')
 

@@ -54,7 +54,7 @@ If you are developing the 'server' side of things and want to try out the code y
 
 then in another terminal run
 
-	python relayeKeys.py no-serial
+	python relayekeysd.py --noserial
 
 NB: Only tested on MacOS but should work on any posix system. For Windows simply give a COM port that doesn't exist. 
 
