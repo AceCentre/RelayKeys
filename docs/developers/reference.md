@@ -15,6 +15,8 @@ e.g.
 
 ``python relaykeysd.py --noserial --dev=COM7``
 
+For more info see [here](/developers/relaykeys-cfg.html#dev-defining-your-port-of-the-relaykeys-hardware)
+
 ## --debug
 
 Sets a more verbose debugging output on the console. 
@@ -33,6 +35,6 @@ File to use as a log file for the debugging messages.
 
 ## --config=configfile
 
-File to use as a config file
+File to use as a config file. For more info see [here](/developers/relaykeys-cfg.html)
 
 **Default: relaykeys.cfg**
