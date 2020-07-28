@@ -1,1 +1,0 @@
-# Tobii Dynavox - Snap + CoreFirst

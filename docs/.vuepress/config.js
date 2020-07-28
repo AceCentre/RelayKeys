@@ -39,7 +39,6 @@ module.exports = {
         children: [
           ['/getting-started/introduction', 'Introduction'],
           ['/getting-started/installation', 'Installation'],
-          ['/getting-started/contributing', 'Contributing'],
           ['/getting-started/supporting-relaykeys', 'Supporting RelayKeys'],
           ['/getting-started/troubleshooting', 'Troubleshooting'],
         ]
@@ -64,25 +63,17 @@ module.exports = {
         ]
       },
       {
-        title: '⚡️ SDKs',
+        title: '⚡️ Development Guide',
         collapsable: true,
         children: [
-          ['/sdk/js', 'Javascript'],
-          ['/sdk/python', 'Python'],
-          ['/sdk/swift', 'Swift'],
+          ['/developers/architecture', 'Architecture and Getting started'],
+          ['/developers/contributing', 'Contributing'],
+          ['/developers/supported-boards', 'Supported Boards and Build Instructions'],
+          ['/developers/reference', 'RPC Daemon Details'],
+          ['/developers/other-projects', 'Other Projects'],
+          ['/developers/credits', 'Credits']
         ]
       },
-      {
-        title: '🚧️ Technical Details',
-        collapsable: true,
-        children: [
-          ['/technical/architecture', 'Architecture'],
-          ['/technical/supported-boards', 'Supported Boards and Build Instructions'],
-          ['/technical/reference', 'RPC Daemon Details'],
-          ['/technical/other-projects', 'Other Projects'],
-          ['/technical/credits', 'Credits']
-        ]
-      }
     ]
   }
 };
