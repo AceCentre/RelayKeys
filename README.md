@@ -116,6 +116,25 @@ You will then get a setup.exe
 
 Although there are two bits of hardware identified you can do this with other Bluetooth boards. The essential element is being able to transmit at a high enough speed, reliably, over the serial port of the computer (what we are defining as the 'server' in this context). 
 
+## Anatomy of the files
+
+* ``arduino/`` - firmware for the arduino board
+* ``docs/``  - VuePress docs for http://acecentre.github.io/relayKeys/. Build Script is **docs-deploy.sh**
+* ``resources/`` - Helper files for development (e.g. ``demoSerial.py`` which pretends to be an arduino board connected, viewComPorts which outputs the connected com ports), AAC software pagesets and all-keys.txt which is a output of all the keys supported by RelayKeys. Also note the development files - ``relaykeys-pygame`` and ``relaykeys.py`` - which are stripped down versions of the whole project. Useful for debugging and testing things without the daemon server. Just move ``relaykeys.py`` into the root directory to get it to work. 
+* ``_keysmap.py`` - 
+* ``blehid.py`` - Library/Import file used by relaykeysd. Includes the function that writes the AT command to the serial port, init the serial port, and sends keyboard/mouse codes. 
+* ``build.py``, ``buildinstaller.nsi`` - Build files to turn this project into a installer. Run ``python build.py`` to trigger the build. 
+* ``docs-deploy.sh`` - deploys the documentation to the github pages site. 
+* ``relaykeys-cli.py`` - This is the command line interface version of relaykeys. Conencts to the daemon server. 
+* ``relaykeys-example.cfg`` - The default config file. Note this gets copied on install to the right location and is used as the standard config. Note commented out baud and dev lines. Dev fixes the ``COM`` port if the com port finding code doesn't work
+* ``relaykeys-qt.py`` - The GUI version of our relakeys testing app. 
+* ``relaykeys.spec.ini`` - Used for the NSIS build (i.e. ``buildinstaller.nsi``)
+* ``relaykeysclient.py`` - The main library file used by -cli and -qt versions. Connects to the server. 
+*  ``relaykeysd-service-restart.bat``, ``relaykeysd-service.py`` - The Windows service applcation
+* ``relaykeysd.py`` - The daemon. This is what is run in the background - and controlled by the service. If you want to test RelayKeys - run this file first - and leave it running. e.g. ``python relakyeysd.py &&``. Note the command line flags in the header. 
+
+
+
 ## Other projects / Similar work / Inspiration
 
 - [The original RelayKeys from Harold Pimental](https://haroldpimentel.wordpress.com/2016/09/08/bluetooth-keyboard-switch-with-arduino/). 

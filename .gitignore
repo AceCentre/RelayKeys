@@ -119,6 +119,11 @@ dmypy.json
 RelayKeys setup.exe
 logfile.txt
 relaykeys.cfg
+# Docs
+docs/node_modules/
+docs/dist/
+docs/npm-debug.log
+docs/yarn-error.log
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,vue,vuejs
