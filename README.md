@@ -44,13 +44,19 @@ There are two different boards to purchase currently (NB: [A range have been loo
 
 If you are developing the 'server' side of things and want to try out the code you can run this without any hardware by having a null serial terminal. To do this, in a terminal run:
 
-	python resources/demoSerial.py
+	python resources/demoSerial.py 
 
 then in another terminal run
 
-	python relayeKeys.py no-serial
+	pip install -r requirements.txt
+	python relaykeysd.py
 
-NB: Only tested on MacOS but should work on any posix system
+
+then in another terminal run
+
+	python relaykeys-cli.py --noserial type:Hello
+
+(Yes 3 - terminals. One is pretending to be a serial port, the other is the RPC server - and the last is the relaykeys client) NB: Only tested on MacOS but should work on any posix system
 
 
 ### 1. Setup: Adafruit Feather nRF52840 Express

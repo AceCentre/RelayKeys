@@ -4,7 +4,7 @@ module.exports = {
   description: 'Emulate a Keyboard and Mouse with a computer',
   ga: 'UA-24637628-7',
   plugins: [
-    '@vuepress/medium-zoom', 'vuepress-plugin-export'
+    '@vuepress/medium-zoom', 'vuepress-plugin-export', 'vuepress-plugin-mermaidjs'
   ],
   head: [
     ['link', { rel: "manifest",  href: "/site.webmanifest" }],
@@ -71,6 +71,7 @@ module.exports = {
           ['/developers/relaykeys-cfg', 'Config file details'],
           ['/developers/other-projects', 'Other Projects'],
           ['/developers/credits', 'Credits'],
+          ['/developers/documentation', 'Documentation notes'],
           ['/developers/contributing', 'Contributing']
         ]
       },
