@@ -19,8 +19,22 @@
  * with a BF LE UART Friend. Lots of this code is from an Adafruit example.
  */
 
+#define BLE_NAME                            "RelayKeys"
+#define ADD_NEW_DEV_PROCESS_TIMEOUT         30000           // in millseconds
+#define SWAP_CONN_PROCESS_TIMEOUT           30000           // in millseconds
+#define MAXIMUM_BLE_DEV_LIST_SIZE           3  
+
 BLEDis bledis;
 BLEHidAdafruit blehid;
+
+volatile uint32_t addDevProsStartTicks = 0;
+volatile uint8_t flag_addDevProsStarted = 0;
+char bleDeviceNameList[MAXIMUM_BLE_DEV_LIST_SIZE][32] = {0};
+volatile uint8_t bleDeviceNameListIndex = 0;
+char bleSwapConnDevName[32] = {0};
+char bleSwapConnPrevDevName[32] = {0};
+volatile uint8_t flag_bleSwapConnProsStarted = 0;
+volatile uint32_t swapConnProsStartTicks = 0;
 
 #define DEFAULT_CONN_HANDLE BLE_CONN_HANDLE_INVALID
 
@@ -29,13 +43,14 @@ void set_keyboard_led(uint8_t led_bitmap);
 void setup() 
 {
   Serial.begin(115200);
-  while ( !Serial && millis() < 2000) delay(10);   // for nrf52840 with native usb
+  //while ( !Serial && millis() < 2000) delay(10);   // for nrf52840 with native usb
 
   Bluefruit.begin();
   // Set max power. Accepted values are: -40, -30, -20, -16, -12, -8, -4, 0, 4
   Bluefruit.setTxPower(4);
-  Bluefruit.setName("RelayKeys");
-
+  Bluefruit.setName(BLE_NAME);
+  Bluefruit.Periph.setConnectCallback(bleConnectCallback);
+  
   // Configure and Start Device Information Service
   bledis.setManufacturer("Ace Centre");
   bledis.setModel("RelayKeysv1");
@@ -58,7 +73,7 @@ void setup()
    * min = 9*1.25=11.25 ms, max = 12*1.25= 15 ms 
    */
   /* Bluefruit.setConnInterval(9, 12); */
-
+    
   // Set up and start advertising
   startAdv();
 }
@@ -88,7 +103,8 @@ void startAdv(void)
   Bluefruit.Advertising.restartOnDisconnect(true);
   Bluefruit.Advertising.setInterval(32, 244);    // in unit of 0.625 ms
   Bluefruit.Advertising.setFastTimeout(30);      // number of seconds in fast mode
-  Bluefruit.Advertising.start(0);                // 0 = Don't stop advertising after n seconds
+  Bluefruit.Advertising.start(0);                // 0 = Don't stop advertising after n seconds 
+  
 }
 
 typedef void (*action_func_t)(char *myLine);
@@ -260,13 +276,237 @@ void sendBLEKeyboardCode(char *myLine) {
   }
 }
 
+void sendBleSendCurrentDeviceName(char *myLine) {  
+  Serial.println("at+blecurrentdevicename");
+  if(!Bluefruit.connected())
+  {
+    Serial.println("NONE");
+  }
+  else
+  {
+    uint16_t connectionHandle = 0;
+    BLEConnection* connection = NULL;
+    char bleDeviceName[32] = {0}; 
+    
+    connectionHandle = Bluefruit.connHandle();        
+    connection = Bluefruit.Connection(connectionHandle);
+    connection->getPeerName(bleDeviceName, sizeof(bleDeviceName));
+  
+    Serial.println(bleDeviceName);
+  } 
+}
+
+void addNewBleDevice(char *myLine) {
+  Serial.println("at+bleaddnewdevice");
+
+  if(bleDeviceNameListIndex >= MAXIMUM_BLE_DEV_LIST_SIZE)
+  {
+    Serial.println("ERROR: Device list is full");
+  }
+  else
+  {
+    uint16_t connectionHandle = 0;
+    BLEConnection* connection = NULL;
+    char bleDeviceName[32] = {0};
+    
+    connectionHandle = Bluefruit.connHandle();        
+    connection = Bluefruit.Connection(connectionHandle);
+    connection->getPeerName(bleDeviceName, sizeof(bleDeviceName));
+     
+    delay(500); 
+    connection->disconnect();  
+    //Serial.println("Disconnected from " + String(bleDeviceName));
+    
+    flag_addDevProsStarted = 1;
+    addDevProsStartTicks = millis();
+  
+    //Serial.println("Connect your device with " + String(BLE_NAME));
+  }
+  
+}
+
+void removeBleDevice(char *myLine) { 
+  Serial.println("at+bleremovedevice");
+  char tempName[32] = {0};
+  char tempNameIndex = 0;
+  char flag_start = 0;
+  char i = 0;
+  uint16_t connectionHandle = 0;
+  BLEConnection* connection = NULL;
+  char bleDeviceName[32] = {0};
+
+  if(strlen(myLine) == 0)
+  {
+    Serial.println("ERROR: Syntex");
+    return;
+  }
+  
+  connectionHandle = Bluefruit.connHandle();        
+  connection = Bluefruit.Connection(connectionHandle);
+  connection->getPeerName(bleDeviceName, sizeof(bleDeviceName));
+  
+  for(char i = 0; i < strlen(myLine); i++)
+  {
+    if(myLine[i] == '"')
+    {
+      flag_start = 1;
+    }
+    else
+    {
+      if(flag_start)
+      {
+        if(myLine[i] == '"')
+        {
+          flag_start = 0;
+          break;
+        }
+        else
+        {
+          tempName[tempNameIndex++] = myLine[i];
+        }
+      }
+    }
+  }
+
+  if(strlen(tempName) == 0)
+  {
+    Serial.println("ERROR: Syntex");
+    return;
+  }
+
+  //Serial.println("Remove Device: " + String(tempName));
+
+  if(!strcmp((char*)tempName, (char*)bleDeviceName))
+  {
+    connection->disconnect();
+  }
+
+  flag_start = 0;
+  
+  for(i = 0; i < MAXIMUM_BLE_DEV_LIST_SIZE; i++)
+  {
+    if(!strcmp((char*)tempName, (char*)bleDeviceNameList[i]))
+    {
+      //Serial.println("Device found in list - " + String(tempName));
+      Serial.println("SUCCESS");
+      flag_start = 1;
+      bleDeviceNameListIndex--;
+    }
+    if(flag_start)
+    {
+      if(i < (MAXIMUM_BLE_DEV_LIST_SIZE - 1))
+      {
+        memset(bleDeviceNameList[i], NULL, sizeof(bleDeviceNameList[i]));
+        strcpy(bleDeviceNameList[i], bleDeviceNameList[i + 1]);
+      }
+      else
+      {
+        memset(bleDeviceNameList[MAXIMUM_BLE_DEV_LIST_SIZE - 1], NULL, sizeof(bleDeviceNameList[MAXIMUM_BLE_DEV_LIST_SIZE - 1]));
+      }
+    }
+  }
+
+  if(!flag_start)
+  {
+    Serial.println("ERROR: Name not found in the list");
+  }  
+}
+
+void switchBleConnection(char *myLine) {
+  Serial.println("at+switchconn");
+  char tempNameIndex = 0;
+  char flag_start = 0;
+  memset(bleSwapConnDevName, NULL, sizeof(bleSwapConnDevName));
+
+  if(strlen(myLine) == 0)
+  {
+    Serial.println("ERROR: Syntex");
+    return;
+  }
+
+  for(char i = 0; i < strlen(myLine); i++)
+  {
+    if(myLine[i] == '"')
+    {
+      flag_start = 1;
+    }
+    else
+    {
+      if(flag_start)
+      {
+        if(myLine[i] == '"')
+        {
+          flag_start = 0;
+          break;
+        }
+        else
+        {
+          bleSwapConnDevName[tempNameIndex++] = myLine[i];
+        }
+      }
+    }
+  }
+
+  if(strlen(bleSwapConnDevName) == 0)
+  {
+    Serial.println("ERROR: Syntex");
+    return;
+  }
+
+  //Serial.println("Switch to Device: " + String(bleSwapConnDevName));
+
+  flag_start = 0;
+  
+  for(char i = 0; i < MAXIMUM_BLE_DEV_LIST_SIZE; i++)
+  {
+    if(!strcmp((char*)bleSwapConnDevName, (char*)bleDeviceNameList[i]))
+    {
+      uint16_t connectionHandle = 0;
+      BLEConnection* connection = NULL;
+      
+      //Serial.println("Device found in list - " + String(bleSwapConnDevName));    
+      flag_start = 1;     
+      flag_bleSwapConnProsStarted = 1;
+      memset(bleSwapConnPrevDevName, NULL, sizeof(bleSwapConnPrevDevName));
+      
+      connectionHandle = Bluefruit.connHandle();        
+      connection = Bluefruit.Connection(connectionHandle);
+      connection->getPeerName(bleSwapConnPrevDevName, sizeof(bleSwapConnPrevDevName));
+
+      connection->disconnect();
+      //Serial.println("Disconnected from - " + String(bleSwapConnPrevDevName));
+      swapConnProsStartTicks = millis();
+      break;
+    }    
+  }
+
+  if(!flag_start)
+  {
+    Serial.println("ERROR: Name not found in the list");    
+  }  
+}
+
+void printBleDevList(char *myLine) {
+  Serial.println("at+printdevlist");
+  for(char j = 0; j < MAXIMUM_BLE_DEV_LIST_SIZE; j++)
+  {
+    Serial.print(char(j + '1'));
+    Serial.println(":" + String(bleDeviceNameList[j]));
+  }
+  //Serial.println("Index:" + String(bleDeviceNameListIndex));
+}
+
 const command_action_t commands[] = {
   // Name of command user types, function that implements the command.
   // TODO add other commands, some day
   {"at+blekeyboardcode", sendBLEKeyboardCode},
   {"at+blehidmousemove", sendBLEMouseMove},
   {"at+blehidmousebutton", sendBLEMouseButton},
-
+  {"at+blecurrentdevicename", sendBleSendCurrentDeviceName},
+  {"at+bleaddnewdevice", addNewBleDevice},
+  {"at+bleremovedevice", removeBleDevice},
+  {"at+switchconn", switchBleConnection},
+  {"at+printdevlist", printBleDevList},
 };
 
 void execute(char *myLine) {
@@ -275,7 +515,7 @@ void execute(char *myLine) {
   if (cmd == NULL || *cmd == '\0') return;
   toLower(cmd);
   for (size_t i = 0; i < sizeof(commands)/sizeof(commands[0]); i++) {
-    if (strcmp(cmd, commands[i].command) == 0) {
+    if (strcmp(cmd, commands[i].command) == 0) {      
       commands[i].action(strtok(NULL, "="));
       return;
     }
@@ -321,8 +561,122 @@ void cli_loop()
 void loop() 
 {
   cli_loop();
+
+  if(flag_addDevProsStarted)
+  {
+    if(millis() - addDevProsStartTicks >= ADD_NEW_DEV_PROCESS_TIMEOUT)
+    {
+      flag_addDevProsStarted = 0;
+      Serial.println("ERROR: Timeout");
+    }
+  }
+
+  if(flag_bleSwapConnProsStarted == 1)
+  {
+    if(millis() - swapConnProsStartTicks >= SWAP_CONN_PROCESS_TIMEOUT)
+    {
+      flag_bleSwapConnProsStarted = 2;
+      swapConnProsStartTicks = millis();
+      Serial.println("ERROR: Timeout");
+      Serial.println("Trying to connect with previous device");         
+    }
+  }
+  else if(flag_bleSwapConnProsStarted == 2)
+  {
+    if(millis() - swapConnProsStartTicks >= SWAP_CONN_PROCESS_TIMEOUT)
+    {
+      flag_bleSwapConnProsStarted = 0;      
+      Serial.println("ERROR: Timeout");           
+    }
+  }  
+  
   // Request CPU to enter low-power mode until an event/interrupt occurs
   waitForEvent();  
+}
+
+void bleConnectCallback(uint16_t conn_handle) {
+  
+  static int i;
+  uint16_t connectionHandle = 0;
+  BLEConnection* connection = NULL;
+  char central_name[32] = {0};
+  
+  connection = Bluefruit.Connection(conn_handle);  
+  connection->getPeerName(central_name, sizeof(central_name));  
+  
+  if(flag_bleSwapConnProsStarted == 1)
+  {
+    if(!strcmp((char*)central_name, (char*)bleSwapConnDevName))
+    {
+      flag_bleSwapConnProsStarted = 0;
+      Serial.println("SUCCESS");
+    }
+    else
+    {
+      connection->disconnect();
+      //Serial.println("Disconnected - Other device");
+    }
+  }
+  else if(flag_bleSwapConnProsStarted == 2)
+  {
+    if(!strcmp((char*)central_name, (char*)bleSwapConnPrevDevName))
+    {
+      flag_bleSwapConnProsStarted = 0;
+      Serial.println("Reconnected to previous device");
+    }
+    else
+    {
+      connection->disconnect();
+      //Serial.println("Disconnected - Other device");
+    }
+  }
+  else
+  {
+    i = 0;
+  
+    for(i = 0; i < MAXIMUM_BLE_DEV_LIST_SIZE; i++)
+    {
+      if(!strcmp((char*)central_name, (char*)bleDeviceNameList[i]))
+      {
+        //Serial.println("Device found in list - " + String(central_name));
+        if(flag_addDevProsStarted)
+        {
+          connection->disconnect();
+          //Serial.println("Disconnected - Device already present in list");
+        }
+        else
+        {
+          
+        }
+        break;
+      }
+    }    
+  
+    if(i >= MAXIMUM_BLE_DEV_LIST_SIZE)
+    {
+      if(flag_addDevProsStarted)
+      {
+        flag_addDevProsStarted = 0;
+        if(bleDeviceNameListIndex > MAXIMUM_BLE_DEV_LIST_SIZE)
+        {
+          connection->disconnect();
+          Serial.println("ERROR: Device list is full");
+        }
+        else
+        {
+          Serial.println("SUCCESS");
+          //Serial.println(String(central_name) + " Connected and Name added into list");
+          strcpy(bleDeviceNameList[bleDeviceNameListIndex++], central_name);
+        }       
+      }
+      else
+      {
+        connection->disconnect();
+        //Serial.println(String(central_name) + " Disconnected - Not present in the list");
+      }
+    }
+  }
+  
 }
 
 /**
