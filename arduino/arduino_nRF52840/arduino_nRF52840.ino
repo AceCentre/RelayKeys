@@ -21,20 +21,20 @@
 
 #define BLE_NAME                            "RelayKeys"
 #define ADD_NEW_DEV_PROCESS_TIMEOUT         30000           // in millseconds
-#define SWAP_CONN_PROCESS_TIMEOUT           30000           // in millseconds
-#define MAXIMUM_BLE_DEV_LIST_SIZE           3  
+#define SWAP_CONN_PROCESS_TIMEOUT           30000           // in millseconds 
 
 BLEDis bledis;
 BLEHidAdafruit blehid;
 
 volatile uint32_t addDevProsStartTicks = 0;
 volatile uint8_t flag_addDevProsStarted = 0;
-char bleDeviceNameList[MAXIMUM_BLE_DEV_LIST_SIZE][32] = {0};
+char bleDeviceNameList[15][32] = {0};
 volatile uint8_t bleDeviceNameListIndex = 0;
-char bleSwapConnDevName[32] = {0};
-char bleSwapConnPrevDevName[32] = {0};
 volatile uint8_t flag_bleSwapConnProsStarted = 0;
 volatile uint32_t swapConnProsStartTicks = 0;
+volatile uint8_t maxBleDevListSize = 3;
+volatile uint8_t switchBleConnStartIndex = 0;
+volatile uint8_t switchBleConnCurrIndex = 0;
 
 #define DEFAULT_CONN_HANDLE BLE_CONN_HANDLE_INVALID
 
@@ -299,7 +299,7 @@ void sendBleSendCurrentDeviceName(char *myLine) {
 void addNewBleDevice(char *myLine) {
   Serial.println("at+bleaddnewdevice");
 
-  if(bleDeviceNameListIndex >= MAXIMUM_BLE_DEV_LIST_SIZE)
+  if(bleDeviceNameListIndex >= maxBleDevListSize)
   {
     Serial.println("ERROR: Device list is full");
   }
@@ -320,7 +320,7 @@ void addNewBleDevice(char *myLine) {
     flag_addDevProsStarted = 1;
     addDevProsStartTicks = millis();
   
-    //Serial.println("Connect your device with " + String(BLE_NAME));
+    Serial.println("Connect your device with " + String(BLE_NAME));
   }
   
 }
@@ -337,7 +337,7 @@ void removeBleDevice(char *myLine) {
 
   if(strlen(myLine) == 0)
   {
-    Serial.println("ERROR: Syntex");
+    Serial.println("ERROR: Syntax");
     return;
   }
   
@@ -370,7 +370,7 @@ void removeBleDevice(char *myLine) {
 
   if(strlen(tempName) == 0)
   {
-    Serial.println("ERROR: Syntex");
+    Serial.println("ERROR: Syntax");
     return;
   }
 
@@ -383,7 +383,7 @@ void removeBleDevice(char *myLine) {
 
   flag_start = 0;
   
-  for(i = 0; i < MAXIMUM_BLE_DEV_LIST_SIZE; i++)
+  for(i = 0; i < maxBleDevListSize; i++)
   {
     if(!strcmp((char*)tempName, (char*)bleDeviceNameList[i]))
     {
@@ -394,14 +394,14 @@ void removeBleDevice(char *myLine) {
     }
     if(flag_start)
     {
-      if(i < (MAXIMUM_BLE_DEV_LIST_SIZE - 1))
+      if(i < (maxBleDevListSize - 1))
       {
         memset(bleDeviceNameList[i], NULL, sizeof(bleDeviceNameList[i]));
         strcpy(bleDeviceNameList[i], bleDeviceNameList[i + 1]);
       }
       else
       {
-        memset(bleDeviceNameList[MAXIMUM_BLE_DEV_LIST_SIZE - 1], NULL, sizeof(bleDeviceNameList[MAXIMUM_BLE_DEV_LIST_SIZE - 1]));
+        memset(bleDeviceNameList[maxBleDevListSize - 1], NULL, sizeof(bleDeviceNameList[maxBleDevListSize - 1]));
       }
     }
   }
@@ -413,87 +413,88 @@ void removeBleDevice(char *myLine) {
 }
 
 void switchBleConnection(char *myLine) {
-  Serial.println("at+switchconn");
-  char tempNameIndex = 0;
-  char flag_start = 0;
-  memset(bleSwapConnDevName, NULL, sizeof(bleSwapConnDevName));
-
-  if(strlen(myLine) == 0)
+  Serial.println("at+switchconn");  
+  
+  if(!Bluefruit.connected())
   {
-    Serial.println("ERROR: Syntex");
-    return;
+    switchBleConnStartIndex = 1;
+    //Serial.println("Current Dev Index: " + String(switchBleConnStartIndex));
+    switchBleConnCurrIndex = 1;        
+    flag_bleSwapConnProsStarted = 1;
+    swapConnProsStartTicks = millis();     
+    Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex - 1]));
   }
-
-  for(char i = 0; i < strlen(myLine); i++)
+  else
   {
-    if(myLine[i] == '"')
+    uint16_t connectionHandle = 0;
+    BLEConnection* connection = NULL;
+    char tempBleDevName[32] = {0};
+  
+    connectionHandle = Bluefruit.connHandle();        
+    connection = Bluefruit.Connection(connectionHandle);
+    connection->getPeerName(tempBleDevName, sizeof(tempBleDevName));
+  
+    //Serial.println("Current Dev Name: " + String(tempBleDevName));
+  
+    for(char i = 0; i < maxBleDevListSize; i++)
     {
-      flag_start = 1;
-    }
-    else
-    {
-      if(flag_start)
+      if(!strcmp((char*)tempBleDevName, (char*)bleDeviceNameList[i]))
       {
-        if(myLine[i] == '"')
+        switchBleConnStartIndex = i + 1;
+        //Serial.println("Current Dev Index: " + String(switchBleConnStartIndex));
+
+        if(bleDeviceNameListIndex == 1)
         {
-          flag_start = 0;
+          Serial.println("ERROR: No other device present in list");
           break;
         }
         else
         {
-          bleSwapConnDevName[tempNameIndex++] = myLine[i];
+          connection->disconnect();
+        }        
+
+        if(switchBleConnStartIndex >= bleDeviceNameListIndex)
+        {
+          switchBleConnCurrIndex = 1;
         }
+        else
+        {
+          switchBleConnCurrIndex = switchBleConnStartIndex + 1;
+        }
+        
+        flag_bleSwapConnProsStarted = 1;
+        swapConnProsStartTicks = millis();     
+        Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex - 1]));
+        break;
       }
     }
-  }
-
-  if(strlen(bleSwapConnDevName) == 0)
-  {
-    Serial.println("ERROR: Syntex");
-    return;
-  }
-
-  //Serial.println("Switch to Device: " + String(bleSwapConnDevName));
-
-  flag_start = 0;
-  
-  for(char i = 0; i < MAXIMUM_BLE_DEV_LIST_SIZE; i++)
-  {
-    if(!strcmp((char*)bleSwapConnDevName, (char*)bleDeviceNameList[i]))
-    {
-      uint16_t connectionHandle = 0;
-      BLEConnection* connection = NULL;
-      
-      //Serial.println("Device found in list - " + String(bleSwapConnDevName));    
-      flag_start = 1;     
-      flag_bleSwapConnProsStarted = 1;
-      memset(bleSwapConnPrevDevName, NULL, sizeof(bleSwapConnPrevDevName));
-      
-      connectionHandle = Bluefruit.connHandle();        
-      connection = Bluefruit.Connection(connectionHandle);
-      connection->getPeerName(bleSwapConnPrevDevName, sizeof(bleSwapConnPrevDevName));
-
-      connection->disconnect();
-      //Serial.println("Disconnected from - " + String(bleSwapConnPrevDevName));
-      swapConnProsStartTicks = millis();
-      break;
-    }    
-  }
-
-  if(!flag_start)
-  {
-    Serial.println("ERROR: Name not found in the list");    
-  }  
+  } 
 }
 
 void printBleDevList(char *myLine) {
   Serial.println("at+printdevlist");
-  for(char j = 0; j < MAXIMUM_BLE_DEV_LIST_SIZE; j++)
+  for(char j = 0; j < maxBleDevListSize; j++)
   {
     Serial.print(char(j + '1'));
     Serial.println(":" + String(bleDeviceNameList[j]));
   }
   //Serial.println("Index:" + String(bleDeviceNameListIndex));
+}
+
+void setBleMaxDevListSize(char *myLine) {
+  Serial.println("at+blemaxdevlistsize");
+
+  uint8_t tempNum = atoi(myLine);
+  if(tempNum > 15 || tempNum < 1)
+  {
+    maxBleDevListSize = 3;
+    Serial.println("ERROR: Invalid Value");
+  }
+  else
+  {
+    maxBleDevListSize = tempNum;
+    Serial.println("SUCCESS");
+  }
 }
 
 const command_action_t commands[] = {
@@ -507,6 +508,7 @@ const command_action_t commands[] = {
   {"at+bleremovedevice", removeBleDevice},
   {"at+switchconn", switchBleConnection},
   {"at+printdevlist", printBleDevList},
+  {"at+blemaxdevlistsize", setBleMaxDevListSize},
 };
 
 void execute(char *myLine) {
@@ -575,10 +577,20 @@ void loop()
   {
     if(millis() - swapConnProsStartTicks >= SWAP_CONN_PROCESS_TIMEOUT)
     {
-      flag_bleSwapConnProsStarted = 2;
-      swapConnProsStartTicks = millis();
       Serial.println("ERROR: Timeout");
-      Serial.println("Trying to connect with previous device");         
+      
+      switchBleConnCurrIndex++;
+      if(switchBleConnCurrIndex > bleDeviceNameListIndex)
+      {
+        switchBleConnCurrIndex = 1;
+      }
+      if(switchBleConnCurrIndex == switchBleConnStartIndex)
+      {
+        flag_bleSwapConnProsStarted = 2;        
+      }
+      
+      swapConnProsStartTicks = millis();     
+      Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex-1]));
     }
   }
   else if(flag_bleSwapConnProsStarted == 2)
@@ -588,7 +600,7 @@ void loop()
       flag_bleSwapConnProsStarted = 0;      
       Serial.println("ERROR: Timeout");           
     }
-  }  
+  }
   
   // Request CPU to enter low-power mode until an event/interrupt occurs
   waitForEvent();  
@@ -606,7 +618,7 @@ void bleConnectCallback(uint16_t conn_handle) {
   
   if(flag_bleSwapConnProsStarted == 1)
   {
-    if(!strcmp((char*)central_name, (char*)bleSwapConnDevName))
+    if(!strcmp((char*)central_name, (char*)bleDeviceNameList[switchBleConnCurrIndex - 1]))
     {
       flag_bleSwapConnProsStarted = 0;
       Serial.println("SUCCESS");
@@ -619,10 +631,10 @@ void bleConnectCallback(uint16_t conn_handle) {
   }
   else if(flag_bleSwapConnProsStarted == 2)
   {
-    if(!strcmp((char*)central_name, (char*)bleSwapConnPrevDevName))
+    if(!strcmp((char*)central_name, (char*)bleDeviceNameList[switchBleConnStartIndex - 1]))
     {
       flag_bleSwapConnProsStarted = 0;
-      Serial.println("Reconnected to previous device");
+      Serial.println("Reconnected to last device");
     }
     else
     {
@@ -634,7 +646,7 @@ void bleConnectCallback(uint16_t conn_handle) {
   {
     i = 0;
   
-    for(i = 0; i < MAXIMUM_BLE_DEV_LIST_SIZE; i++)
+    for(i = 0; i < maxBleDevListSize; i++)
     {
       if(!strcmp((char*)central_name, (char*)bleDeviceNameList[i]))
       {
@@ -652,12 +664,12 @@ void bleConnectCallback(uint16_t conn_handle) {
       }
     }    
   
-    if(i >= MAXIMUM_BLE_DEV_LIST_SIZE)
+    if(i >= maxBleDevListSize)
     {
       if(flag_addDevProsStarted)
       {
         flag_addDevProsStarted = 0;
-        if(bleDeviceNameListIndex > MAXIMUM_BLE_DEV_LIST_SIZE)
+        if(bleDeviceNameListIndex > maxBleDevListSize)
         {
           connection->disconnect();
           Serial.println("ERROR: Device list is full");
