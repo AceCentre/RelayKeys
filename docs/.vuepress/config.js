@@ -62,6 +62,14 @@ module.exports = {
         ]
       },
       {
+        title: '🥼 Serial Bus API details',
+        collapsable: true,
+        children: [
+          '/serial-api/reference'
+        ]
+      },
+
+      {
         title: '⚡️ Development Guide',
         collapsable: true,
         children: [
