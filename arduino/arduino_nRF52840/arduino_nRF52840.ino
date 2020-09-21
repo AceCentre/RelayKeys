@@ -1,12 +1,15 @@
 /*********************************************************************
- This is an example for our nRF52 based Bluefruit LE modules
+ This file was forked from https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/examples/Peripheral/hid_keyboard/hid_keyboard.ino
 
- Pick one up today in the adafruit shop!
+ Its quite different now as we have added connection commands, mouse commands and other bits
+
+ Work is copyright Ace Centre 2020 - MIT Licence. If you go and use this in a commercial project - thats great. But we'd appreciate even an email thanks :) 
+
+ Note: What follows is the original Adafruit comment code. 
 
  Adafruit invests time and resources providing this open source code,
  please support Adafruit and open-source hardware by purchasing
  products from Adafruit!
-
  MIT license, check LICENSE for more information
  All text above, and the splash screen below must be included in
  any redistribution
@@ -46,8 +49,7 @@ void setup()
   //while ( !Serial && millis() < 2000) delay(10);   // for nrf52840 with native usb
 
   Bluefruit.begin();
-  // Set max power. Accepted values are: -40, -30, -20, -16, -12, -8, -4, 0, 4
-  Bluefruit.setTxPower(4);
+  Bluefruit.setTxPower(4);    // Check bluefruit.h for supported values
   Bluefruit.setName(BLE_NAME);
   Bluefruit.Periph.setConnectCallback(bleConnectCallback);
   
