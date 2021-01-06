@@ -1,18 +1,5 @@
 {
-  "name": "docs",
-  "version": "1.0.0",
-  "description": "RelayKeys Documentation",
-  "main": "index.js",
-  "repository": "http://github.com/AceCentre/RelayKeys/",
-  "author": "AceCentre",
-  "license": "MIT",
-  "private": false,
   "devDependencies": {
-    "vuepress": "^1.5.2",
-    "vuepress-plugin-mermaidjs": "^1.5.1"
-  },
-  "scripts": {
-    "docs:dev": "vuepress dev .",
-    "docs:build": "vuepress build ."
+    "vuepress": "^1.8.0"
   }
 }
