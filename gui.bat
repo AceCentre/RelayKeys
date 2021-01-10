@@ -1,0 +1,1 @@
+python relaykeys-qt.py --debug
