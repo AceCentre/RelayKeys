@@ -536,6 +536,7 @@ void removeBleDevice(char *myLine)
       Serial.println("SUCCESS");
       flag_start = 1;
       bleDeviceNameListIndex--;
+      flag_saveListToFile = true;
     }
     if (flag_start)
     {
