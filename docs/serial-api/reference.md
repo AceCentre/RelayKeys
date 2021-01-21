@@ -45,6 +45,21 @@ e.g. This moves it Right by 10 and Down by 10
 
 ### AT+BLEHIDMOUSEBUTTON=MouseButton
 
+``	
+AT+BLEHIDMOUSEBUTTON=Button[,Action]
+``
+
+Button is one of l = Left, r= Right, m=Middle, b=Scroll backward, f=Scroll forward
+Action is Click or Doubleclick 
+
+e.g.
+
+Single click:
+	AT+BLEHIDMOUSEBUTTON=l,click
+Double click:
+	AT+BLEHIDMOUSEBUTTON=l,doubleclick
+
+	
 
 ## Connection commands
 
