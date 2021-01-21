@@ -36,6 +36,13 @@ Hint: [Look at this file for a way to format this nicely](https://github.com/Ace
 
 ### AT+BLEHIDMOUSEMOVE=MouseMoveX,MouseMoveY,0,0
 
+``AT+BLEHIDMOUSEMOVE=X,Y,WY,WX``
+
+- X = Right Pixels
+- Y = Down pixels 
+- WY = Scroll Down
+- WX = Scroll Right
+
 MouseMoveX = Pixels RIGHT and MouseMoveY = Pixels DOWN. So to go RIGHT/UP = use negative numbers. 
 
 e.g. This moves it Right by 10 and Down by 10
