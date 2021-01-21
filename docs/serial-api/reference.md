@@ -56,9 +56,20 @@ e.g. This moves it Right by 10 and Down by 10
 AT+BLEHIDMOUSEBUTTON=Button[,Action]
 ``
 
-Button is one of l = Left, r= Right, m=Middle, b=Scroll backward, f=Scroll forward
+Button is one of 
 
-Action is Click or Doubleclick 
+- l = Left
+- r= Right
+- m=Middle
+- b=Mouse backward
+- f=Mouse forward
+
+NB: Mouse backward and forward are not available functions on all Operating Systems
+
+Action is 
+- Click
+- Doubleclick 
+- O (which acts as press/release toggle)
 
 e.g.
 
