@@ -326,11 +326,11 @@ void sendBLEMouseButton(char *line)
     else if (i == 1)
     { // Action
       toLower(p);
-      if (strcmp(p, "click"))
+      if (strcmp(p, "click") == 0)
       {
         mode = 1;
       }
-      else if (strcmp(p, "doubleclick"))
+      else if (strcmp(p, "doubleclick") == 0)
       {
         mode = 2;
       }
