@@ -50,6 +50,7 @@ AT+BLEHIDMOUSEBUTTON=Button[,Action]
 ``
 
 Button is one of l = Left, r= Right, m=Middle, b=Scroll backward, f=Scroll forward
+
 Action is Click or Doubleclick 
 
 e.g.
