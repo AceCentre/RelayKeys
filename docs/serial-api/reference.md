@@ -54,9 +54,12 @@ Action is Click or Doubleclick
 
 e.g.
 
-Single click:
+*Single click:*
+
 	AT+BLEHIDMOUSEBUTTON=l,click
-Double click:
+
+*Double click:*
+
 	AT+BLEHIDMOUSEBUTTON=l,doubleclick
 
 	
