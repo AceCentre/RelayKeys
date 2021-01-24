@@ -105,6 +105,10 @@ void load_devList_fromFile(void)
     file.read((void *)bleDeviceNameList, sizeof(bleDeviceNameList));
     file.read((void *)&bleDeviceNameListIndex, 1);
 
+    if(bleDeviceNameListIndex > 15){
+      bleDeviceNameListIndex = 0;
+    }
+    
     Serial.print("List has ");
     Serial.print(bleDeviceNameListIndex);
     Serial.println(" devices");
@@ -621,7 +625,7 @@ void switchBleConnection(char *myLine)
 void printBleDevList(char *myLine)
 {
   Serial.println("at+printdevlist");
-  for (char j = 0; j < maxBleDevListSize; j++)
+  for (char j = 0; j < bleDeviceNameListIndex; j++)
   {
     Serial.print(char(j + '1'));
     Serial.println(":" + String(bleDeviceNameList[j]));
@@ -773,7 +777,6 @@ void loop()
 
 void bleConnectCallback(uint16_t conn_handle)
 {
-
   static int i;
   uint16_t connectionHandle = 0;
   BLEConnection *connection = NULL;
@@ -792,7 +795,7 @@ void bleConnectCallback(uint16_t conn_handle)
     else
     {
       connection->disconnect();
-      //Serial.println("Disconnected - Other device");
+      Serial.println("Disconnected - Other device");
     }
   }
   else if (flag_bleSwapConnProsStarted == 2)
@@ -805,7 +808,7 @@ void bleConnectCallback(uint16_t conn_handle)
     else
     {
       connection->disconnect();
-      //Serial.println("Disconnected - Other device");
+      Serial.println("Disconnected - Other device");
     }
   }
   else
@@ -816,11 +819,11 @@ void bleConnectCallback(uint16_t conn_handle)
     {
       if (!strcmp((char *)central_name, (char *)bleDeviceNameList[i]))
       {
-        //Serial.println("Device found in list - " + String(central_name));
+        Serial.println("Device found in list - " + String(central_name));
         if (flag_addDevProsStarted)
         {
           connection->disconnect();
-          //Serial.println("Disconnected - Device already present in list");
+          Serial.println("Disconnected - Device already present in list");
         }
         else
         {
@@ -842,7 +845,7 @@ void bleConnectCallback(uint16_t conn_handle)
         else
         {
           Serial.println("SUCCESS");
-          //Serial.println(String(central_name) + " Connected and Name added into list");
+          Serial.println(String(central_name) + " Connected and Name added into list");
           strcpy(bleDeviceNameList[bleDeviceNameListIndex++], central_name);
           flag_saveListToFile = true;
         }
@@ -850,7 +853,7 @@ void bleConnectCallback(uint16_t conn_handle)
       else
       {
         connection->disconnect();
-        //Serial.println(String(central_name) + " Disconnected - Not present in the list");
+        Serial.println(String(central_name) + " Disconnected - Not present in the list");
       }
     }
   }
