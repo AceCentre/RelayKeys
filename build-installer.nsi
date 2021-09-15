@@ -129,7 +129,7 @@ File /r dist\relaykeysd\*
   CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Restart-RelayKeys.lnk" "$INSTDIR\relaykeysd-service-restart.bat" "" "$INSTDIR\relaykeysd-service-restart.bat" 0
 
 ; SimpleSC Plugin: https://nsis.sourceforge.io/NSIS_Simple_Service_Plugin
-SimpleSC::InstallService "RelayKeysDaemon" "Relay Keys Daemon" 16 2 "$INSTDIR\relaykeysd-service.exe"
+SimpleSC::InstallService "RelayKeysDaemon" "Relay Keys Daemon" 16 2 '"$INSTDIR\relaykeysd-service.exe"'
 Pop $0
 SimpleSC::StartService "RelayKeysDaemon" "" 30
 Pop $0
