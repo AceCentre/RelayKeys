@@ -12,7 +12,7 @@ import traceback
 
 from relaykeysclient import RelayKeysClient
 
-import PyHook3
+import pyWinhook as PyHook3
 
 from PyQt5.QtCore import pyqtSignal, Qt, pyqtSlot
 from PyQt5.QtGui import QIcon
