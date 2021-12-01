@@ -245,17 +245,6 @@ def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
     _read_response(ser)
 
 
-def blehid_send_switch_command(ser, devicecommand):
-    _write_atcmd(ser, "AT+SWITCHCONN")
-    _read_response(ser)
-    logging.debug('Switching BT Connection')
-    return True
-
-
-def blehid_send_get_device_name(ser, devicecommand):
-    return True
-
-
 def blehid_send_devicecommand(ser, devicecommand):
     logging.debug('device command:'+str(devicecommand))
     if devicecommand == 'drop-bonded-device':
@@ -264,3 +253,22 @@ def blehid_send_devicecommand(ser, devicecommand):
         _write_atcmd(ser, "AT+GAPDELBONDS")
         _read_response(ser)
         logging.debug('Reset BT device')
+
+
+def blehid_send_switch_command(ser, devicecommand):
+    logging.debug('device command:'+str(devicecommand))
+    if devicecommand == 'switch':
+        _write_atcmd(ser, "AT+SWITCHCONN")
+        _read_response(ser)
+
+
+def blehid_send_get_device_name(ser, devicecommand):
+    logging.debug('device command:'+str(devicecommand))
+    if devicecommand == 'devname':
+        _write_atcmd(ser, "AT+BLECURRENTDEVICENAME")
+        resp = _read_response(ser, n=2).split('\r\n')
+        try:
+            return resp[1]
+        except:
+            pass
+        return 'NONE'
