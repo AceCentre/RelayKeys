@@ -52,6 +52,13 @@ volatile bool flag_saveListToFile = false;
 
 void set_keyboard_led(uint8_t led_bitmap);
 
+void deleteDevList(char *myLine)
+{
+  Serial.println("at+deletedevlist");
+  InternalFS.remove(FILENAME);
+  Serial.println("SUCCESS. Now turn on and off. ");
+}
+
 void save_devList_toFile(void)
 {
   file.open(FILENAME, FILE_O_WRITE);
@@ -662,6 +669,7 @@ const command_action_t commands[] = {
     {"at+switchconn", switchBleConnection},
     {"at+printdevlist", printBleDevList},
     {"at+blemaxdevlistsize", setBleMaxDevListSize},
+    {"at+resetdevlist", deleteDevList}
 };
 
 void execute(char *myLine)
