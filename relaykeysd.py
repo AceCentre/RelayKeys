@@ -35,7 +35,7 @@ import traceback
 
 # rpc modules
 from werkzeug.wrappers import Request, Response
-from werkzeug.serving import make_server, BaseRequestHandler
+from werkzeug.serving import make_server, WSGIRequestHandler as BaseRequestHandler
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 from jsonrpc.jsonrpc2 import JSONRPC20Response
 

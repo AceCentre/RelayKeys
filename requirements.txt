@@ -1,7 +1,7 @@
 #pygame==1.9.4
 pyserial>=3.4,<4
 json-rpc>=1.12.1,<2
-Werkzeug>=0.14.1,<1
+Werkzeug==2.0.0
 configparser>=3.7.1,<4
 python-daemon>=2.2.3,<3
 requests>=2.21.0,<3

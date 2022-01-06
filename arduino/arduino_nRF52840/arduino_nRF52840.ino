@@ -490,7 +490,7 @@ void removeBleDevice(char *myLine)
   uint16_t connectionHandle = 0;
   BLEConnection *connection = NULL;
   char bleDeviceName[32] = {0};
-
+  
   if (strlen(myLine) == 0)
   {
     Serial.println("ERROR: Syntax");
@@ -676,18 +676,27 @@ void execute(char *myLine)
 {
   if (myLine == NULL || *myLine == '\0')
     return;
-  char *cmd = strtok(myLine, "=");
+
+  char cmdTemp[100];
+  
+  memcpy(cmdTemp, myLine, 100);
+  
+  char *cmd = strtok(cmdTemp, "=");
+  
   if (cmd == NULL || *cmd == '\0')
     return;
+
   toLower(cmd);
+  
   for (size_t i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
   {
     if (strcmp(cmd, commands[i].command) == 0)
     {
-      commands[i].action(strtok(NULL, "="));
+      commands[i].action(myLine); //strtok(NULL, "=")
       return;
     }
   }
+
   // Command not found so just send OK. Should send ERROR at some point.
   Serial.println("OK");
 }
