@@ -14,10 +14,11 @@ from relaykeysclient import RelayKeysClient
 
 import pyWinhook as PyHook3
 
-from PyQt5.QtCore import pyqtSignal, Qt, pyqtSlot
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSignal, Qt, pyqtSlot, QObject, QThread, QUrl
+from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QApplication, QSystemTrayIcon, \
-    QMessageBox, QLabel, QAction, QMenu, QDialog, QPushButton
+    QMessageBox, QLabel, QAction, QMenu, QMenuBar, QDialog, QPushButton, QMainWindow
+    
 from struct import pack, unpack
 import win32api
 import win32con
@@ -33,6 +34,8 @@ parser.add_argument('--config', '-c', dest='config',
                     default=None, help='Path to config file')
 parser.add_argument('--url', '-u', dest='url', default=None,
                     help='rpc http url, default: http://localhost:5383/')
+
+devList = []
 
 modifiers_map = dict([
     (162, "LCTRL"),
@@ -291,11 +294,11 @@ class KeyboardStatusWidget (QWidget):
             if i + 1 != len(unknown_keys):
                 self.addPlusLabel()
 
-
-class Window (QDialog):
+class Window (QMainWindow):
     showErrorMessageSignal = pyqtSignal(str)
 
     def __init__(self, args, config):
+        self.devList = []
         super(Window, self).__init__()
         clientconfig = config["client"]
 
@@ -370,8 +373,7 @@ class Window (QDialog):
         self.bleConnectionSwitch.setToolTip('swicth ble device connection')
         self.bleConnectionSwitch.clicked.connect(self.sendBleToggleCommand)
         self.bleDeviceRead = QPushButton()
-        self.bleDeviceRead.setText(
-            'Cur Device: {}'.format(self._curBleDeviceName))
+        self.bleDeviceRead.setText('Cur Device: {}'.format(self._curBleDeviceName))
         self.bleDeviceRead.setToolTip('swicth ble device connection')
         self.bleDeviceRead.clicked.connect(self.readBleDeviceName)
         bleControlBar.addWidget(self.bleConnectionSwitch)
@@ -406,19 +408,65 @@ class Window (QDialog):
             label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
                           .format(text="", fontsize=fontsize))
             mainLayout.addWidget(label)
+        
+        widget = QWidget(self)
+        self.setCentralWidget(widget)
+        layout = QVBoxLayout()
+        layout.addLayout(mainLayout)
 
-        self.setLayout(mainLayout)
+        widget.setLayout(layout)
+
         self.setContentsMargins(0, 0, 0, 0)
 
         self.setWindowTitle("Relay Keys Display")
         self.resize(400, 250)
+
+        # New Menu
+        self.userMenu = self.menuBar()
+
+        # Device Menu
+        self.deviceMenu = QMenu("&Devices", self)
+        
+        self.actionAddNewDevice = QAction("Add BLE Device", self)
+        self.actionAddNewDevice.triggered.connect(self.addDeviceButtonClicked)
+
+        self.deviceMenu.addAction(self.actionAddNewDevice)
+
+        self.removeDeviceMenu = QMenu("&Remove BLE Device", self)
+
+        self.actionResetDevices = QAction("Reset BLE Device List", self)
+        self.actionResetDevices.triggered.connect(self.resetDeviceListButtonClicked)
+        self.removeDeviceMenu.addAction(self.actionResetDevices)   
+        
+        self.removeDeviceMenu.addSeparator()
+
+        self.deviceMenu.addMenu(self.removeDeviceMenu)
+
+        self.actionRefreshDevices = QAction("Refresh Device List", self)
+        self.actionRefreshDevices.triggered.connect(self.refreshDeviceListButtonClicked)
+        self.deviceMenu.addAction(self.actionRefreshDevices)
+
+        self.userMenu.addMenu(self.deviceMenu)
+
+        # Help Menu
+        self.helpMenu = self.userMenu.addMenu("&Help") 
+
+        self.helpMenuGitHubDoc = QAction("Git Hub Docs", self)
+        self.helpMenuGitHubDoc.triggered.connect(self.openGitHubUrl)
+        self.helpMenu.addAction(self.helpMenuGitHubDoc)
+
+        self.helpMenuAceCentre = QAction("Ace Centre", self)
+        self.helpMenuAceCentre.triggered.connect(self.openAceCentreUrl)
+        self.helpMenu.addAction(self.helpMenuAceCentre)
+        
+        self.send_action('ble_cmd', 'devname')
+        self.send_action('ble_cmd', 'devlist')
 
     def didShowWindow(self):
         pass
 
     @pyqtSlot()
     def readBleDeviceName(self):
-        self.send_action('ble_cmd', 'devname')
         self.send_action('ble_cmd', 'devname')
 
     @pyqtSlot()
@@ -438,6 +486,130 @@ class Window (QDialog):
 
     def getShortcutText(self, key, modifiers):
         return " + ".join((key, ) + tuple(modifiers))
+
+    #Menu Functions
+
+    def openGitHubUrl(self):
+        url = QUrl('https://acecentre.github.io/RelayKeys/')
+        if not QDesktopServices.openUrl(url):
+            QMessageBox.warning(self, 'Open Url', 'Could not open url')
+
+    def openAceCentreUrl(self):
+        url = QUrl('https://acecentre.org.uk/')
+        if not QDesktopServices.openUrl(url):
+            QMessageBox.warning(self, 'Open Url', 'Could not open url')
+    
+    def clearRemoveDeviceMenu(self):
+        
+        self.removeDeviceMenu.clear()
+
+        self.actionResetDevices = QAction("Reset BLE Device List", self)
+        self.actionResetDevices.triggered.connect(self.resetDeviceListButtonClicked)
+        self.removeDeviceMenu.addAction(self.actionResetDevices)   
+        
+        self.removeDeviceMenu.addSeparator()
+
+    def resetDeviceListButtonClicked(self):
+        self.send_action('ble_cmd', 'devreset')
+
+    def refreshDeviceListButtonClicked(self):
+
+        self.send_action('ble_cmd', 'devlist')
+
+    def removeDeviceButtonClicked(self):
+        action = self.sender()
+        self.send_action('ble_cmd', 'devremove|' + action.text()[2:])
+
+    def addDeviceUpdateDialog(self, found):
+
+        self.send_action('ble_cmd', 'devlist')
+
+        if self.oldDevList != self.devList and len(self.devList):
+            self.BLEStatusLabel.setText("New Device Added") 
+            
+            self.addBLEDeviceOK.setEnabled(True)
+            self.workerBLE.stop()
+            self.BLEthread.quit()
+            self.BLEthread.wait()
+
+        if self.addBLEDialog.isVisible() == False:
+            self.workerBLE.stop()
+            self.BLEthread.quit()
+            self.BLEthread.wait()
+
+    def addDeviceButtonClicked(self):
+
+        class BLEWorker(QObject):
+            finished = pyqtSignal()
+            progress = pyqtSignal(int)
+            def __init__(self):
+                super(BLEWorker, self).__init__()
+                self._isRunning = True
+
+            def run(self):
+                
+                while self._isRunning:
+                    sleep(1)
+                    self.progress.emit(2)
+
+            def stop(self):
+                self._isRunning = False
+
+        self.send_action('ble_cmd', 'devadd')
+
+        self.oldDevList = self.devList
+        self.devList = []        
+
+        self.addBLEDialog = QDialog(self)
+        
+        self.addBLEDialog.setWindowTitle("Add New BLE Device")
+
+        self.BLElayout = QVBoxLayout()
+
+        self.BLEStatusLabel = QLabel()
+        self.BLElayout.addWidget(self.BLEStatusLabel)
+
+        bleControlBar = QHBoxLayout()
+
+        self.addBLEDeviceOK = QPushButton()
+        self.addBLEDeviceOK.setText("OK")
+        self.addBLEDeviceOK.clicked.connect(self.addBLEDialog.accept)
+
+        self.addBLEDeviceCancel = QPushButton()
+        self.addBLEDeviceCancel.setText("Cancel")
+        self.addBLEDeviceCancel.clicked.connect(self.addBLEDialog.reject)
+        
+        bleControlBar.addWidget(self.addBLEDeviceOK)
+        bleControlBar.addWidget(self.addBLEDeviceCancel)
+
+        self.BLElayout.addLayout(bleControlBar)
+
+        self.BLEStatusLabel.setText("Waiting for device...")
+
+        self.addBLEDialog.setLayout(self.BLElayout)
+
+        self.addBLEDialog.resize(400, 125)
+
+        self.BLEthread = QThread()
+        self.workerBLE = BLEWorker()
+        
+        self.workerBLE.moveToThread(self.BLEthread)
+
+        self.BLEthread.started.connect(self.workerBLE.run)
+        self.workerBLE.finished.connect(self.BLEthread.quit)
+        self.workerBLE.finished.connect(self.workerBLE.deleteLater)
+        self.BLEthread.finished.connect(self.BLEthread.deleteLater)
+        self.workerBLE.progress.connect(self.addDeviceUpdateDialog)
+        
+        self.addBLEDeviceOK.setEnabled(False)
+
+        self.BLEthread.start()
+        
+        self.BLEthread.finished.connect(
+            lambda: self.addBLEDeviceOK.setEnabled(True)
+        )
+
+        self.addBLEDialog.exec()
 
     def updateTogglesStatus(self):
         fontsize = 5
@@ -537,12 +709,42 @@ class Window (QDialog):
                     ", ".join(map(str, actions)), ret.get("error", "undefined")))
                 self.showErrorMessageSignal.emit("Failed to send the message!")
             else:
+                
+                result = 0
+
                 for action in actions:
+                
                     if action[0] == 'ble_cmd':
                         if action[1] == 'devname':
-                            self._curBleDeviceName = ret['result']
+                            self._curBleDeviceName = ret['result'][result]
                             self.bleDeviceRead.setText(
                                 'Cur Device: {}'.format(self._curBleDeviceName))
+                
+                        if action[1] == 'devlist':
+                            
+                            self.clearRemoveDeviceMenu()
+                            self.devList = []
+                                                            
+                            for device in ret['result'][result]:
+                                if 'Device found in list - ' not in device \
+                                    and 'Disconnected - Device already present in list' not in device \
+                                    and 'ERROR:' not in device \
+                                    and 'OK' not in device \
+                                    and 'SUCCESS' not in device:
+        
+                                    self.removeDeviceMenu.addAction(device, self.removeDeviceButtonClicked)
+
+                                    self.devList.append(device)
+                                    
+                        if action[1] == 'devreset':
+                            self.clearRemoveDeviceMenu()
+                            self.devList = []
+
+                        if 'devremove' in action[1]:
+                            self.send_action('ble_cmd', 'devlist')
+
+                    result = result + 1
+
                 logging.info("actions {} response: {}".format(
                     ", ".join(map(str, actions)), ret["result"]))
                 return True
@@ -704,6 +906,8 @@ class Window (QDialog):
         self._keystate_update_timer.start()
 
 
+
+
 def main():
     args = parser.parse_args()
     # init logger
@@ -723,7 +927,7 @@ def main():
         config.read([args.config])
     if "client" not in config.sections():
         config["client"] = {}
-    app = QApplication(argv)
+    app = QApplication(sys.argv)
     try:
         QApplication.setQuitOnLastWindowClosed(True)
         window = Window(args, config)
@@ -734,8 +938,6 @@ def main():
         raise
         #QMessageBox.critical(None, "RelayKeys Fatal Error", "{}".format(traceback.format_exc()))
         # return 1
-
-
 if __name__ == '__main__':
     ret = main()
     exit(ret)

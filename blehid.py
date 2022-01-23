@@ -1,6 +1,6 @@
 import operator
 import logging
-from time import sleep
+import time
 from functools import reduce
 
 # keys source http://www.freebsddiary.org/APC/usb_hid_usages.php
@@ -272,3 +272,46 @@ def blehid_send_get_device_name(ser, devicecommand):
         except:
             pass
         return 'NONE'
+
+def blehid_send_add_device(ser, devicecommand):
+    
+    logging.debug('device command:'+str(devicecommand))
+
+    _write_atcmd(ser, "AT+BLEADDNEWDEVICE")
+
+def blehid_send_clear_device_list(ser, devicecommand):
+    
+    logging.debug('device command:'+str(devicecommand))
+
+    _write_atcmd(ser, "AT+RESETDEVLIST")
+
+def blehid_send_remove_device(ser, devicecommand):
+    
+    logging.debug('device command:'+"at+bleremovedevice\"" + devicecommand.split("|")[1] + "\"")
+
+    _write_atcmd(ser, "AT+BLEREMOVEDEVICE\"" + devicecommand.split("|")[1] + "\"")
+
+def blehid_get_device_list(ser, devicecommand):
+
+    logging.debug('device command:'+str(devicecommand))
+    
+    ser.flushInput()
+    ser.flushOutput()
+
+    time.sleep(0.1)
+
+    _write_atcmd(ser, "AT+PRINTDEVLIST")
+
+    timeout = time.time() + 1
+    
+    while True:
+        if time.time() > timeout:
+            break
+ 
+    data = ser.read_all()
+
+    data = str(data, "utf8").strip().split('\r\n')
+
+    logging.debug("response: {}".format(data))
+
+    return data[1:]
