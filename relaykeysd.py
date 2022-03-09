@@ -35,13 +35,14 @@ import traceback
 
 # rpc modules
 from werkzeug.wrappers import Request, Response
-from werkzeug.serving import make_server, BaseRequestHandler
+from werkzeug.serving import make_server, WSGIRequestHandler as BaseRequestHandler
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 from jsonrpc.jsonrpc2 import JSONRPC20Response
 
 from blehid import blehid_send_keyboardcode, blehid_init_serial, \
     blehid_send_movemouse, blehid_send_mousebutton, blehid_send_devicecommand, \
-    blehid_send_switch_command, blehid_send_get_device_name
+    blehid_send_switch_command, blehid_send_get_device_name, blehid_get_device_list, \
+    blehid_send_add_device, blehid_send_clear_device_list, blehid_send_remove_device
 
 # from pygame.locals import *
 # from pygame.compat import as_bytes
@@ -53,6 +54,7 @@ DEFAULT_BAUD = 115200
 nrfVID = '239A'
 nrfPID = '8029'
 devName = 'NONE'
+devList = []
 RETRY_TIMEOUT = 10
 QUEUE_TIMEOUT = 3
 
@@ -111,16 +113,34 @@ def rpc_server_worker(host, port, username, password, queue):
     @dispatcher.add_method
     def actions(args):
         try:
+            global devName
+            global devList
+
             actionlist = args[0]
+            data = []
+
             for action in actionlist:
+                
                 if action[0] not in ('mousemove', 'mousebutton', 'keyevent', 'ble_cmd'):
+                
                     raise ValueError('unknown action')
-                elif action[0] == 'ble_cmd':
-                    if action[1] == 'devname':
-                        queue.put((None, 'actions', actionlist), True)
-                        return devName
+
             queue.put((None, 'actions', actionlist), True)
-            return "OK"
+
+            for action in actionlist:
+                if action[0] == 'ble_cmd':
+                                    
+                    if action[1] == 'devname':
+                        data.append(devName)
+                
+                    if action[1] == 'devlist':
+                        data.append(devList)
+
+            if len(data):
+                return data
+            else:
+                return "OK"
+
         except:
             return "UNEXPECTED_INPUT"
 
@@ -308,12 +328,19 @@ def do_main(args, config, interrupt=None):
             else:
                 SerialCls = serial.Serial
             with SerialCls(devicepath, baud, rtscts=1) as ser:
+                
                 logging.info("serial device opened: {}".format(devicepath))
                 #logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
                 blehid_init_serial(ser)
                 # Six keys for USB keyboard HID report
                 # uint8_t keys[6] = {0,0,0,0,0,0}
                 keys = arr.array('B', [0, 0, 0, 0, 0, 0])
+
+                #Get intial ble device List
+                process_action(ser, keys, ['ble_cmd','devlist'])
+                #Get intial ble device name
+                process_action(ser, keys, ['ble_cmd','devname'])
+                
                 try:
                     while True:
                         if interrupt is not None:
@@ -344,17 +371,20 @@ def process_action(ser, keys, cmd):
             for action in cmd[1]:
                 outputs.append(process_action(ser, keys, action))
             return ", ".join(outputs)
+            
         if cmd[0] == "keyevent":
             key = cmd[1]
             modifiers = cmd[2]
             down = cmd[3]
             blehid_send_keyboardcode(ser, key, modifiers, down, keys)
+
         elif cmd[0] == "mousemove":
             right = int(cmd[1])
             down = int(cmd[2])
             wheely = int(cmd[3] if len(cmd) > 3 else 0)
             wheelx = int(cmd[4] if len(cmd) > 4 else 0)
             blehid_send_movemouse(ser, right, down, wheely, wheelx)
+
         elif cmd[0] == "mousebutton":
             btn = str(cmd[1]).lower() if cmd[1] is not None else None
             behavior = str(cmd[2]).lower() if len(
@@ -365,12 +395,33 @@ def process_action(ser, keys, cmd):
                 raise CommandException(
                     "Unknown mousebutton behavior: {}".format(behavior))
             blehid_send_mousebutton(ser, btn, behavior)
+
         elif cmd[0] == 'ble_cmd':
+            global devName
+            global devList
+
             if cmd[1] == "switch":
                 blehid_send_switch_command(ser, cmd[1])
+
             elif cmd[1] == "devname":
-                global devName
                 devName = blehid_send_get_device_name(ser, cmd[1])
+
+            elif cmd[1] == "devlist":
+                devList = blehid_get_device_list(ser, cmd[1])
+
+            elif cmd[1] == "devadd":
+                blehid_send_add_device(ser, cmd[1])
+
+            elif cmd[1] == "devreset":
+                blehid_send_clear_device_list(ser, cmd[1])
+                devList = []
+                devName = ""
+
+            elif cmd[1].split("|")[0] == "devremove":
+                blehid_send_remove_device(ser, cmd[1])
+                devList = blehid_get_device_list(ser, "devlist")
+
+
         # response queue given by cmd
         return "SUCCESS"
     except:
