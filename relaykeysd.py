@@ -272,7 +272,7 @@ def find_device_path(noserial, seldev):
         if (os.name == 'posix'):
             dev = '/dev/ttyUSB0' if seldev is None else seldev
         else:
-            dev = 'COM4' if seldev is None else seldev
+            dev = 'COM6' if seldev is None else seldev
             # Look for Adafruit CP2104 break out board or Feather nRF52. Use the first
             # one found. Default is /dev/ttyUSB0 Or COM6 (Windows)
             # tty for Bluetooth device with baud
