@@ -85,7 +85,7 @@ then in another terminal run
 
 		AT+BAUDRATE=115200
 
-- Next put the device into [DATA mode](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/uart-test#blefriend-configuration-6-3) (slide the switch). 
+- Leave the device in CMD mode (TY [@joedevsys](https://github.com/AceCentre/RelayKeys/issues/69))
 
 
 ### 2. Setup: Connect the partner/client machine via Bluetooth
