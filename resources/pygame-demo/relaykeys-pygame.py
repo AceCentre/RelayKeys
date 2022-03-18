@@ -152,7 +152,7 @@ kmods_map = [
   (pygame.KMOD_RMETA, "RMETA"),
 ]
 
-def onkeyevent (e, isdown):
+def onkeyevent(e, isdown):
   modifiers = list(
     map(lambda a: a[1],
         filter(lambda a: e.mod & a[0] != 0, kmods_map)))
@@ -162,7 +162,7 @@ def onkeyevent (e, isdown):
   if 'result' not in ret:
     print("keyevent ({}, {}, {}) response error: {}", key, modifiers, isdown, ret.get("error", "undefined"))
   else:
-    print("keyevent ({}, {}, {}) response: {}".format(key, modifiers, isdown, ret["result"]))
+    print(f'keyevent ({key}, {modifiers}, {isdown}) response: {ret["result"]}')
 
 ## Main. This loads the window
 pygame.init()

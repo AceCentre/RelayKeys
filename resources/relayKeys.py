@@ -541,29 +541,29 @@ HIDCode = arr.array('B', [
 keys = arr.array('B', [0, 0, 0, 0, 0, 0])
 
 def mkHID(keycode, modifiers, down):
-    logging.debug('keycode:'+str(keycode)+'  modifiers:'+str(modifiers))
+    logging.debug(f'keycode:{str(keycode)}  modifiers:{str(modifiers)}')
     hidmod = 0
     if modifiers & 0x0040:
-        hidmod = hidmod | 0x01
+        hidmod |= 0x01
     if modifiers & 0x0001:
-        hidmod = hidmod | 0x02
+        hidmod |= 0x02
     if modifiers & 0x0100:
-        hidmod = hidmod | 0x04
+        hidmod |= 0x04
     if modifiers & 0x0400:
-        hidmod = hidmod | 0x08
+        hidmod |= 0x08
     if modifiers & 0x0080:
-        hidmod = hidmod | 0x10
+        hidmod |= 0x10
     if modifiers & 0x0002:
-        hidmod = hidmod | 0x20
+        hidmod |= 0x20
     if modifiers & 0x0200:
-        hidmod = hidmod | 0x40
+        hidmod |= 0x40
     if modifiers & 0x0800:
-        hidmod = hidmod | 0x80
+        hidmod |= 0x80
     hidcode = HIDCode[keycode]
     if OS == 'ios' and keycode == 13:
         hidcode = 0x58
-    logging.debug('hidcode:'+ str(hidcode) + '  hidmod:'+str(hidmod))
-    for i in range(0, 6):
+    logging.debug(f'hidcode:{str(hidcode)}  hidmod:{hidmod}')
+    for i in range(6):
         if keys[i] == 0:
             if down == True:
                 keys[i] = hidcode
@@ -575,13 +575,13 @@ def mkHID(keycode, modifiers, down):
                 break
     atcmd = "AT+BLEKEYBOARDCODE={:02x}-00".format(hidmod)
     zerocmd = ""
-    for i in range(0, 6):
+    for i in range(6):
         if keys[i] != 0:
             atcmd += "-{:02x}".format(keys[i])
         else:
             zerocmd += "-00"
     atcmd += zerocmd + "\r"
-    logging.debug('atcmd:'+ atcmd)
+    logging.debug(f'atcmd:{atcmd}')
     ser.write(atcmd.encode());
 
 
@@ -592,27 +592,21 @@ if (debug):
 	logger.setLevel(logging.DEBUG)
 
 try:
-	if (sys.argv[1]=='no-serial'): 
-		noSerial = True
-		if (os.name =='posix'):
-			if (os.path.isfile('.serialDemo')):	
-				with open('.serialDemo') as f: SERIAL_TERMINAL = f.read()
-			else:
-				logger.critical('no-serial is set to true.. Please make sure you have already run \'python resources\demoSerial.py\' from a different shell')
-				exit()
-		elif (os.name=='nt'):
-			SERIAL_TERMINAL = 'COM7'
+    if (sys.argv[1]=='no-serial'): 
+        noSerial = True
+        if os.name == 'nt':
+            SERIAL_TERMINAL = 'COM7'
+        elif os.name == 'posix':
+            if (os.path.isfile('.serialDemo')):	
+            	with open('.serialDemo') as f: SERIAL_TERMINAL = f.read()
+            else:
+            	logger.critical('no-serial is set to true.. Please make sure you have already run \'python resources\demoSerial.py\' from a different shell')
+            	exit()
 except IndexError:
 	noSerial = False
-        
-if (noSerial==False):
-	# Default names
-	if (os.name=='posix'):
-		SERIAL_TERMINAL = '/dev/ttyUSB0'
-	else:
-		SERIAL_TERMINAL = 'COM6'
 
-
+if not noSerial:
+    SERIAL_TERMINAL = '/dev/ttyUSB0' if (os.name=='posix') else 'COM6'
 # Some helper functions for our pygame window
 
 
@@ -633,15 +627,10 @@ going = True
 # NB: Could be p.device with a suitable name we are looking for. Noticed some variation around this
 
 for p in serial.tools.list_ports.comports():
-	if "CP2104" in p.description:
-		logging.debug('serial desc:'+ str(p))
-		SERIAL_TERMINAL = p.device
-		break
-	elif "nRF52" in p.description:
-		logging.debug('serial desc:'+ str(p))
-		SERIAL_TERMINAL = p.device
-		break
-
+    if "CP2104" in p.description or "nRF52" in p.description:
+        logging.debug(f'serial desc:{str(p)}')
+        SERIAL_TERMINAL = p.device
+        break
 with serial.Serial(SERIAL_TERMINAL, BAUD, rtscts=1) as ser:
     # TODO check for OK or ERROR
     ser.write("AT\r".encode())

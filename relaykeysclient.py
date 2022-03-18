@@ -9,9 +9,8 @@ class RelayKeysClient (object):
         if (host is None or port is None) and url is None:
             raise ValueError("url and host:port is not defined!")
         if url is None:
-            auth = "{}:{}@".format(username,
-                                   password) if username is not None else ""
-            self.url = "http://{}{}:{}/".format(auth, host, port)
+            auth = f"{username}:{password}@" if username is not None else ""
+            self.url = f"http://{auth}{host}:{port}/"
         else:
             self.url = url
 

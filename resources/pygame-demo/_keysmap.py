@@ -664,23 +664,37 @@ keysmap = list(
 )
 
 keysmap2 = list(
-  filter(lambda a: a[1] != 0,
-         map(lambda a: ("pygame." + a, a[2:].upper()),
-             keynames)
-  )
-)
+    filter(
+        lambda a: a[1] != 0,
+        map(lambda a: (f"pygame.{a}", a[2:].upper()), keynames),
+    ))
 
-kmods = [ a for a in map(lambda a:a.strip(), """
+kmods = list(
+    map(
+        lambda a: a.strip(),
+        """
 KMOD_LSHIFT, KMOD_RSHIFT, KMOD_SHIFT, KMOD_CAPS,
 KMOD_LCTRL, KMOD_RCTRL, KMOD_CTRL, KMOD_LALT, KMOD_RALT,
 KMOD_ALT, KMOD_LMETA, KMOD_RMETA, KMOD_META, KMOD_NUM, KMOD_MODE
-""".split(","))]
+"""
+        .split(","),
+    ))
 
-keysmap3 = map(lambda a: ("pygame.KMOD_" + a[0], a[0]),
-  filter(lambda a: "KMOD_" + a[0] in kmods,
-         [ ("LCTRL", 0x01), ("LSHIFT", 0x02), ("LALT", 0x04),
-           ("LMETA", 0x08), ("RCTRL", 0x10), ("RSHIFT", 0x20),
-           ("RALT", 0x40), ("RMETA", 0x80) ])
+keysmap3 = map(
+    lambda a: (f"pygame.KMOD_{a[0]}", a[0]),
+    filter(
+        lambda a: f"KMOD_{a[0]}" in kmods,
+        [
+            ("LCTRL", 0x01),
+            ("LSHIFT", 0x02),
+            ("LALT", 0x04),
+            ("LMETA", 0x08),
+            ("RCTRL", 0x10),
+            ("RSHIFT", 0x20),
+            ("RALT", 0x40),
+            ("RMETA", 0x80),
+        ],
+    ),
 )
 
 import win32api, win32con
@@ -726,8 +740,8 @@ print("[")
 for kdata in keystrokesdata:
   val = kdata[0]
   if val not in keynames2:
-    val = "#" + val + "#"
-  print("  ({}, \"{}\"),".format(kdata[2], val))
+    val = f"#{val}#"
+  print(f'  ({kdata[2]}, "{val}"),')
 '''
 for akey in keysmap3:
   print("  ({}, \"{}\"),".format(akey[0], akey[1]))

@@ -7,11 +7,9 @@ import os, sys, select
 
 parent, child = os.openpty()
 tty = os.ttyname(child)
-os.system('stty cs8 -icanon -echo < %s' % (tty))
-file = open('.serialDemo','w') 
-file.write(tty)
-file.close()
-
+os.system(f'stty cs8 -icanon -echo < {tty}')
+with open('.serialDemo','w') as file:
+    file.write(tty)
 try:
     os.system('stty cs8 -icanon -echo < /dev/stdin')
 

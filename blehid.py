@@ -144,8 +144,7 @@ keymap = dict([
 def _write_atcmd(ser, msg):
     if not isinstance(msg, bytes):
         msg = msg.encode()
-    logging.debug("request: {}".format(
-        msg if isinstance(msg, str) else str(msg, "utf8")))
+    logging.debug(f'request: {msg if isinstance(msg, str) else str(msg, "utf8")}')
     ser.write(msg + b"\r\n")
     ser.flushInput()
 
@@ -156,7 +155,7 @@ def _read_response(ser, n=1):
         v += ser.readline()
         n -= 1
     msg = str(v, "utf8").strip()
-    logging.debug("response: {}".format(msg))
+    logging.debug(f"response: {msg}")
     return msg
 
 
@@ -193,8 +192,7 @@ def blehid_send_movemouse(ser, right, down, wheely, wheelx):
         dmove = max(-128, min(down, 127))
         wymove = max(-128, min(wheely, 127))
         wxmove = max(-128, min(wheelx, 127))
-        atcmd = "AT+BLEHIDMOUSEMOVE={},{},{},{}".format(
-            rmove, dmove, wymove, wxmove)
+        atcmd = f"AT+BLEHIDMOUSEMOVE={rmove},{dmove},{wymove},{wxmove}"
         _write_atcmd(ser, atcmd)
         _read_response(ser)
         right -= rmove
@@ -204,14 +202,14 @@ def blehid_send_movemouse(ser, right, down, wheely, wheelx):
 
 
 def blehid_send_mousebutton(ser, btn, behavior=None):
-    atcmd = "AT+BLEHIDMOUSEBUTTON={}{}".format(
-        btn, "" if behavior is None else "," + behavior)
+    atcmd = f'AT+BLEHIDMOUSEBUTTON={btn}{"" if behavior is None else f",{behavior}"}'
+
     _write_atcmd(ser, atcmd)
     _read_response(ser)
 
 
 def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
-    logging.debug('key:'+str(key)+'  modifiers:'+str(modifiers))
+    logging.debug(f'key:{str(key)}  modifiers:{str(modifiers)}')
     hidmod = reduce(operator.or_, map(
         lambda a: a[1],
         filter(lambda a: a[0] in modifiers,
@@ -223,7 +221,7 @@ def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
     #    hidcode = 0x58
     logging.debug("keycode: {:02x}, mod: {:02x}".format(keycode, hidmod))
     if key != 0:
-        for i in range(0, 6):
+        for i in range(6):
             if keys[i] == 0:
                 if down == True:
                     keys[i] = keycode
@@ -235,7 +233,7 @@ def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
                     break
     atcmd = "AT+BLEKEYBOARDCODE={:02x}-00".format(hidmod)
     zerocmd = ""
-    for i in range(0, 6):
+    for i in range(6):
         if keys[i] != 0:
             atcmd += "-{:02x}".format(keys[i])
         else:
@@ -246,7 +244,7 @@ def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
 
 
 def blehid_send_devicecommand(ser, devicecommand):
-    logging.debug('device command:'+str(devicecommand))
+    logging.debug(f'device command:{str(devicecommand)}')
     if devicecommand == 'drop-bonded-device':
         _write_atcmd(ser, "AT+GAPDISCONNECT")
         _read_response(ser)
@@ -256,14 +254,14 @@ def blehid_send_devicecommand(ser, devicecommand):
 
 
 def blehid_send_switch_command(ser, devicecommand):
-    logging.debug('device command:'+str(devicecommand))
+    logging.debug(f'device command:{str(devicecommand)}')
     if devicecommand == 'switch':
         _write_atcmd(ser, "AT+SWITCHCONN")
         _read_response(ser)
 
 
 def blehid_send_get_device_name(ser, devicecommand):
-    logging.debug('device command:'+str(devicecommand))
+    logging.debug(f'device command:{str(devicecommand)}')
     if devicecommand == 'devname':
         _write_atcmd(ser, "AT+BLECURRENTDEVICENAME")
         resp = _read_response(ser, n=2).split('\r\n')
@@ -275,13 +273,13 @@ def blehid_send_get_device_name(ser, devicecommand):
 
 def blehid_send_add_device(ser, devicecommand):
     
-    logging.debug('device command:'+str(devicecommand))
+    logging.debug(f'device command:{str(devicecommand)}')
 
     _write_atcmd(ser, "AT+BLEADDNEWDEVICE")
 
 def blehid_send_clear_device_list(ser, devicecommand):
     
-    logging.debug('device command:'+str(devicecommand))
+    logging.debug(f'device command:{str(devicecommand)}')
 
     _write_atcmd(ser, "AT+RESETDEVLIST")
 
@@ -293,8 +291,8 @@ def blehid_send_remove_device(ser, devicecommand):
 
 def blehid_get_device_list(ser, devicecommand):
 
-    logging.debug('device command:'+str(devicecommand))
-    
+    logging.debug(f'device command:{str(devicecommand)}')
+
     ser.flushInput()
     ser.flushOutput()
 
@@ -303,15 +301,15 @@ def blehid_get_device_list(ser, devicecommand):
     _write_atcmd(ser, "AT+PRINTDEVLIST")
 
     timeout = time.time() + 1
-    
+
     while True:
         if time.time() > timeout:
             break
- 
+
     data = ser.read_all()
 
     data = str(data, "utf8").strip().split('\r\n')
 
-    logging.debug("response: {}".format(data))
+    logging.debug(f"response: {data}")
 
     return data[1:]
