@@ -319,6 +319,7 @@ class Window (QMainWindow):
         self._mouse_toggle_modifiers = clientconfig.get(
             "mouse_togglemods", "LALT").split(",")
         self._last_mouse_pos = None
+        self._last_mouse_calltime = 0
         self._curBleDeviceName = '---'
 
         url = clientconfig.get("url", None) if args.url == None else args.url
@@ -871,35 +872,41 @@ class Window (QMainWindow):
     def mouse_on_move(self, x, y):        
         if not self._mouse_disabled:
             if self._last_mouse_pos is None:
-                self._last_mouse_pos = [x, y]
+                self._last_mouse_pos = [x, y]                
                 return True
-            dx = x - self._last_mouse_pos[0]
-            dy = y - self._last_mouse_pos[1]
+            if time() - self._last_mouse_calltime >0.100:
+                dx = x - self._last_mouse_pos[0]
+                dy = y - self._last_mouse_pos[1]
 
-            self.send_action('mousemove', dx, dy)
+                self.send_action('mousemove', dx, dy)
+                self._last_mouse_pos = [x, y]
+
+                self._last_mouse_calltime = time()
     
-    def mouse_on_click(self, x, y, button, pressed):        
-        if button == mouse.Button.left and pressed:
-            self.send_action('mousebutton', 'l', 'press')
-        elif button == mouse.Button.left and not pressed:
-            self.send_action('mousebutton', '0')
-        #elif event.Message == PyHook3.HookConstants.WM_LBUTTONDBLCLK:
-        #    self.send_action('mousebutton', 'l', 'doubleclick')                
-        elif button == mouse.Button.right and pressed:
-            self.send_action('mousebutton', 'r', 'press')
-        elif button == mouse.Button.right and not pressed:
-            self.send_action('mousebutton', '0')
-        #elif event.Message == PyHook3.HookConstants.WM_RBUTTONDBLCLK:
-        #    self.send_action('mousebutton', 'r', 'doubleclick')
-        elif button == mouse.Button.middle and pressed:
-            self.send_action('mousebutton', 'm', 'press')
-        elif button == mouse.Button.middle and not pressed:
-            self.send_action('mousebutton', '0')
-        #elif event.Message == PyHook3.HookConstants.WM_MBUTTONDBLCLK:
-        #    self.send_action('mousebutton', 'm', 'doubleclick')
+    def mouse_on_click(self, x, y, button, pressed):
+        if not self._mouse_disabled:
+            if button == mouse.Button.left and pressed:
+                self.send_action('mousebutton', 'l', 'press')
+            elif button == mouse.Button.left and not pressed:
+                self.send_action('mousebutton', '0')
+            #elif event.Message == PyHook3.HookConstants.WM_LBUTTONDBLCLK:
+            #    self.send_action('mousebutton', 'l', 'doubleclick')                
+            elif button == mouse.Button.right and pressed:
+                self.send_action('mousebutton', 'r', 'press')
+            elif button == mouse.Button.right and not pressed:
+                self.send_action('mousebutton', '0')
+            #elif event.Message == PyHook3.HookConstants.WM_RBUTTONDBLCLK:
+            #    self.send_action('mousebutton', 'r', 'doubleclick')
+            elif button == mouse.Button.middle and pressed:
+                self.send_action('mousebutton', 'm', 'press')
+            elif button == mouse.Button.middle and not pressed:
+                self.send_action('mousebutton', '0')
+            #elif event.Message == PyHook3.HookConstants.WM_MBUTTONDBLCLK:
+            #    self.send_action('mousebutton', 'm', 'doubleclick')
     
     def mouse_on_scroll(self, x, y, dx, dy):        
-        self.send_action('mousemove', 0, 0, dx)
+        if not self._mouse_disabled:
+            self.send_action('mousemove', 0, 0, dy, dx)
 
     def onUpdateKeyState(self):
         """This update event handler is used to update shown state of keyboard
