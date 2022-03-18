@@ -375,10 +375,11 @@ def do_main(args, config, interrupt=None):
                 except SystemExit:
                     shutdown_server()
                     quit = True
-        except:
+        except serial.serialutil.SerialException:
             logging.error(traceback.format_exc())
             logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
             sleep(RETRY_TIMEOUT)
+
     logging.info("relaykeysd exit!")
     return 0
 
