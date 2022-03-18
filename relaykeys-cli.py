@@ -20,7 +20,7 @@ parser.add_argument('--debug', dest='debug', action='store_const',
 parser.add_argument('--config', '-c', dest='config',
                     default=None, help='Path to config file')
 parser.add_argument('--url', '-u', dest='url', default=None,
-                    help='rpc http url, default: http://localhost:5383/')
+                    help='rpc http url, default: http://127.0.0.1:5383/')
 parser.add_argument('--delay', dest='delay', type=int, default=0,
                     help='delay between each call, in miliseconds')
 parser.add_argument('commands', metavar='COMMAND', nargs='+',
@@ -177,7 +177,7 @@ def do_main (args, config):
                              password=config.get("password", None))
   else:
     if url is None:
-      url = "http://localhost:5383/"
+      url = "http://127.0.0.1:5383/"
     client = RelayKeysClient(url=url)
   delay = config.getint("delay", 0) if args.delay == 0 else args.delay
   for cmd in args.commands:

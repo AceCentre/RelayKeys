@@ -248,7 +248,7 @@ def shutdown_server():
     headers = {'content-type': 'application/json'}
     data = json.dumps(payload)
     try:
-        resp = requests.post("http://localhost:5383/", data, headers=headers, timeout=10)
+        resp = requests.post("http://127.0.0.1:5383/", data, headers=headers, timeout=10)
     except requests.exceptions.ConnectionError:
         print("Connection closed")
 
@@ -316,7 +316,7 @@ class DummySerial (object):
 
 def do_main(args, config, interrupt=None):
     # actions queue
-    queue = run_rpc_server(config.get("host", "localhost"),
+    queue = run_rpc_server(config.get("host", "127.0.0.1"),
                            config.getint("port", 5383),
                            config.get("username", ""),
                            config.get("password", ""))
