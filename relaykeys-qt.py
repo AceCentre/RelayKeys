@@ -359,6 +359,7 @@ class Window (QMainWindow):
             self._keyboard_toggle_key, self._keyboard_toggle_modifiers)))
         self.keyboardToggleButton.setToolTip('Keyboard disable toggle')
         self.keyboardToggleButton.clicked.connect(self.didClickKeyboardToggle)
+        self.keyboardToggleButton.setFocusPolicy(Qt.NoFocus)
         keyboardControlSect.addWidget(self.keyboardToggleButton)
 
         mouseControlSect = QVBoxLayout()
@@ -367,8 +368,9 @@ class Window (QMainWindow):
         self.mouseToggleButton = QPushButton()
         self.mouseToggleButton.setText('Toggle: {}'.format(
             self.getShortcutText(self._mouse_toggle_key, self._mouse_toggle_modifiers)))
-        self.mouseToggleButton.setToolTip('Mouse disable toggle')
+        self.mouseToggleButton.setToolTip('Mouse disable toggle')        
         self.mouseToggleButton.clicked.connect(self.didClickMouseToggle)
+        self.mouseToggleButton.setFocusPolicy(Qt.NoFocus)
         mouseControlSect.addWidget(self.mouseToggleButton)
 
         bleControlBar = QHBoxLayout()
@@ -376,10 +378,12 @@ class Window (QMainWindow):
         self.bleConnectionSwitch.setText('BLE Switch')
         self.bleConnectionSwitch.setToolTip('swicth ble device connection')
         self.bleConnectionSwitch.clicked.connect(self.sendBleToggleCommand)
+        self.bleConnectionSwitch.setFocusPolicy(Qt.NoFocus)
         self.bleDeviceRead = QPushButton()
         self.bleDeviceRead.setText('Cur Device: {}'.format(self._curBleDeviceName))
         self.bleDeviceRead.setToolTip('swicth ble device connection')
         self.bleDeviceRead.clicked.connect(self.readBleDeviceName)
+        self.bleDeviceRead.setFocusPolicy(Qt.NoFocus)
         bleControlBar.addWidget(self.bleConnectionSwitch)
         bleControlBar.addWidget(self.bleDeviceRead)
 
