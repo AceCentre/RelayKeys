@@ -44,7 +44,7 @@ def parse_commamd (cmd):
 class CommandErrorResponse (BaseException):
   pass
 
-def do_keyevent (client, key, modifiers, isdown):
+def do_keyevent(client, key, modifiers, isdown):
   """Sends a key event to the daemon
 
     For example - press a key with modifiers - and note is the key down or up
@@ -61,12 +61,15 @@ def do_keyevent (client, key, modifiers, isdown):
   """
   ret = client.keyevent(key, modifiers, isdown)
   if 'result' not in ret:
-    logging.error("keyevent ({}, {}, {}) response error: {}".format(key, modifiers, isdown, ret.get("error", "undefined")))
+    logging.error(
+        f'keyevent ({key}, {modifiers}, {isdown}) response error: {ret.get("error", "undefined")}'
+    )
     raise CommandErrorResponse()
   else:
-    logging.info("keyevent ({}, {}, {}) response: {}".format(key, modifiers, isdown, ret["result"]))
+    logging.info(
+        f'keyevent ({key}, {modifiers}, {isdown}) response: {ret["result"]}')
 
-def do_mousemove (client, right, down, wy, wx):
+def do_mousemove(client, right, down, wy, wx):
   """Sends a mouse move event to the daemon
 
     For example - move mouse right n pixels and down n pixels. To move left or up - use negative numbers. 
@@ -84,12 +87,14 @@ def do_mousemove (client, right, down, wy, wx):
   """
   ret = client.mousemove(right, down, wy, wx)
   if 'result' not in ret:
-    logging.error("mousemove ({}, {}) response error: {}".format(right, down, ret.get("error", "undefined")))
+    logging.error(
+        f'mousemove ({right}, {down}) response error: {ret.get("error", "undefined")}'
+    )
     raise CommandErrorResponse()
   else:
-    logging.info("mousemove ({}, {}) response: {}".format(right, down, ret["result"]))
+    logging.info(f'mousemove ({right}, {down}) response: {ret["result"]}')
 
-def do_mousebutton (client, btn, behavior=None):
+def do_mousebutton(client, btn, behavior=None):
   """Sends a mouse button event to the daemon
 
     For example - click left mouse button 
@@ -107,18 +112,22 @@ def do_mousebutton (client, btn, behavior=None):
   """
   ret = client.mousebutton(btn, behavior)
   if 'result' not in ret:
-    logging.error("mousebutton ({}, {}) response error: {}".format(btn, behavior, ret.get("error", "undefined")))
+    logging.error(
+        f'mousebutton ({btn}, {behavior}) response error: {ret.get("error", "undefined")}'
+    )
     raise CommandErrorResponse()
   else:
-    logging.info("mousebutton ({}, {}) response: {}".format(btn, behavior, ret["result"]))
+    logging.info(f'mousebutton ({btn}, {behavior}) response: {ret["result"]}')
 
 def do_devicecommand(client, devcommand):
   ret = client.devicecommand(devcommand)
   if 'result' not in ret:
-    logging.error("devicecommand ({}) response error: {}".format(devcommand, ret.get("error", "undefined")))
+    logging.error(
+        f'devicecommand ({devcommand}) response error: {ret.get("error", "undefined")}'
+    )
     raise CommandErrorResponse()
   else:
-    logging.info("devicecommand ({}) response : {}".format(devcommand, ret["result"]))
+    logging.info(f'devicecommand ({devcommand}) response : {ret["result"]}')
 
 nonchars_key_map = {
   "\r": (None, None),
