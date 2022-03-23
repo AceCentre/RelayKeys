@@ -12,7 +12,7 @@ import traceback
 
 from relaykeysclient import RelayKeysClient
 
-import pyWinhook as PyHook3
+from pynput import mouse, keyboard
 
 from PyQt5.QtCore import pyqtSignal, Qt, pyqtSlot, QObject, QThread, QUrl
 from PyQt5.QtGui import QIcon, QDesktopServices
@@ -33,22 +33,22 @@ parser.add_argument('--debug', dest='debug', action='store_const',
 parser.add_argument('--config', '-c', dest='config',
                     default=None, help='Path to config file')
 parser.add_argument('--url', '-u', dest='url', default=None,
-                    help='rpc http url, default: http://localhost:5383/')
+                    help='rpc http url, default: http://127.0.0.1:5383/')
 
 devList = []
 
 modifiers_map = dict([
-    (162, "LCTRL"),
-    (163, "RCTRL"),
-    (160, "LSHIFT"),
-    (161, "RSHIFT"),
-    (165, "RALT"),
-    (164, "LALT"),
-    (0x5B, "LMETA"),
-    (0x5C, "RMETA"),
+    (keyboard.Key.ctrl_l, "LCTRL"),
+    (keyboard.Key.ctrl_r, "RCTRL"),
+    (keyboard.Key.shift_l, "LSHIFT"),
+    (keyboard.Key.shift_r, "RSHIFT"),
+    (keyboard.Key.alt_r, "RALT"),
+    (keyboard.Key.alt_l, "LALT"),
+    (keyboard.Key.cmd_l, "LMETA"),
+    (keyboard.Key.cmd_r, "RMETA"),
 ])
 
-keysmap = dict([
+keysmap_printable = dict([
     (65, "A"),
     (66, "B"),
     (67, "C"),
@@ -95,53 +95,8 @@ keysmap = dict([
     (222, "QUOTE"),
     (219, "LEFTBRACKET"),
     (221, "RIGHTBRACKET"),
-    (13, "ENTER"),
-    (32, "SPACE"),
-    (8, "BACKSPACE"),
-    (9, "TAB"),
     (445, "UNDERSCORE"),
-    (33, "PAGEUP"),
-    (34, "PAGEDOWN"),
-    (37, "LEFTARROW"),
-    (39, "RIGHTARROW"),
-    (38, "UPARROW"),
-    (40, "DOWNARROW"),
-    (27, "ESCAPE"),
-    (36, "HOME"),
-    (35, "END"),
-    (45, "INSERT"),
-    (46, "DELETE"),
-    (93, "APP"),  # Applications key
-    (20, "CAPSLOCK"),
-    (112, "F1"),
-    (113, "F2"),
-    (114, "F3"),
-    (115, "F4"),
-    (116, "F5"),
-    (117, "F6"),
-    (118, "F7"),
-    (119, "F8"),
-    (120, "F9"),
-    (121, "F10"),
-    (122, "F11"),
-    (123, "F12"),
     (0xC0, "BACKQUOTE"),  # Keyboard Non-US # and ~
-    (0x2C, "PRINTSCREEN"),  # Keyboard PrintScreen, VK_SNAPSHOT
-    (0x2B, "EXECUTE"),  # VK_EXECUTE
-    (0x2F, "HELP"),  # VK_HELP
-    (0x12, "MENU"),  # VK_MENU
-    (0x13, "PAUSE"),  # VK_PAUSE
-    (0x29, "SELECT"),  # VK_SELECT
-    (0xB2, "STOP"),  # VK_MEDIA_STOP, Keyboard Stop
-    (0xAD, "MUTE"),  # VK_VOLUME_MUTE
-    (0xAF, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
-    (0xAE, "VOLDOWN"),  # VK_VOLUME_DOWN, Keyboard Volume Down
-    (0x03, "CANCEL"),  # VK_CANCEL
-    (0x0C, "CLEAR"),  # VK_CLEAR, Keyboard Clear
-    (0x21, "PRIOR"),  # VK_PRIOR, Keyboard Prior
-    (0x0D, "ENTER"),  # VK_RETURN, ENTER
-    (0x6C, "SEPARATOR"),  # VK_SEPARATOR
-    (0x5F, "POWER"),  # VK_SLEEP
     (0x60, "KP_0"),  # VK_NUMPAD0
     (0x61, "KP_1"),  # VK_NUMPAD1
     (0x62, "KP_2"),  # VK_NUMPAD2
@@ -156,8 +111,56 @@ keysmap = dict([
     (0x6A, "KP_MULTIPLY"),  # keypad multiply, VK_MULTIPLY
     (0x6F, "KP_DIVIDE"),  # keypad divide, VK_DIVIDE
     (0x6B, "KP_PLUS"),
-    (0x6D, "KP_MINUS"),
-    (0x03, "CANCEL"),  # VK_CANCEL
+    (0x6D, "KP_MINUS"),    
+])
+
+keysmap_non_printable = dict([
+    (keyboard.Key.enter,  "ENTER"),
+    (keyboard.Key.space,  "SPACE"),
+    (keyboard.Key.backspace,  "BACKSPACE"),
+    (keyboard.Key.tab,  "TAB"),
+    (keyboard.Key.page_up,  "PAGEUP"),
+    (keyboard.Key.page_down,  "PAGEDOWN"),
+    (keyboard.Key.left,  "LEFTARROW"),
+    (keyboard.Key.right,  "RIGHTARROW"),
+    (keyboard.Key.up,  "UPARROW"),
+    (keyboard.Key.down,  "DOWNARROW"),
+    (keyboard.Key.esc,  "ESCAPE"),
+    (keyboard.Key.home,  "HOME"),
+    (keyboard.Key.end,  "END"),
+    (keyboard.Key.insert,  "INSERT"),
+    (keyboard.Key.delete,  "DELETE"),
+    #(keyboard.Key,  "APP"),  # Applications key
+    (keyboard.Key.caps_lock,  "CAPSLOCK"),
+    (keyboard.Key.f1, "F1"),
+    (keyboard.Key.f2, "F2"),
+    (keyboard.Key.f3, "F3"),
+    (keyboard.Key.f4, "F4"),
+    (keyboard.Key.f5, "F5"),
+    (keyboard.Key.f6, "F6"),
+    (keyboard.Key.f7, "F7"),
+    (keyboard.Key.f8, "F8"),
+    (keyboard.Key.f9, "F9"),
+    (keyboard.Key.f10, "F10"),
+    (keyboard.Key.f11, "F11"),
+    (keyboard.Key.f12, "F12"),
+    (keyboard.Key.print_screen, "PRINTSCREEN"),  # Keyboard PrintScreen, VK_SNAPSHOT
+    #(keyboard.Key., "EXECUTE"),  # VK_EXECUTE
+    #(keyboard.Key., "HELP"),  # VK_HELP
+    #(keyboard.Key., "MENU"),  # VK_MENU
+    (keyboard.Key.pause, "PAUSE"),  # VK_PAUSE
+    #(keyboard.Key., "SELECT"),  # VK_SELECT
+    #(keyboard.Key., "STOP"),  # VK_MEDIA_STOP, Keyboard Stop
+    (keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
+    (keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
+    (keyboard.Key.media_volume_down, "VOLDOWN"),  # VK_VOLUME_DOWN, Keyboard Volume Down
+    #(keyboard.Key., "CANCEL"),  # VK_CANCEL
+    #(keyboard.Key., "CLEAR"),  # VK_CLEAR, Keyboard Clear
+    #(keyboard.Key., "PRIOR"),  # VK_PRIOR, Keyboard Prior
+    #(keyboard.Key., "ENTER"),  # VK_RETURN, ENTER
+    #(keyboard.Key., "SEPARATOR"),  # VK_SEPARATOR
+    #(keyboard.Key., "POWER"),  # VK_SLEEP
+    #(keyboard.Key., "CANCEL")  # VK_CANCEL
 ])
 
 char_keysmap = dict([
@@ -316,6 +319,7 @@ class Window (QMainWindow):
         self._mouse_toggle_modifiers = clientconfig.get(
             "mouse_togglemods", "LALT").split(",")
         self._last_mouse_pos = None
+        self._last_mouse_calltime = 0
         self._curBleDeviceName = '---'
 
         url = clientconfig.get("url", None) if args.url == None else args.url
@@ -328,7 +332,7 @@ class Window (QMainWindow):
                                           password=clientconfig.get("password", None))
         else:
             if url is None:
-                url = "http://localhost:5383/"
+                url = "http://127.0.0.1:5383/"
             self.client = RelayKeysClient(url=url)
         self._client_queue = Queue(64)
         t = Thread(target=self.client_worker, args=(self._client_queue,))
@@ -355,6 +359,7 @@ class Window (QMainWindow):
             self._keyboard_toggle_key, self._keyboard_toggle_modifiers)))
         self.keyboardToggleButton.setToolTip('Keyboard disable toggle')
         self.keyboardToggleButton.clicked.connect(self.didClickKeyboardToggle)
+        self.keyboardToggleButton.setFocusPolicy(Qt.NoFocus)
         keyboardControlSect.addWidget(self.keyboardToggleButton)
 
         mouseControlSect = QVBoxLayout()
@@ -363,8 +368,9 @@ class Window (QMainWindow):
         self.mouseToggleButton = QPushButton()
         self.mouseToggleButton.setText('Toggle: {}'.format(
             self.getShortcutText(self._mouse_toggle_key, self._mouse_toggle_modifiers)))
-        self.mouseToggleButton.setToolTip('Mouse disable toggle')
+        self.mouseToggleButton.setToolTip('Mouse disable toggle')        
         self.mouseToggleButton.clicked.connect(self.didClickMouseToggle)
+        self.mouseToggleButton.setFocusPolicy(Qt.NoFocus)
         mouseControlSect.addWidget(self.mouseToggleButton)
 
         bleControlBar = QHBoxLayout()
@@ -372,10 +378,12 @@ class Window (QMainWindow):
         self.bleConnectionSwitch.setText('BLE Switch')
         self.bleConnectionSwitch.setToolTip('swicth ble device connection')
         self.bleConnectionSwitch.clicked.connect(self.sendBleToggleCommand)
+        self.bleConnectionSwitch.setFocusPolicy(Qt.NoFocus)
         self.bleDeviceRead = QPushButton()
         self.bleDeviceRead.setText('Cur Device: {}'.format(self._curBleDeviceName))
         self.bleDeviceRead.setToolTip('swicth ble device connection')
         self.bleDeviceRead.clicked.connect(self.readBleDeviceName)
+        self.bleDeviceRead.setFocusPolicy(Qt.NoFocus)
         bleControlBar.addWidget(self.bleConnectionSwitch)
         bleControlBar.addWidget(self.bleDeviceRead)
 
@@ -639,6 +647,8 @@ class Window (QMainWindow):
 
     def onQuit(self):
         self._client_queue.put(("EXIT",))
+        self._keyboard_listener.stop()
+        self._keyboard_listener.stop()
         app.quit()
         # exit(0)
 
@@ -646,14 +656,10 @@ class Window (QMainWindow):
         self._client_queue.put(("EXIT",))
 
     def initHooks(self):
-        hm = PyHook3.HookManager()
-        hm.KeyDown = self.onKeyboardDown
-        hm.KeyUp = self.onKeyboardUp
-        hm.HookKeyboard()
-        hm.MouseAll = self.onMouseEvent
-        hm.HookMouse()
-        self._hookmanager = hm
-        # pythoncom.PumpMessages()
+        self._keyboard_listener = keyboard.Listener(on_press=self.onKeyboardDown, on_release=self.onKeyboardUp)
+        self._keyboard_listener.start()
+        self._mouse_listener = mouse.Listener(on_move=self.mouse_on_move, on_click=self.mouse_on_click, on_scroll=self.mouse_on_scroll)
+        self._mouse_listener.start()
 
     def showErrorMessage(self, msg):
         QMessageBox.critical(None, "RelayKeys Error", msg)
@@ -800,26 +806,32 @@ class Window (QMainWindow):
             return False
         return None
 
-    def onKeyboardDown(self, event):
-        key = keysmap.get(event.KeyID, None)
-        mod = modifiers_map.get(event.KeyID, None)
+    def onKeyboardDown(self, key_ev):
+        key = None
+        mod = None
+        if(isinstance(key_ev, keyboard.KeyCode)):            
+            key = keysmap_printable.get(key_ev.vk, None)            
+        else:           
+           key = keysmap_non_printable.get(key_ev, None)
+           mod = modifiers_map.get(key_ev, None)
+
         if key is not None:
             if key not in self._keys:
                 self._keys.append(key)
         elif mod is not None:
             if mod not in self._modifiers:
                 self._modifiers.append(mod)
-        elif event.KeyID not in self._unknown_keys:
-            self._unknown_keys.append(event.KeyID)
+        elif key_ev not in self._unknown_keys:
+            self._unknown_keys.append(key_ev)
         ret = self._keyboardToggleCheck(key)
         if ret is not None:
-            return ret
+            return
         if self._keyboard_disabled:
-            return True
+            return
         self.updateKeyboardState()
         if key is not None:
-            if self._show_last_n_chars > 0:
-                chr = char_keysmap.get(event.KeyID, None)
+            if isinstance(key_ev, keyboard.KeyCode) and self._show_last_n_chars > 0:
+                chr = char_keysmap.get(key_ev.vk, None)
                 if chr is not None and len(chr) > 0:
                     if isinstance(chr, (tuple)):
                         chr = chr[0] if len(chr) == 1 or \
@@ -828,70 +840,77 @@ class Window (QMainWindow):
                         self._last_n_chars.pop(0)
                     self._last_n_chars.append(chr)
                     self.updateShowLastChars()
-            self.send_action('keyevent', key, self._modifiers, True)
-            return False
+            self.send_action('keyevent', key, self._modifiers, True)            
         elif mod is not None:
             # set the modifiers
-            self.send_action('keyevent', None, self._modifiers, False)
-            return False
-        return True
+            self.send_action('keyevent', None, self._modifiers, False)            
 
-    def onKeyboardUp(self, event):
-        key = keysmap.get(event.KeyID, None)
-        mod = modifiers_map.get(event.KeyID, None)
+    def onKeyboardUp(self, key_ev):
+        key = None
+        mod = None
+        if(isinstance(key_ev, keyboard.KeyCode)):            
+            key = keysmap_printable.get(key_ev.vk, None)
+            print(key)
+        else:           
+           key = keysmap_non_printable.get(key_ev, None)
+           mod = modifiers_map.get(key_ev, None)
+
         if key is not None and key in self._keys:
             self._keys.remove(key)
         elif mod is not None and mod in self._modifiers:
             self._modifiers.remove(mod)
         else:
             try:
-                self._unknown_keys.remove(event.KeyID)
+                self._unknown_keys.remove(key_ev)
             except:
                 pass
         if self._keyboard_disabled:
-            return True
+            return
         self.updateKeyboardState()
         if key is not None:
-            self.send_action('keyevent', key, self._modifiers, False)
-            return False
+            self.send_action('keyevent', key, self._modifiers, False)            
         elif mod is not None:
             # set the modifiers
-            self.send_action('keyevent', None, self._modifiers, False)
-            return False
-        return True
+            self.send_action('keyevent', None, self._modifiers, False)        
 
-    def onMouseEvent(self, event):
-        if self._mouse_disabled:
-            return True
-        if event.Message == PyHook3.HookConstants.WM_MOUSEMOVE:
+    def mouse_on_move(self, x, y):        
+        if not self._mouse_disabled:
             if self._last_mouse_pos is None:
-                self._last_mouse_pos = event.Position
+                self._last_mouse_pos = [x, y]                
                 return True
-            dx, dy = event.Position[0] - \
-                self._last_mouse_pos[0], event.Position[1] - \
-                self._last_mouse_pos[1]
-            self.send_action('mousemove', dx, dy)
-        elif event.Message == PyHook3.HookConstants.WM_LBUTTONDOWN:
-            self.send_action('mousebutton', 'l', 'press')
-        elif event.Message == PyHook3.HookConstants.WM_LBUTTONUP:
-            self.send_action('mousebutton', '0')
-        elif event.Message == PyHook3.HookConstants.WM_LBUTTONDBLCLK:
-            self.send_action('mousebutton', 'l', 'doubleclick')
-        elif event.Message == PyHook3.HookConstants.WM_RBUTTONDOWN:
-            self.send_action('mousebutton', 'r', 'press')
-        elif event.Message == PyHook3.HookConstants.WM_RBUTTONUP:
-            self.send_action('mousebutton', '0')
-        elif event.Message == PyHook3.HookConstants.WM_RBUTTONDBLCLK:
-            self.send_action('mousebutton', 'r', 'doubleclick')
-        elif event.Message == PyHook3.HookConstants.WM_MBUTTONDOWN:
-            self.send_action('mousebutton', 'm', 'press')
-        elif event.Message == PyHook3.HookConstants.WM_MBUTTONUP:
-            self.send_action('mousebutton', '0')
-        elif event.Message == PyHook3.HookConstants.WM_MBUTTONDBLCLK:
-            self.send_action('mousebutton', 'm', 'doubleclick')
-        elif event.Message == PyHook3.HookConstants.WM_MOUSEWHEEL:
-            self.send_action('mousemove', 0, 0, event.Wheel)
-        return False
+            if time() - self._last_mouse_calltime >0.100:
+                dx = x - self._last_mouse_pos[0]
+                dy = y - self._last_mouse_pos[1]
+
+                self.send_action('mousemove', dx, dy)
+                self._last_mouse_pos = [x, y]
+
+                self._last_mouse_calltime = time()
+    
+    def mouse_on_click(self, x, y, button, pressed):
+        if not self._mouse_disabled:
+            if button == mouse.Button.left and pressed:
+                self.send_action('mousebutton', 'l', 'press')
+            elif button == mouse.Button.left and not pressed:
+                self.send_action('mousebutton', '0')
+            #elif event.Message == PyHook3.HookConstants.WM_LBUTTONDBLCLK:
+            #    self.send_action('mousebutton', 'l', 'doubleclick')                
+            elif button == mouse.Button.right and pressed:
+                self.send_action('mousebutton', 'r', 'press')
+            elif button == mouse.Button.right and not pressed:
+                self.send_action('mousebutton', '0')
+            #elif event.Message == PyHook3.HookConstants.WM_RBUTTONDBLCLK:
+            #    self.send_action('mousebutton', 'r', 'doubleclick')
+            elif button == mouse.Button.middle and pressed:
+                self.send_action('mousebutton', 'm', 'press')
+            elif button == mouse.Button.middle and not pressed:
+                self.send_action('mousebutton', '0')
+            #elif event.Message == PyHook3.HookConstants.WM_MBUTTONDBLCLK:
+            #    self.send_action('mousebutton', 'm', 'doubleclick')
+    
+    def mouse_on_scroll(self, x, y, dx, dy):        
+        if not self._mouse_disabled:
+            self.send_action('mousemove', 0, 0, dy, dx)
 
     def onUpdateKeyState(self):
         """This update event handler is used to update shown state of keyboard

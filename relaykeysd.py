@@ -44,6 +44,9 @@ from blehid import blehid_send_keyboardcode, blehid_init_serial, \
     blehid_send_switch_command, blehid_send_get_device_name, blehid_get_device_list, \
     blehid_send_add_device, blehid_send_clear_device_list, blehid_send_remove_device
 
+import requests
+import json
+
 # from pygame.locals import *
 # from pygame.compat import as_bytes
 # BytesIO = pygame.compat.get_BytesIO()
@@ -235,6 +238,19 @@ def run_rpc_server(host, port, username, password):
         return None
     return queue
 
+def shutdown_server():
+    payload = {
+        "method": "exit",
+        "params": [[]],
+        "jsonrpc": "2.0",
+        "id": 0,
+    }
+    headers = {'content-type': 'application/json'}
+    data = json.dumps(payload)
+    try:
+        resp = requests.post("http://127.0.0.1:5383/", data, headers=headers, timeout=10)
+    except requests.exceptions.ConnectionError:
+        print("Connection closed")
 
 def find_device_path(noserial, seldev):
     dev = None
@@ -300,7 +316,7 @@ class DummySerial (object):
 
 def do_main(args, config, interrupt=None):
     # actions queue
-    queue = run_rpc_server(config.get("host", "localhost"),
+    queue = run_rpc_server(config.get("host", "127.0.0.1"),
                            config.getint("port", 5383),
                            config.get("username", ""),
                            config.get("password", ""))
@@ -327,7 +343,7 @@ def do_main(args, config, interrupt=None):
                 SerialCls = DummySerial
             else:
                 SerialCls = serial.Serial
-            with SerialCls(devicepath, baud, rtscts=1) as ser:
+            with SerialCls(devicepath, baud, rtscts=0, timeout=2) as ser:
                 
                 logging.info("serial device opened: {}".format(devicepath))
                 #logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
@@ -352,14 +368,18 @@ def do_main(args, config, interrupt=None):
                             if cmd[0] is not None:
                                 cmd[0].put(output)
                             queue.task_done()
+                        except KeyboardInterrupt:
+                            raise SystemExit()
                         except QueueEmpty:
                             pass
-                except AppExitException:
+                except SystemExit:
+                    shutdown_server()
                     quit = True
-        except:
+        except serial.serialutil.SerialException:
             logging.error(traceback.format_exc())
             logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
             sleep(RETRY_TIMEOUT)
+
     logging.info("relaykeysd exit!")
     return 0
 

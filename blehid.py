@@ -289,7 +289,7 @@ def blehid_send_remove_device(ser, devicecommand):
     
     logging.debug('device command:'+"at+bleremovedevice\"" + devicecommand.split("|")[1] + "\"")
 
-    _write_atcmd(ser, "AT+BLEREMOVEDEVICE\"" + devicecommand.split("|")[1] + "\"")
+    _write_atcmd(ser, "AT+BLEREMOVEDEVICE=\"" + devicecommand.split("|")[1] + "\"")
 
 def blehid_get_device_list(ser, devicecommand):
 

@@ -235,7 +235,8 @@ void sendBLEMouseMove(char *line)
   int32_t wy = 0;
   int32_t wx = 0;
   // expected input, X,Y,WY,WX
-  char *p = strtok(line, ",");
+  char *p = strtok(line, "=");
+  p = strtok(NULL, ",");
   for (size_t i = 0; p != NULL; i++)
   {
     if (i == 0)
@@ -319,7 +320,8 @@ void sendBLEMouseButton(char *line)
   int b = 0;
   int mode = 0;
   // expected input, Button[,Action]
-  char *p = strtok(line, ",");
+  char *p = strtok(line, "=");
+  p = strtok(NULL, ",");
   for (size_t i = 0; p != NULL; i++)
   {
     if (i == 0)
@@ -412,7 +414,8 @@ void sendBLEKeyboardCode(char *myLine)
 
   memset(keys, 0, sizeof(keys));
   // myLine example: "00-00-04-00-00-00-00-00"
-  char *p = strtok(myLine, "-");
+  char *p = strtok(myLine, "=");
+  p = strtok(NULL, "-");
   for (size_t i = 0; p && (i < sizeof(keys)); i++)
   {
     keys[i] = strtoul(p, NULL, 16);
@@ -643,8 +646,10 @@ void printBleDevList(char *myLine)
 void setBleMaxDevListSize(char *myLine)
 {
   Serial.println("at+blemaxdevlistsize");
-
-  uint8_t tempNum = atoi(myLine);
+  
+  char *p = strtok(myLine, "=");
+  p = strtok(NULL, "\0"); 
+  uint8_t tempNum = atoi(p);  
   if (tempNum > 15 || tempNum < 1)
   {
     maxBleDevListSize = 3;
