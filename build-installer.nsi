@@ -1,6 +1,6 @@
 !define NAME "RelayKeys"
 !define UNINSTKEY "${NAME}" ; Using a GUID here is not a bad idea
-!define DEFAULTNORMALDESTINATON "$ProgramFiles\AceCentre\${NAME}"
+!define DEFAULTNORMALDESTINATON "$ProgramFiles\Ace Centre\${NAME}"
 !define DEFAULTPORTABLEDESTINATON "$Desktop\${NAME}"
 Name "${NAME}"
 Outfile "${NAME} setup.exe"
