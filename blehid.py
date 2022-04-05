@@ -2,6 +2,8 @@ import operator
 import logging
 import time
 from functools import reduce
+from serial_wrappers import BLESerialWrapper
+import asyncio
 
 # keys source http://www.freebsddiary.org/APC/usb_hid_usages.php
 keymap = dict([
@@ -140,46 +142,54 @@ keymap = dict([
     ("OPER", 0xA1),  # Keyboard Oper
 ])
 
-
-def _write_atcmd(ser, msg):
+async def _write_atcmd(ser, msg):
     if not isinstance(msg, bytes):
         msg = msg.encode()
     logging.debug("request: {}".format(
         msg if isinstance(msg, str) else str(msg, "utf8")))
-    ser.write(msg + b"\r\n")
+    if isinstance(ser, BLESerialWrapper):
+        await ser.write(msg + b"\r\n")
+    else:
+        await asyncio.gather(asyncio.to_thread(ser.write, (msg + b"\r\n")))
+        
     ser.flushInput()
 
 
-def _read_response(ser, n=1):
+async def _read_response(ser, n=1):
     v = b""
     while n > 0:
-        v += ser.readline()
+        if isinstance(ser, BLESerialWrapper):
+            v += await ser.readline()
+        else:
+            response = await asyncio.gather(asyncio.to_thread(ser.readline))            
+            v += response[0]
         n -= 1
     msg = str(v, "utf8").strip()
     logging.debug("response: {}".format(msg))
     return msg
 
 
-def blehid_init_serial(ser):
-    _write_atcmd(ser, "AT")
-    _read_response(ser)
+async def blehid_init_serial(ser):
+    await _write_atcmd(ser, "AT")
+    await _read_response(ser)
     # _write_atcmd(ser, "ATI")
     # _read_response(ser, n=8)
-    _write_atcmd(ser, "ATE=0")
-    _read_response(ser)
-    _write_atcmd(ser, "AT+BLEHIDEN=1")
-    if _read_response(ser).upper() == "ERROR":
+    await _write_atcmd(ser, "ATE=0")
+    await _read_response(ser)
+    await _write_atcmd(ser, "AT+BLEHIDEN=1")
+    response = await _read_response(ser)
+    if response.upper() == "ERROR":
         # running older framework < 0.6.6, fallback to enable keyboard
-        _write_atcmd(ser, "AT+BLEKEYBOARDEN=1")
-        _read_response(ser)
-    _write_atcmd(ser, "ATZ")
-    _read_response(ser)
+        await _write_atcmd(ser, "AT+BLEKEYBOARDEN=1")
+        await _read_response(ser)
+    await _write_atcmd(ser, "ATZ")
+    await _read_response(ser)
 
 
 MOUSE_MAX_MOVE = 2500
 
 
-def blehid_send_movemouse(ser, right, down, wheely, wheelx):
+async def blehid_send_movemouse(ser, right, down, wheely, wheelx):
     right = max(-1 * MOUSE_MAX_MOVE,
                 right) if right < 0 else min(MOUSE_MAX_MOVE, right)
     down = max(-1 * MOUSE_MAX_MOVE,
@@ -195,22 +205,22 @@ def blehid_send_movemouse(ser, right, down, wheely, wheelx):
         wxmove = max(-128, min(wheelx, 127))
         atcmd = "AT+BLEHIDMOUSEMOVE={},{},{},{}".format(
             rmove, dmove, wymove, wxmove)
-        _write_atcmd(ser, atcmd)
-        _read_response(ser)
+        await _write_atcmd(ser, atcmd)
+        await _read_response(ser)
         right -= rmove
         down -= dmove
         wheely -= wymove
         wheelx -= wxmove
 
 
-def blehid_send_mousebutton(ser, btn, behavior=None):
+async def blehid_send_mousebutton(ser, btn, behavior=None):
     atcmd = "AT+BLEHIDMOUSEBUTTON={}{}".format(
         btn, "" if behavior is None else "," + behavior)
-    _write_atcmd(ser, atcmd)
-    _read_response(ser)
+    await _write_atcmd(ser, atcmd)
+    await _read_response(ser)
 
 
-def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
+async def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
     logging.debug('key:'+str(key)+'  modifiers:'+str(modifiers))
     hidmod = reduce(operator.or_, map(
         lambda a: a[1],
@@ -241,76 +251,79 @@ def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
         else:
             zerocmd += "-00"
     atcmd += zerocmd
-    _write_atcmd(ser, atcmd)
-    _read_response(ser)
+    await _write_atcmd(ser, atcmd)
+    await _read_response(ser)
 
 
-def blehid_send_devicecommand(ser, devicecommand):
+async def blehid_send_devicecommand(ser, devicecommand):
     logging.debug('device command:'+str(devicecommand))
     if devicecommand == 'drop-bonded-device':
-        _write_atcmd(ser, "AT+GAPDISCONNECT")
-        _read_response(ser)
-        _write_atcmd(ser, "AT+GAPDELBONDS")
-        _read_response(ser)
+        await _write_atcmd(ser, "AT+GAPDISCONNECT")
+        await _read_response(ser)
+        await _write_atcmd(ser, "AT+GAPDELBONDS")
+        await _read_response(ser)
         logging.debug('Reset BT device')
 
 
-def blehid_send_switch_command(ser, devicecommand):
+async def blehid_send_switch_command(ser, devicecommand):
     logging.debug('device command:'+str(devicecommand))
     if devicecommand == 'switch':
-        _write_atcmd(ser, "AT+SWITCHCONN")
-        _read_response(ser)
+        await _write_atcmd(ser, "AT+SWITCHCONN")
+        await _read_response(ser)
 
 
-def blehid_send_get_device_name(ser, devicecommand):
+async def blehid_send_get_device_name(ser, devicecommand):
     logging.debug('device command:'+str(devicecommand))
     if devicecommand == 'devname':
-        _write_atcmd(ser, "AT+BLECURRENTDEVICENAME")
-        resp = _read_response(ser, n=2).split('\r\n')
+        await _write_atcmd(ser, "AT+BLECURRENTDEVICENAME")
+        resp = await _read_response(ser, n=2)
+        resp = resp.split('\n') #split('\r\n')
         try:
             return resp[1]
         except:
             pass
         return 'NONE'
 
-def blehid_send_add_device(ser, devicecommand):
+async def blehid_send_add_device(ser, devicecommand):
     
     logging.debug('device command:'+str(devicecommand))
 
-    _write_atcmd(ser, "AT+BLEADDNEWDEVICE")
+    await _write_atcmd(ser, "AT+BLEADDNEWDEVICE")
 
-def blehid_send_clear_device_list(ser, devicecommand):
+async def blehid_send_clear_device_list(ser, devicecommand):
     
     logging.debug('device command:'+str(devicecommand))
 
-    _write_atcmd(ser, "AT+RESETDEVLIST")
+    await _write_atcmd(ser, "AT+RESETDEVLIST")
 
-def blehid_send_remove_device(ser, devicecommand):
+async def blehid_send_remove_device(ser, devicecommand):
     
     logging.debug('device command:'+"at+bleremovedevice\"" + devicecommand.split("|")[1] + "\"")
 
-    _write_atcmd(ser, "AT+BLEREMOVEDEVICE=\"" + devicecommand.split("|")[1] + "\"")
+    await _write_atcmd(ser, "AT+BLEREMOVEDEVICE=\"" + devicecommand.split("|")[1] + "\"")
 
-def blehid_get_device_list(ser, devicecommand):
+async def blehid_get_device_list(ser, devicecommand):
 
     logging.debug('device command:'+str(devicecommand))
     
     ser.flushInput()
     ser.flushOutput()
 
-    time.sleep(0.1)
+    await asyncio.sleep(0.1) #time.sleep(0.1)
 
-    _write_atcmd(ser, "AT+PRINTDEVLIST")
+    await _write_atcmd(ser, "AT+PRINTDEVLIST")
 
-    timeout = time.time() + 1
-    
+    """
+    timeout = time.time() + 1    
     while True:
         if time.time() > timeout:
             break
+    """
+    await asyncio.sleep(1)
  
     data = ser.read_all()
 
-    data = str(data, "utf8").strip().split('\r\n')
+    data = str(data, "utf8").strip().split('\n') #split('\r\n')
 
     logging.debug("response: {}".format(data))
 

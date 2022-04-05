@@ -7,3 +7,4 @@ python-daemon>=2.2.3,<3
 requests>=2.21.0,<3
 markdown>=3.0.1,<4
 pyperclip>=1.7.0,<2
+bleak

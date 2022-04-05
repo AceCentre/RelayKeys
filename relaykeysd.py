@@ -39,6 +39,20 @@ from werkzeug.serving import make_server, WSGIRequestHandler as BaseRequestHandl
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 from jsonrpc.jsonrpc2 import JSONRPC20Response
 
+# ble mode dependencies
+import asyncio
+import sys
+
+from bleak import BleakScanner, BleakClient
+from bleak.backends.scanner import AdvertisementData
+from bleak.backends.device import BLEDevice
+
+from serial_wrappers import BLESerialWrapper, DummySerial
+
+UART_SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+UART_RX_CHAR_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+UART_TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+
 from blehid import blehid_send_keyboardcode, blehid_init_serial, \
     blehid_send_movemouse, blehid_send_mousebutton, blehid_send_devicecommand, \
     blehid_send_switch_command, blehid_send_get_device_name, blehid_get_device_list, \
@@ -73,6 +87,9 @@ parser.add_argument('--baud', dest='baud', default=None,
 parser.add_argument('--debug', dest='debug', action='store_const',
                     const=True, default=False,
                     help='set logger to debug level')
+parser.add_argument('--ble_mode', dest='ble_mode', action='store_const',
+                    const=True, default=False,
+                    help='choosing work in ble mode')
 parser.add_argument('--daemon', '-d', dest='daemon', action='store_const',
                     const=True, default=False,
                     help='Run as daemon, posfix specific')
@@ -293,27 +310,6 @@ def find_device_path(noserial, seldev):
                     break
     return dev
 
-
-class DummySerial (object):
-    def __init__(self, devpath, baud, **kwargs):
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, a, b, c):
-        pass
-
-    def write(self, data):
-        print("{}".format(data))
-
-    def flushInput(self):
-        pass
-
-    def readline(self):
-        return b"OK\n"
-
-
 def do_main(args, config, interrupt=None):
     # actions queue
     queue = run_rpc_server(config.get("host", "127.0.0.1"),
@@ -327,6 +323,21 @@ def do_main(args, config, interrupt=None):
     if queue is None:
         logging.critical("Could not start rpc server")
         return -1  # exit the process
+    
+    ble_mode = True if args.ble_mode else False
+    if not ble_mode: 
+        asyncio.run(hardware_serial_loop(queue, args, config, interrupt))
+    else:
+        try:
+            asyncio.run(ble_serial_loop(queue, args, config, interrupt))
+        except asyncio.CancelledError:        
+            pass
+    
+    
+    logging.info("relaykeysd exit!")
+    return 0
+
+async def hardware_serial_loop(queue, args, config, interrupt):
     quit = False
     while not quit:
         try:
@@ -347,15 +358,15 @@ def do_main(args, config, interrupt=None):
                 
                 logging.info("serial device opened: {}".format(devicepath))
                 #logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
-                blehid_init_serial(ser)
+                await blehid_init_serial(ser)
                 # Six keys for USB keyboard HID report
                 # uint8_t keys[6] = {0,0,0,0,0,0}
                 keys = arr.array('B', [0, 0, 0, 0, 0, 0])
 
                 #Get intial ble device List
-                process_action(ser, keys, ['ble_cmd','devlist'])
+                await process_action(ser, keys, ['ble_cmd','devlist'])
                 #Get intial ble device name
-                process_action(ser, keys, ['ble_cmd','devname'])
+                await process_action(ser, keys, ['ble_cmd','devname'])
                 
                 try:
                     while True:
@@ -364,7 +375,7 @@ def do_main(args, config, interrupt=None):
                         try:
                             # with timeout
                             cmd = queue.get(True, QUEUE_TIMEOUT)
-                            output = process_action(ser, keys, cmd[1:])
+                            output = await process_action(ser, keys, cmd[1:])
                             if cmd[0] is not None:
                                 cmd[0].put(output)
                             queue.task_done()
@@ -380,30 +391,84 @@ def do_main(args, config, interrupt=None):
             logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
             sleep(RETRY_TIMEOUT)
 
-    logging.info("relaykeysd exit!")
-    return 0
+async def ble_serial_loop(queue, args, config, interrupt):
+
+    def match_nus_uuid(device: BLEDevice, adv: AdvertisementData):
+        print("services of scanned device: ", adv)
+
+        if adv.local_name == "RelayKeys":  #UART_SERVICE_UUID.lower() in adv.service_uuids:
+            return True
+        return False
+    
+    def handle_disconnect(_: BleakClient):
+        print("Device was disconnected, goodbye.")
+        # cancelling all tasks effectively ends the program
+        for task in asyncio.all_tasks():
+            task.cancel()
+    
+    quit = False
+    while not quit:
+        if interrupt is not None:
+                interrupt()
+        device = await BleakScanner.find_device_by_filter(match_nus_uuid)
+
+        if device != None:
+            try:
+                async with BleakClient(device, disconnected_callback=handle_disconnect) as client:
+                    ser = BLESerialWrapper(client)
+                    await ser.init_receive()       
+                    
+                    keys = arr.array('B', [0, 0, 0, 0, 0, 0])
+                    
+                    print("Device connected.")
+                    try:
+                        while True:
+                            if interrupt is not None:
+                                interrupt()
+                            try:
+                                # with timeout
+                                cmd = queue.get(True, QUEUE_TIMEOUT)
+                                output = await process_action(ser, keys, cmd[1:])
+                                if cmd[0] is not None:
+                                    cmd[0].put(output)
+                                queue.task_done()
+                            except KeyboardInterrupt:
+                                raise SystemExit()
+                            except QueueEmpty:
+                                pass
+                    except SystemExit:
+                        shutdown_server()
+                        quit = True
+            except asyncio.exceptions.TimeoutError:
+                logging.error(traceback.format_exc())
+        else:
+            logging.error("Device not found")
+        
+        if not quit:
+            logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
+            sleep(RETRY_TIMEOUT)
 
 
-def process_action(ser, keys, cmd):
+async def process_action(ser, keys, cmd):
     try:
         if cmd[0] == "actions":
             outputs = []
             for action in cmd[1]:
-                outputs.append(process_action(ser, keys, action))
+                outputs.append(await process_action(ser, keys, action))
             return ", ".join(outputs)
             
         if cmd[0] == "keyevent":
             key = cmd[1]
             modifiers = cmd[2]
             down = cmd[3]
-            blehid_send_keyboardcode(ser, key, modifiers, down, keys)
+            await blehid_send_keyboardcode(ser, key, modifiers, down, keys)
 
         elif cmd[0] == "mousemove":
             right = int(cmd[1])
             down = int(cmd[2])
             wheely = int(cmd[3] if len(cmd) > 3 else 0)
             wheelx = int(cmd[4] if len(cmd) > 4 else 0)
-            blehid_send_movemouse(ser, right, down, wheely, wheelx)
+            await blehid_send_movemouse(ser, right, down, wheely, wheelx)
 
         elif cmd[0] == "mousebutton":
             btn = str(cmd[1]).lower() if cmd[1] is not None else None
@@ -414,32 +479,32 @@ def process_action(ser, keys, cmd):
             if behavior is not None and behavior not in ("press", "click", "doubleclick", "hold"):
                 raise CommandException(
                     "Unknown mousebutton behavior: {}".format(behavior))
-            blehid_send_mousebutton(ser, btn, behavior)
+            await blehid_send_mousebutton(ser, btn, behavior)
 
         elif cmd[0] == 'ble_cmd':
             global devName
             global devList
 
             if cmd[1] == "switch":
-                blehid_send_switch_command(ser, cmd[1])
+                await blehid_send_switch_command(ser, cmd[1])
 
             elif cmd[1] == "devname":
-                devName = blehid_send_get_device_name(ser, cmd[1])
+                devName = await blehid_send_get_device_name(ser, cmd[1])
 
             elif cmd[1] == "devlist":
-                devList = blehid_get_device_list(ser, cmd[1])
+                devList = await blehid_get_device_list(ser, cmd[1])
 
             elif cmd[1] == "devadd":
-                blehid_send_add_device(ser, cmd[1])
+                await blehid_send_add_device(ser, cmd[1])
 
             elif cmd[1] == "devreset":
-                blehid_send_clear_device_list(ser, cmd[1])
+                await blehid_send_clear_device_list(ser, cmd[1])
                 devList = []
                 devName = ""
 
             elif cmd[1].split("|")[0] == "devremove":
-                blehid_send_remove_device(ser, cmd[1])
-                devList = blehid_get_device_list(ser, "devlist")
+                await blehid_send_remove_device(ser, cmd[1])
+                devList = await blehid_get_device_list(ser, "devlist")
 
 
         # response queue given by cmd
