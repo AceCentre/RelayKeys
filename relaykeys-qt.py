@@ -318,10 +318,10 @@ class Window (QMainWindow):
         self._last_mouse_calltime = 0
         self._curBleDeviceName = '---'
 
-        url = clientconfig.get("url", None) if args.url == None else args.url
+        url = clientconfig.get("url", None) if args.url is None else args.url
         host = clientconfig.get("host", None)
         port = clientconfig.get("port", None)
-        if url is None and not (host is None and port is None):
+        if url is None and (host is not None or port is not None):
             self.client = RelayKeysClient(host=host, port=port,
                                           username=clientconfig.get(
                                               "username", None),
@@ -362,9 +362,11 @@ class Window (QMainWindow):
         self.mouseControlLabel = QLabel()
         mouseControlSect.addWidget(self.mouseControlLabel)
         self.mouseToggleButton = QPushButton()
-        self.mouseToggleButton.setText('Toggle: {}'.format(
-            self.getShortcutText(self._mouse_toggle_key, self._mouse_toggle_modifiers)))
-        self.mouseToggleButton.setToolTip('Mouse disable toggle')        
+        self.mouseToggleButton.setText(
+            f'Toggle: {self.getShortcutText(self._mouse_toggle_key, self._mouse_toggle_modifiers)}'
+        )
+
+        self.mouseToggleButton.setToolTip('Mouse disable toggle')
         self.mouseToggleButton.clicked.connect(self.didClickMouseToggle)
         self.mouseToggleButton.setFocusPolicy(Qt.NoFocus)
         mouseControlSect.addWidget(self.mouseToggleButton)
@@ -376,7 +378,7 @@ class Window (QMainWindow):
         self.bleConnectionSwitch.clicked.connect(self.sendBleToggleCommand)
         self.bleConnectionSwitch.setFocusPolicy(Qt.NoFocus)
         self.bleDeviceRead = QPushButton()
-        self.bleDeviceRead.setText('Cur Device: {}'.format(self._curBleDeviceName))
+        self.bleDeviceRead.setText(f'Cur Device: {self._curBleDeviceName}')
         self.bleDeviceRead.setToolTip('swicth ble device connection')
         self.bleDeviceRead.clicked.connect(self.readBleDeviceName)
         self.bleDeviceRead.setFocusPolicy(Qt.NoFocus)
@@ -412,7 +414,7 @@ class Window (QMainWindow):
             label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
                           .format(text="", fontsize=fontsize))
             mainLayout.addWidget(label)
-        
+
         widget = QWidget(self)
         self.setCentralWidget(widget)
         layout = QVBoxLayout()
@@ -430,7 +432,7 @@ class Window (QMainWindow):
 
         # Device Menu
         self.deviceMenu = QMenu("&Devices", self)
-        
+
         self.actionAddNewDevice = QAction("Add BLE Device", self)
         self.actionAddNewDevice.triggered.connect(self.addDeviceButtonClicked)
 
@@ -441,7 +443,7 @@ class Window (QMainWindow):
         self.actionResetDevices = QAction("Reset BLE Device List", self)
         self.actionResetDevices.triggered.connect(self.resetDeviceListButtonClicked)
         self.removeDeviceMenu.addAction(self.actionResetDevices)   
-        
+
         self.removeDeviceMenu.addSeparator()
 
         self.deviceMenu.addMenu(self.removeDeviceMenu)
@@ -462,7 +464,7 @@ class Window (QMainWindow):
         self.helpMenuAceCentre = QAction("Ace Centre", self)
         self.helpMenuAceCentre.triggered.connect(self.openAceCentreUrl)
         self.helpMenu.addAction(self.helpMenuAceCentre)
-        
+
         self.send_action('ble_cmd', 'devname')
         self.send_action('ble_cmd', 'devlist')
 
@@ -522,7 +524,7 @@ class Window (QMainWindow):
 
     def removeDeviceButtonClicked(self):
         action = self.sender()
-        self.send_action('ble_cmd', 'devremove|' + action.text()[2:])
+        self.send_action('ble_cmd', f'devremove|{action.text()[2:]}')
 
     def addDeviceUpdateDialog(self, found):
 
@@ -675,7 +677,7 @@ class Window (QMainWindow):
                     inputlist.append(queue.get(False))
                     queue.task_done()
             except EmptyQueue:
-                if len(inputlist) == 0:
+                if not inputlist:
                     continue
                 have_exit = len(
                     list(filter(lambda a: a[0] == 'EXIT', inputlist))) > 0
@@ -689,9 +691,15 @@ class Window (QMainWindow):
                     inputlist = list(
                         filter(lambda a: a[0] != 'mousemove', inputlist))
                     mousemove = ['mousemove']
-                    for i in range(1, 5):
-                        mousemove.append(
-                            sum(map(lambda a: a[i] if len(a) > i else 0, mousemove_list)))
+                    mousemove.extend(
+                        sum(
+                            map(
+                                lambda a: a[i] if len(a) > i else 0, mousemove_list
+                            )
+                        )
+                        for i in range(1, 5)
+                    )
+
                     inputlist.append(tuple(mousemove))
                 # send actions
                 if not self.client_send_actions(inputlist):
@@ -707,37 +715,38 @@ class Window (QMainWindow):
         try:
             ret = self.client.actions(actions)
             if 'result' not in ret:
-                logging.error("actions {} response error: {}".format(
-                    ", ".join(map(str, actions)), ret.get("error", "undefined")))
+                logging.error(
+                    f'actions {", ".join(map(str, actions))} response error: {ret.get("error", "undefined")}'
+                )
+
                 self.showErrorMessageSignal.emit("Failed to send the message!")
             else:
                 
                 result = 0
 
                 for action in actions:
-                
+
                     if action[0] == 'ble_cmd':
                         if action[1] == 'devname':
                             self._curBleDeviceName = ret['result'][result]
-                            self.bleDeviceRead.setText(
-                                'Cur Device: {}'.format(self._curBleDeviceName))
-                
+                            self.bleDeviceRead.setText(f'Cur Device: {self._curBleDeviceName}')
+
                         if action[1] == 'devlist':
-                            
+
                             self.clearRemoveDeviceMenu()
                             self.devList = []
-                                                            
+
                             for device in ret['result'][result]:
                                 if 'Device found in list - ' not in device \
                                     and 'Disconnected - Device already present in list' not in device \
                                     and 'ERROR:' not in device \
                                     and 'OK' not in device \
                                     and 'SUCCESS' not in device:
-        
+
                                     self.removeDeviceMenu.addAction(device, self.removeDeviceButtonClicked)
 
                                     self.devList.append(device)
-                                    
+
                         if action[1] == 'devreset':
                             self.clearRemoveDeviceMenu()
                             self.devList = []
@@ -747,33 +756,43 @@ class Window (QMainWindow):
 
                     result = result + 1
 
-                logging.info("actions {} response: {}".format(
-                    ", ".join(map(str, actions)), ret["result"]))
+                logging.info(
+                    f'actions {", ".join(map(str, actions))} response: {ret["result"]}'
+                )
+
                 return True
         except:
-            logging.error("actions {} raise: {}".format(
-                ", ".join(map(str, actions)), traceback.format_exc()))
+            logging.error(
+                f'actions {", ".join(map(str, actions))} raise: {traceback.format_exc()}'
+            )
+
             self.showErrorMessageSignal.emit("Failed to send the message!")
         return False
 
     def client_send_action(self, action, *args):
         try:
             func = getattr(self.client, action, None)
-            if func == None:
-                raise ValueError("unknown action: {}".format(action))
+            if func is None:
+                raise ValueError(f"unknown action: {action}")
             ret = func(*args)
             if 'result' not in ret:
-                logging.error("{} ({}) response error: {}".format(
-                    action, ", ".join(map(str, args)), ret.get("error", "undefined")))
-                # self.showErrorMessageSignal.emit("Failed to send the message!")
+                logging.error(
+                    f'{action} ({", ".join(map(str, args))}) response error: {ret.get("error", "undefined")}'
+                )
+
+                        # self.showErrorMessageSignal.emit("Failed to send the message!")
             else:
-                logging.info("{} ({}) response: {}".format(
-                    action, ", ".join(map(str, args)), ret["result"]))
+                logging.info(
+                    f'{action} ({", ".join(map(str, args))}) response: {ret["result"]}'
+                )
+
                 return True
         except:
-            logging.error("{} ({}) raise: {}".format(
-                action, ", ".join(map(str, args)), traceback.format_exc()))
-            # self.showErrorMessageSignal.emit("Failed to send the message!")
+            logging.error(
+                f'{action} ({", ".join(map(str, args))}) raise: {traceback.format_exc()}'
+            )
+
+                # self.showErrorMessageSignal.emit("Failed to send the message!")
         return False
 
     def send_action(self, action, *args):
@@ -783,11 +802,7 @@ class Window (QMainWindow):
         match = False
         if ((tkey is None and len(tmods) > 0) or key == tkey) and \
                 len(tmods) == len(mods):
-            match = True
-            for tmod in tmods:
-                if tmod not in mods:
-                    match = False
-                    break
+            match = all(tmod in mods for tmod in tmods)
             return match
 
     def _keyboardToggleCheck(self, key):
@@ -887,19 +902,15 @@ class Window (QMainWindow):
         if not self._mouse_disabled:
             if button == mouse.Button.left and pressed:
                 self.send_action('mousebutton', 'l', 'press')
-            elif button == mouse.Button.left and not pressed:
+            elif button == mouse.Button.left:
                 self.send_action('mousebutton', '0')
-            #elif event.Message == PyHook3.HookConstants.WM_LBUTTONDBLCLK:
-            #    self.send_action('mousebutton', 'l', 'doubleclick')                
             elif button == mouse.Button.right and pressed:
                 self.send_action('mousebutton', 'r', 'press')
-            elif button == mouse.Button.right and not pressed:
+            elif button == mouse.Button.right:
                 self.send_action('mousebutton', '0')
-            #elif event.Message == PyHook3.HookConstants.WM_RBUTTONDBLCLK:
-            #    self.send_action('mousebutton', 'r', 'doubleclick')
             elif button == mouse.Button.middle and pressed:
                 self.send_action('mousebutton', 'm', 'press')
-            elif button == mouse.Button.middle and not pressed:
+            elif button == mouse.Button.middle:
                 self.send_action('mousebutton', '0')
             #elif event.Message == PyHook3.HookConstants.WM_MBUTTONDBLCLK:
             #    self.send_action('mousebutton', 'm', 'doubleclick')
