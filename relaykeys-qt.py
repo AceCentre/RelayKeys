@@ -19,10 +19,6 @@ from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QApplication, QSystemTrayIcon, \
     QMessageBox, QLabel, QAction, QMenu, QMenuBar, QDialog, QPushButton, QMainWindow
     
-from struct import pack, unpack
-import win32api
-import win32con
-import pythoncom
 from threading import Timer, Thread
 from queue import Queue, Empty as EmptyQueue
 
