@@ -82,8 +82,13 @@ parser.add_argument('--noserial', dest='noserial', action='store_const',
                     help='debug option to run the daemon with no hardware (with help of demoSerial.py')
 parser.add_argument('--dev', dest='dev', default=None,
                     help='device to use as bluetooth serial')
-parser.add_argument('--baud', dest='baud', default=None,
-                    help='specify serial baud, default: {}'.format(DEFAULT_BAUD))
+parser.add_argument(
+    '--baud',
+    dest='baud',
+    default=None,
+    help=f'specify serial baud, default: {DEFAULT_BAUD}',
+)
+
 parser.add_argument('--debug', dest='debug', action='store_const',
                     const=True, default=False,
                     help='set logger to debug level')
@@ -140,27 +145,23 @@ def rpc_server_worker(host, port, username, password, queue):
             data = []
 
             for action in actionlist:
-                
+
                 if action[0] not in ('mousemove', 'mousebutton', 'keyevent', 'ble_cmd'):
-                
+
                     raise ValueError('unknown action')
 
             queue.put((None, 'actions', actionlist), True)
 
             for action in actionlist:
                 if action[0] == 'ble_cmd':
-                                    
+
                     if action[1] == 'devname':
                         data.append(devName)
-                
+
                     if action[1] == 'devlist':
                         data.append(devList)
 
-            if len(data):
-                return data
-            else:
-                return "OK"
-
+            return data if len(data) else "OK"
         except:
             return "UNEXPECTED_INPUT"
 
@@ -272,7 +273,9 @@ def shutdown_server():
 def find_device_path(noserial, seldev):
     dev = None
     if noserial:
-        if os.name == 'posix':
+        if os.name == 'nt':
+            dev = 'COM7' if seldev is None else seldev
+        elif os.name == 'posix':
             serialdemofile = os.path.join(os.path.dirname(
                 os.path.realpath(__file__)), '.serialDemo')
             if os.path.isfile(serialdemofile):
@@ -282,8 +285,6 @@ def find_device_path(noserial, seldev):
                 logging.critical(
                     'no-serial is set to true.. Please make sure you have already run \'python resources\demoSerial.py\' from a different shell')
                 exit(-1)
-        elif (os.name == 'nt'):
-            dev = 'COM7' if seldev is None else seldev
     else:
         # Default names
         if (os.name == 'posix'):
@@ -296,16 +297,13 @@ def find_device_path(noserial, seldev):
             # NB: Could be p.device with a suitable name we are looking for. Noticed some variation around this
         if seldev is None:
             for p in serial.tools.list_ports.comports():
-                if "CP2104" in p.description:
-                    logging.debug('serial desc:' + str(p))
-                    dev = p.device
-                    break
-                elif "nRF52" in p.description:
-                    logging.debug('serial desc:' + str(p))
-                    dev = p.device
-                    break
-                elif nrfVID and nrfPID in p.hwid:
-                    logging.debug('serial desc:' + str(p))
+                if (
+                    "CP2104" in p.description
+                    or "nRF52" in p.description
+                    or nrfVID
+                    and nrfPID in p.hwid
+                ):
+                    logging.debug(f'serial desc:{str(p)}')
                     dev = p.device
                     break
     return dev
@@ -323,8 +321,8 @@ def do_main(args, config, interrupt=None):
     if queue is None:
         logging.critical("Could not start rpc server")
         return -1  # exit the process
-    
-    ble_mode = True if args.ble_mode else False
+
+    ble_mode = bool(args.ble_mode)
     if not ble_mode: 
         asyncio.run(hardware_serial_loop(queue, args, config, interrupt))
     else:
@@ -332,8 +330,8 @@ def do_main(args, config, interrupt=None):
             asyncio.run(ble_serial_loop(queue, args, config, interrupt))
         except asyncio.CancelledError:        
             pass
-    
-    
+
+
     logging.info("relaykeysd exit!")
     return 0
 
@@ -350,13 +348,10 @@ async def hardware_serial_loop(queue, args, config, interrupt):
             noserial = True if args.noserial else config.getboolean(
                 "noserial", False)
             devicepath = find_device_path(noserial, seldev)
-            if os.name == 'nt' and noserial:
-                SerialCls = DummySerial
-            else:
-                SerialCls = serial.Serial
+            SerialCls = DummySerial if os.name == 'nt' and noserial else serial.Serial
             with SerialCls(devicepath, baud, rtscts=0, timeout=2) as ser:
                 
-                logging.info("serial device opened: {}".format(devicepath))
+                logging.info(f"serial device opened: {devicepath}")
                 #logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
                 await blehid_init_serial(ser)
                 # Six keys for USB keyboard HID report
@@ -367,7 +362,7 @@ async def hardware_serial_loop(queue, args, config, interrupt):
                 await process_action(ser, keys, ['ble_cmd','devlist'])
                 #Get intial ble device name
                 await process_action(ser, keys, ['ble_cmd','devname'])
-                
+
                 try:
                     while True:
                         if interrupt is not None:
@@ -388,7 +383,7 @@ async def hardware_serial_loop(queue, args, config, interrupt):
                     quit = True
         except serial.serialutil.SerialException:
             logging.error(traceback.format_exc())
-            logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
+            logging.info(f"Will retry in {RETRY_TIMEOUT} seconds")
             sleep(RETRY_TIMEOUT)
 
 async def ble_serial_loop(queue, args, config, interrupt):
@@ -456,7 +451,7 @@ async def process_action(ser, keys, cmd):
             for action in cmd[1]:
                 outputs.append(await process_action(ser, keys, action))
             return ", ".join(outputs)
-            
+
         if cmd[0] == "keyevent":
             key = cmd[1]
             modifiers = cmd[2]
@@ -475,10 +470,9 @@ async def process_action(ser, keys, cmd):
             behavior = str(cmd[2]).lower() if len(
                 cmd) > 2 and cmd[2] is not None else None
             if len(btn) > 1 or btn not in "lrmbf0":
-                raise CommandException("Unknown mousebutton: {}".format(btn))
+                raise CommandException(f"Unknown mousebutton: {btn}")
             if behavior is not None and behavior not in ("press", "click", "doubleclick", "hold"):
-                raise CommandException(
-                    "Unknown mousebutton behavior: {}".format(behavior))
+                raise CommandException(f"Unknown mousebutton behavior: {behavior}")
             await blehid_send_mousebutton(ser, btn, behavior)
 
         elif cmd[0] == 'ble_cmd':
@@ -559,16 +553,21 @@ def main(interrupt=None):
     config = ConfigParser()
     dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
     if args.config is None:
-        configfile = None
-        for afile in [os.path.expanduser('~/.relaykeys.cfg'),
-                      os.path.join(dirname, 'relaykeys.cfg')]:
-            if len(config.read([afile])) > 0:
-                configfile = afile
-                break
+        configfile = next(
+            (
+                afile
+                for afile in [
+                    os.path.expanduser('~/.relaykeys.cfg'),
+                    os.path.join(dirname, 'relaykeys.cfg'),
+                ]
+                if len(config.read([afile])) > 0
+            ),
+            None,
+        )
+
+    elif len(config.read([args.config])) == 0:
+        raise ValueError(f"Could not read config file: {args.config}")
     else:
-        if len(config.read([args.config])) == 0:
-            raise ValueError(
-                "Could not read config file: {}".format(args.config))
         configfile = args.config
     if "server" not in config.sections():
         config["server"] = {}

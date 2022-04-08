@@ -64,7 +64,7 @@ class DummySerial (object):
         pass
 
     def write(self, data):
-        print("{}".format(data))
+        print(f"{data}")
 
     def flushInput(self):
         pass
