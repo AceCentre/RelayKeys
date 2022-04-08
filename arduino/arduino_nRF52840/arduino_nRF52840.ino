@@ -24,6 +24,8 @@
  * with a BF LE UART Friend. Lots of this code is from an Adafruit example.
  */
 
+//#define DEBUG // uncomment this line to see additional prints in Serial monitor
+
 #define BLE_NAME "RelayKeys"
 #define ADD_NEW_DEV_PROCESS_TIMEOUT 30000 // in millseconds
 #define SWAP_CONN_PROCESS_TIMEOUT 30000   // in millseconds
@@ -68,7 +70,7 @@ void save_devList_toFile(void)
   // file existed
   if (file)
   {
-
+    #ifdef DEBUG
     Serial.print("List has ");
     Serial.print(bleDeviceNameListIndex);
     Serial.println(" devices");
@@ -80,20 +82,25 @@ void save_devList_toFile(void)
       Serial.print(bleDeviceNameList[i]);
       Serial.println();
     }
-
+    #endif
+    
     // file.truncate(file.size());
     file.seek(0);
     file.write((const uint8_t *)bleDeviceNameList, sizeof(bleDeviceNameList));
     file.write((const uint8_t *)&bleDeviceNameListIndex, 1);
 
+    #ifdef DEBUG
     Serial.print("Saving Device List to file ");
     Serial.print(file.size());
     Serial.println();
+    #endif
     file.close();
   }
   else
   {
+    #ifdef DEBUG
     Serial.print(FILENAME " Write Failed");
+    #endif
   }
 }
 
@@ -104,10 +111,12 @@ void load_devList_fromFile(void)
   // file existed
   if (file)
   {
+    #ifdef DEBUG
     Serial.print("Loading Device List from file ");
     Serial.print(file.size());
     Serial.println();
-
+    #endif
+    
     bleDeviceNameListIndex = 0;
     memset(bleDeviceNameList, 0, sizeof(bleDeviceNameList));
 
@@ -118,10 +127,11 @@ void load_devList_fromFile(void)
       bleDeviceNameListIndex = 0;
     }
     
+    #ifdef DEBUG
     Serial.print("List has ");
     Serial.print(bleDeviceNameListIndex);
     Serial.println(" devices");
-
+    
     for (int i = 0; i < bleDeviceNameListIndex; i++)
     {
       Serial.print(i);
@@ -129,11 +139,15 @@ void load_devList_fromFile(void)
       Serial.print(bleDeviceNameList[i]);
       Serial.println();
     }
+    #endif
+    
     file.close();
   }
   else
   {
+    #ifdef DEBUG
     Serial.print(FILENAME " Read Failed");
+    #endif
   }
 }
 
@@ -219,7 +233,9 @@ void startAdv(void)
   Bluefruit.Advertising.setFastTimeout(30);   // number of seconds in fast mode
   Bluefruit.Advertising.start(0);             // 0 = Don't stop advertising after n seconds
 
+  #ifdef DEBUG
   Serial.println("RelayKeys UP & Running");
+  #endif
 }
 
 typedef void (*action_func_t)(char *myLine);
@@ -621,7 +637,8 @@ void switchBleConnection(char *myLine)
     switchBleConnCurrIndex = 1;
     flag_bleSwapConnProsStarted = 1;
     swapConnProsStartTicks = millis();
-    Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex - 1]));
+    
+    Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex - 1]));    
   }
   else
   {
@@ -641,8 +658,8 @@ void switchBleConnection(char *myLine)
         //Serial.println("Current Dev Index: " + String(switchBleConnStartIndex));
 
         if (bleDeviceNameListIndex == 1)
-        {
-          Serial.println("ERROR: No other device present in list");
+        {          
+          Serial.println("ERROR: No other device present in list");          
           break;
         }
         else
@@ -660,8 +677,8 @@ void switchBleConnection(char *myLine)
         }
 
         flag_bleSwapConnProsStarted = 1;
-        swapConnProsStartTicks = millis();
-        Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex - 1]));
+        swapConnProsStartTicks = millis();        
+        Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex - 1]));        
         break;
       }
     }
@@ -828,7 +845,10 @@ void loop()
     if (millis() - addDevProsStartTicks >= ADD_NEW_DEV_PROCESS_TIMEOUT)
     {
       flag_addDevProsStarted = 0;
+      
+      #ifdef DEBUG
       Serial.println("ERROR: Timeout");
+      #endif
     }
   }
 
@@ -836,7 +856,9 @@ void loop()
   {
     if (millis() - swapConnProsStartTicks >= SWAP_CONN_PROCESS_TIMEOUT)
     {
+      #ifdef DEBUG
       Serial.println("ERROR: Timeout");
+      #endif
 
       switchBleConnCurrIndex++;
       if (switchBleConnCurrIndex > bleDeviceNameListIndex)
@@ -849,7 +871,10 @@ void loop()
       }
 
       swapConnProsStartTicks = millis();
+
+      #ifdef DEBUG
       Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex - 1]));
+      #endif
     }
   }
   else if (flag_bleSwapConnProsStarted == 2)
@@ -857,7 +882,10 @@ void loop()
     if (millis() - swapConnProsStartTicks >= SWAP_CONN_PROCESS_TIMEOUT)
     {
       flag_bleSwapConnProsStarted = 0;
+
+      #ifdef DEBUG
       Serial.println("ERROR: Timeout");
+      #endif
     }
   }
 
@@ -881,12 +909,18 @@ void bleConnectCallback(uint16_t conn_handle)
     if (!strcmp((char *)central_name, (char *)bleDeviceNameList[switchBleConnCurrIndex - 1]))
     {
       flag_bleSwapConnProsStarted = 0;
+
+      #ifdef DEBUG
       Serial.println("SUCCESS");
+      #endif
     }
     else
     {
       connection->disconnect();
+
+      #ifdef DEBUG
       Serial.println("Disconnected - Other device");
+      #endif
     }
   }
   else if (flag_bleSwapConnProsStarted == 2)
@@ -894,12 +928,18 @@ void bleConnectCallback(uint16_t conn_handle)
     if (!strcmp((char *)central_name, (char *)bleDeviceNameList[switchBleConnStartIndex - 1]))
     {
       flag_bleSwapConnProsStarted = 0;
+      
+      #ifdef DEBUG
       Serial.println("Reconnected to last device");
+      #endif
     }
     else
     {
       connection->disconnect();
+
+      #ifdef DEBUG
       Serial.println("Disconnected - Other device");
+      #endif
     }
   }
   else
@@ -910,11 +950,17 @@ void bleConnectCallback(uint16_t conn_handle)
     {
       if (!strcmp((char *)central_name, (char *)bleDeviceNameList[i]))
       {
+        #ifdef DEBUG
         Serial.println("Device found in list - " + String(central_name));
+        #endif
+        
         if (flag_addDevProsStarted)
         {
           connection->disconnect();
+
+          #ifdef DEBUG
           Serial.println("Disconnected - Device already present in list");
+          #endif
         }
         else
         {
@@ -931,12 +977,18 @@ void bleConnectCallback(uint16_t conn_handle)
         if (bleDeviceNameListIndex > maxBleDevListSize)
         {
           connection->disconnect();
+
+          #ifdef DEBUG
           Serial.println("ERROR: Device list is full");
+          #endif
         }
         else
         {
+          #ifdef DEBUG
           Serial.println("SUCCESS");
           Serial.println(String(central_name) + " Connected and Name added into list");
+          #endif
+          
           strcpy(bleDeviceNameList[bleDeviceNameListIndex++], central_name);
           flag_saveListToFile = true;
         }
@@ -944,7 +996,10 @@ void bleConnectCallback(uint16_t conn_handle)
       else
       {
         connection->disconnect();
+
+        #ifdef DEBUG
         Serial.println(String(central_name) + " Disconnected - Not present in the list");
+        #endif
       }
     }
   }
