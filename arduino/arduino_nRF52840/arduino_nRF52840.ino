@@ -44,8 +44,6 @@ volatile uint8_t maxBleDevListSize = 3;
 volatile uint8_t switchBleConnStartIndex = 0;
 volatile uint8_t switchBleConnCurrIndex = 0;
 
-#define DEFAULT_CONN_HANDLE BLE_CONN_HANDLE_INVALID
-
 ///
 using namespace Adafruit_LittleFS_Namespace;
 #define FILENAME "/devNameList.txt"
@@ -58,8 +56,8 @@ uint8_t connection_count;
 
 bool ble_mode = false;
 
-uint16_t target_ble_conn = DEFAULT_CONN_HANDLE;
-uint16_t response_ble_conn = DEFAULT_CONN_HANDLE;
+uint16_t target_ble_conn = 0;
+uint16_t response_ble_conn = 0;
 
 void set_keyboard_led(uint8_t led_bitmap);
 
