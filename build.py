@@ -86,26 +86,28 @@ for item in ['relaykeys.cfg','logfile.txt','LICENSE','README.html']:
 if os.name == 'nt':
     subprocess.run([r"C:\Program Files (x86)\NSIS\makensis.exe","build-installer.nsi"])   
 if os.name == 'posix':
-    plist  = """
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-        <key>KeepAlive</key>
-        <true/>
-        <key>Label</key>
-        <string>RelayKeysD</string>
-        <key>ProgramArguments</key>
-        <array>
-            <string>/Applications/RelayKeys/RelayKeysd.app</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true/>
-    </dict>
-    </plist>
+    plist  = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>RelayKeysD</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Applications/RelayKeys/RelayKeysd.app</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+</dict>
+</plist>
     """
     # Write dir 
     # Write the Plist to the dmg
     file = open("dist/relaykeysd/RelayKeys.plist", "w")
     file.write(plist)
     file.close
+    # Lets just rename the dir - A user can just dump this in their Applications dirs
+    os.system("mv dist/relaykeysd dist/RelayKeys")
+
