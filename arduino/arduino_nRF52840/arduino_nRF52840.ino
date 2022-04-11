@@ -762,6 +762,9 @@ void execute(uint16_t conn_handle, char *myLine)
         update_connections(conn_handle);
       }
       commands[i].action(myLine); //strtok(NULL, "=")
+      if(!ble_mode) {
+        delay(30);
+      }
       return;
     }
   }
