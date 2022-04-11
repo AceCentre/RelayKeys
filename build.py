@@ -51,8 +51,11 @@ for script, exename, console in [ \
 #os.system("md ./dist")
        
 # Do a pyinstaller on these files
-for spec in ['relaykeysd.spec','relaykeysd-service.spec','relaykeys-cli.spec','relaykeys-cli-win.spec','relaykeys-qt.spec']:
+for spec in ['relaykeysd.spec','relaykeys-cli.spec','relaykeys-cli-win.spec','relaykeys-qt.spec']:
     subprocess.run(["pyinstaller",spec])
+
+if os.name == 'nt':
+    subprocess.run(["pyinstaller",'relaykeysd-service.spec'])
 
 # Create a PDF of the readme - and in future any other docs..
 # NB: I realise the next lines are insane. I'm in a hurry
@@ -64,15 +67,19 @@ for doc in ['README.md']:
 #    os.system("copy " + item + r' dist\relaykeysd ')
 
 # Merge all directories
-for item in [r"dist\relaykeysd-service",r"dist\relaykeys-cli",r"dist\relaykeys-cli-win",r"dist\relaykeys-qt"]:
-    moveTree(item, r'dist\relaykeysd')
+if os.name == 'nt':
+	for item in [r"dist\relaykeysd-service",r"dist\relaykeys-cli",r"dist\relaykeys-cli-win",r"dist\relaykeys-qt"]:
+		moveTree(item, r'dist\relaykeysd')
+if os.name == 'posix':
+	for item in [r"dist/relaykeys-cli",r"dist/relaykeys-cli-win",r"dist/relaykeys-qt"]:
+		moveTree(item, r'dist/relaykeysd')
 
 # Copy some other stuff to Dist
 for item in ['relaykeys.cfg','logfile.txt','LICENSE','README.html']:
     if os.name == 'nt':
         os.system("copy "+item+ " "+r"dist\relaykeysd")
     if os.name == 'posix':
-        os.system("cp "+item+ " "+r"dist\relaykeysd")
+        os.system("cp "+item+ " "+r"dist/relaykeysd/")
 
 
 # Run the nsis 
