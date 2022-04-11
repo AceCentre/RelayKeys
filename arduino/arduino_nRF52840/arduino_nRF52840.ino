@@ -587,7 +587,7 @@ void removeBleDevice(char *myLine)
     connection->getPeerName(centralBleDeviceName, sizeof(centralBleDeviceName));
     if (!strcmp((char *)tempName, (char *)centralBleDeviceName))
     {
-      at_response("ERROR: Can't remove device central device\n");
+      at_response("ERROR: Can't remove central device\n");
       return;
     }
   }
@@ -626,6 +626,8 @@ void removeBleDevice(char *myLine)
 
 void switchBleConnection(char *myLine)
 {
+  char buff[256];
+  
   at_response("at+switchconn\n");
 
   if (!Bluefruit.connected())
@@ -636,7 +638,8 @@ void switchBleConnection(char *myLine)
     flag_bleSwapConnProsStarted = 1;
     swapConnProsStartTicks = millis();
     
-    Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex - 1]));    
+    snprintf(buff, sizeof(buff), "Trying to connect with -  %s\n", bleDeviceNameList[switchBleConnCurrIndex - 1]);
+    at_response(buff);
   }
   else
   {
@@ -657,7 +660,7 @@ void switchBleConnection(char *myLine)
 
         if (bleDeviceNameListIndex == 1)
         {          
-          Serial.println("ERROR: No other device present in list");          
+          at_response("ERROR: No other device present in list\n");
           break;
         }
         else
@@ -676,7 +679,9 @@ void switchBleConnection(char *myLine)
 
         flag_bleSwapConnProsStarted = 1;
         swapConnProsStartTicks = millis();        
-        Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex - 1]));        
+        
+        snprintf(buff, sizeof(buff), "Trying to connect with -  %s\n", bleDeviceNameList[switchBleConnCurrIndex - 1]);
+        at_response(buff);
         break;
       }
     }
@@ -805,10 +810,8 @@ void receive_char(uint16_t conn_handle, char receive_char)
 }
 
 void at_response(char *msg) {
-  int len = 0;
-  while(msg[len] != '\0') {
-    len++;      
-  }
+  int len = strlen(msg);
+
   if(ble_mode) {
     bleuart.write(response_ble_conn, (const uint8_t*)msg, len);    
   } else {
