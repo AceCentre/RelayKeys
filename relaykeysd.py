@@ -439,7 +439,7 @@ async def ble_serial_loop(queue, args, config, interrupt):
                     except SystemExit:
                         shutdown_server()
                         quit = True
-            except asyncio.exceptions.TimeoutError:
+            except (asyncio.exceptions.TimeoutError, asyncio.exceptions.InvalidStateError):
                 logging.error(traceback.format_exc())
         else:
             logging.error("Device not found")
