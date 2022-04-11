@@ -71,14 +71,14 @@ for item in [r"dist\relaykeysd-service",r"dist\relaykeys-cli",r"dist\relaykeys-c
 for item in ['relaykeys.cfg','logfile.txt','LICENSE','README.html']:
     if os.name == 'nt':
         os.system("copy "+item+ " "+r"dist\relaykeysd")
-    if os.name == 'mac':
+    if os.name == 'posix':
         os.system("cp "+item+ " "+r"dist\relaykeysd")
 
 
 # Run the nsis 
 if os.name == 'nt':
     subprocess.run([r"C:\Program Files (x86)\NSIS\makensis.exe","build-installer.nsi"])   
-if os.name == 'mac':
+if os.name == 'posix':
     plist  = """
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -99,6 +99,6 @@ if os.name == 'mac':
     """
     # Write dir 
     # Write the Plist to the dmg
-    file = open("dist/RelayKeys.plist", "w")
+    file = open("dist/relaykeysd/RelayKeys.plist", "w")
     file.write(plist)
     file.close
