@@ -8,3 +8,6 @@ requests>=2.21.0,<3
 markdown>=3.0.1,<4
 pyperclip>=1.7.0,<2
 bleak
+PyQt5>=5.14.0
+PyQt5.sip>=12.7.0
+pynput
