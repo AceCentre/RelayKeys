@@ -30,6 +30,9 @@
 #define ADD_NEW_DEV_PROCESS_TIMEOUT 30000 // in millseconds
 #define SWAP_CONN_PROCESS_TIMEOUT 30000   // in millseconds
 
+#define USER_SW 7
+bool old_sw_state = true;
+
 BLEDis bledis;
 BLEHidAdafruit blehid;
 BLEUart bleuart;
@@ -153,6 +156,9 @@ void setup()
 {
   Serial.begin(115200);
   //while ( !Serial && millis() < 2000) delay(10);   // for nrf52840 with native usb
+
+  pinMode(USER_SW, INPUT_PULLUP);
+  
   if(ble_mode) {
     max_prph_connection = 2;    
   } else {
@@ -836,6 +842,15 @@ void loop()
     if(Serial.available() > 0) {
       receive_char(0, Serial.read());
     }    
+  }
+
+  if(digitalRead(USER_SW) == false && old_sw_state == true) {
+    old_sw_state = false;
+    delay(100);
+  } else if(digitalRead(USER_SW) == true && old_sw_state == false){
+    old_sw_state = true;
+    delay(100);
+    addNewBleDevice("");
   }
 
   if (flag_saveListToFile)
