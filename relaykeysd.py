@@ -46,6 +46,7 @@ import sys
 from bleak import BleakScanner, BleakClient
 from bleak.backends.scanner import AdvertisementData
 from bleak.backends.device import BLEDevice
+from bleak.exc import BleakError
 
 from serial_wrappers import BLESerialWrapper, DummySerial
 
@@ -330,7 +331,7 @@ def do_main(args, config, interrupt=None):
     else:
         try:
             asyncio.run(ble_serial_loop(queue, args, config, interrupt))
-        except asyncio.CancelledError:        
+        except asyncio.CancelledError:
             pass
     
     
@@ -401,11 +402,13 @@ async def ble_serial_loop(queue, args, config, interrupt):
         return False
     
     def handle_disconnect(_: BleakClient):
-        print("Device was disconnected, goodbye.")
-        # cancelling all tasks effectively ends the program
+        print("Device was disconnected.")
+        """
+        # cancelling all tasks effectively ends the program        
+        
         for task in asyncio.all_tasks():
-            task.cancel()
-    
+            task.cancel()   
+        """
     quit = False
     while not quit:
         if interrupt is not None:
@@ -432,6 +435,11 @@ async def ble_serial_loop(queue, args, config, interrupt):
                                 if cmd[0] is not None:
                                     cmd[0].put(output)
                                 queue.task_done()
+                                
+                                # checking if connection present
+                                if not client.is_connected:
+                                    print("client lost connection")
+                                    raise BleakError
                             except KeyboardInterrupt:
                                 raise SystemExit()
                             except QueueEmpty:
@@ -439,7 +447,7 @@ async def ble_serial_loop(queue, args, config, interrupt):
                     except SystemExit:
                         shutdown_server()
                         quit = True
-            except (asyncio.exceptions.TimeoutError, asyncio.exceptions.InvalidStateError):
+            except (asyncio.exceptions.TimeoutError, asyncio.exceptions.InvalidStateError, BleakError, OSError):
                 logging.error(traceback.format_exc())
         else:
             logging.error("Device not found")
