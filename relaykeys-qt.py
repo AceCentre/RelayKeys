@@ -22,6 +22,8 @@ from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QApplication, QSy
 from threading import Timer, Thread
 from queue import Queue, Empty as EmptyQueue
 
+import types
+
 parser = argparse.ArgumentParser(description='Relay Keys qt client.')
 parser.add_argument('--debug', dest='debug', action='store_const',
                     const=True, default=False,
@@ -295,6 +297,8 @@ class KeyboardStatusWidget (QWidget):
 
 class Window (QMainWindow):
     showErrorMessageSignal = pyqtSignal(str)
+    addDeviceSignal = pyqtSignal(str, types.MethodType)
+    addSeparatorSignal = pyqtSignal()
 
     def __init__(self, args, config):
         self.devList = []
@@ -438,6 +442,9 @@ class Window (QMainWindow):
 
         self.removeDeviceMenu = QMenu("&Remove BLE Device", self)
 
+        self.addDeviceSignal.connect(self.removeDeviceMenu.addAction)
+        self.addSeparatorSignal.connect(self.removeDeviceMenu.addSeparator)
+        
         self.actionResetDevices = QAction("Reset BLE Device List", self)
         self.actionResetDevices.triggered.connect(self.resetDeviceListButtonClicked)
         self.removeDeviceMenu.addAction(self.actionResetDevices)   
@@ -504,15 +511,10 @@ class Window (QMainWindow):
             QMessageBox.warning(self, 'Open Url', 'Could not open url')
     
     def clearRemoveDeviceMenu(self):
-        
         self.removeDeviceMenu.clear()
-
-        self.actionResetDevices = QAction("Reset BLE Device List", self)
-        self.actionResetDevices.triggered.connect(self.resetDeviceListButtonClicked)
-        self.removeDeviceMenu.addAction(self.actionResetDevices)   
+        self.addDeviceSignal.emit("Reset BLE Device List", self.resetDeviceListButtonClicked)
+        self.addSeparatorSignal.emit()
         
-        self.removeDeviceMenu.addSeparator()
-
     def resetDeviceListButtonClicked(self):
         self.send_action('ble_cmd', 'devreset')
 
@@ -733,8 +735,7 @@ class Window (QMainWindow):
                                     and 'ERROR:' not in device \
                                     and 'OK' not in device \
                                     and 'SUCCESS' not in device:
-        
-                                    self.removeDeviceMenu.addAction(device, self.removeDeviceButtonClicked)
+                                    self.addDeviceSignal.emit(device, self.removeDeviceButtonClicked)
 
                                     self.devList.append(device)
                                     
