@@ -266,8 +266,18 @@ void toLower(char *s)
 void deleteDevList(char *myLine)
 {
   at_response("at+deletedevlist\n");
+  
   InternalFS.remove(FILENAME);
-  at_response("SUCCESS. Now turn on and off.\n");
+  bleDeviceNameListIndex = 0;
+  memset(bleDeviceNameList, 0, sizeof(bleDeviceNameList));
+
+  BLEConnection *connection = NULL;
+  for(int i=0;i<max_prph_connection;i++) {
+    connection = Bluefruit.Connection(i);
+    connection->disconnect();
+  }
+  
+  at_response("SUCCESS.\n");
 }
 
 void sendBLEMouseMove(char *line)
