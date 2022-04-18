@@ -938,7 +938,8 @@ void bleConnectCallback(uint16_t conn_handle)
       connection->disconnect();
 
       #ifdef DEBUG
-      Serial.println("Disconnected - Other device");
+      Serial.print("Disconnected - Other device: ");
+      Serial.println(central_name);
       #endif
     }
   }
@@ -949,7 +950,8 @@ void bleConnectCallback(uint16_t conn_handle)
       flag_bleSwapConnProsStarted = 0;
       
       #ifdef DEBUG
-      Serial.println("Reconnected to last device");
+      Serial.print("Reconnected to last device: ");
+      Serial.println(central_name);
       #endif
     }
     else
@@ -957,7 +959,8 @@ void bleConnectCallback(uint16_t conn_handle)
       connection->disconnect();
 
       #ifdef DEBUG
-      Serial.println("Disconnected - Other device");
+      Serial.println("Disconnected - Other device: ");
+      Serial.println(central_name);
       #endif
     }
   }
@@ -978,7 +981,8 @@ void bleConnectCallback(uint16_t conn_handle)
           connection->disconnect();
 
           #ifdef DEBUG
-          Serial.println("Disconnected - Device already present in list");
+          Serial.print("Disconnected - Device already present in list");
+          Serial.println(central_name);
           #endif
         }
         else
