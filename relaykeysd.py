@@ -145,8 +145,13 @@ def rpc_server_worker(host, port, username, password, queue):
                 if action[0] not in ('mousemove', 'mousebutton', 'keyevent', 'ble_cmd'):
                 
                     raise ValueError('unknown action')
-
-            queue.put((None, 'actions', actionlist), True)
+            
+            respqueue = Queue(1)
+            queue.put((respqueue, 'actions', actionlist), True)            
+            try:
+                respqueue.get(True, 5) # here get used as waiting for commands execution
+            except QueueEmpty:
+                return "TIMEOUT"
 
             for action in actionlist:
                 if action[0] == 'ble_cmd':
