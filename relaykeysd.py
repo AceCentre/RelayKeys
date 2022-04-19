@@ -517,7 +517,6 @@ async def process_action(ser, keys, cmd):
 
             elif cmd[1].split("|")[0] == "devremove":
                 await blehid_send_remove_device(ser, cmd[1])
-                devList = await blehid_get_device_list(ser, "devlist")
 
 
         # response queue given by cmd
