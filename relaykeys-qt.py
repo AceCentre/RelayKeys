@@ -634,7 +634,8 @@ class Window (QMainWindow):
         text = " ".join(self._last_n_chars)
         label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
                       .format(text=text, fontsize=fontsize))
-
+    
+    """
     def createTrayIcon(self):
         self.trayIconMenu = QMenu(self)
         self.trayIconMenu.addAction(
@@ -642,16 +643,21 @@ class Window (QMainWindow):
         # self.trayIconMenu.addSeparator()
         self.trayIcon = QSystemTrayIcon(self)
         self.trayIcon.setContextMenu(self.trayIconMenu)
+    """
 
+    """
     def onQuit(self):
         self._client_queue.put(("EXIT",))
         self._keyboard_listener.stop()
-        self._keyboard_listener.stop()
+        self._mouse_listener.stop()
         app.quit()
         # exit(0)
+    """
 
     def closeEvent(self, event):
         self._client_queue.put(("EXIT",))
+        self._keyboard_listener.stop()
+        self._mouse_listener.stop()
 
     def initHooks(self):
         self._keyboard_listener = keyboard.Listener(on_press=self.onKeyboardDown, on_release=self.onKeyboardUp)
