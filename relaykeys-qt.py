@@ -539,11 +539,13 @@ class Window (QMainWindow):
             self.workerBLE.stop()
             self.BLEthread.quit()
             self.BLEthread.wait()
+            self.send_action('ble_cmd', 'devname')
 
         if self.addBLEDialog.isVisible() == False:
             self.workerBLE.stop()
             self.BLEthread.quit()
             self.BLEthread.wait()
+            self.send_action('ble_cmd', 'devname')
 
     def addDeviceButtonClicked(self):
 
@@ -753,6 +755,7 @@ class Window (QMainWindow):
 
                         if 'devremove' in action[1]:
                             self.send_action('ble_cmd', 'devlist')
+                            self.send_action('ble_cmd', 'devname')
 
                     result = result + 1
 
