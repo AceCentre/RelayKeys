@@ -95,21 +95,22 @@ keysmap_printable = dict([
     (221, "RIGHTBRACKET"),
     (445, "UNDERSCORE"),
     (0xC0, "BACKQUOTE"),  # Keyboard Non-US # and ~
-    (0x60, "KP_0"),  # VK_NUMPAD0
-    (0x61, "KP_1"),  # VK_NUMPAD1
-    (0x62, "KP_2"),  # VK_NUMPAD2
-    (0x63, "KP_3"),  # VK_NUMPAD3
-    (0x64, "KP_4"),  # VK_NUMPAD4
-    (0x65, "KP_5"),  # VK_NUMPAD5
-    (0x66, "KP_6"),  # VK_NUMPAD6
-    (0x67, "KP_7"),  # VK_NUMPAD7
-    (0x68, "KP_8"),  # VK_NUMPAD8
-    (0x69, "KP_9"),  # VK_NUMPAD9
+    (0x60, "0"),  # VK_NUMPAD0 in numlock mode
+    (0x61, "1"),  # VK_NUMPAD1 in numlock mode
+    (0x62, "2"),  # VK_NUMPAD2 in numlock mode
+    (0x63, "3"),  # VK_NUMPAD3 in numlock mode
+    (0x64, "4"),  # VK_NUMPAD4 in numlock mode
+    (0x65, "5"),  # VK_NUMPAD5 in numlock mode
+    (0x66, "6"),  # VK_NUMPAD6 in numlock mode
+    (0x67, "7"),  # VK_NUMPAD7 in numlock mode
+    (0x68, "8"),  # VK_NUMPAD8 in numlock mode
+    (0x69, "9"),  # VK_NUMPAD9 in numlock mode
     (0x6E, "KP_PERIOD"),  # VK_DECIMAL
     (0x6A, "KP_MULTIPLY"),  # keypad multiply, VK_MULTIPLY
     (0x6F, "KP_DIVIDE"),  # keypad divide, VK_DIVIDE
     (0x6B, "KP_PLUS"),
-    (0x6D, "KP_MINUS"),    
+    (0x6D, "KP_MINUS"),
+    (12, "KP_5_DIS"),  # keypad 5 doesn't have any function when numlock disabled    
 ])
 
 keysmap_non_printable = dict([
@@ -130,6 +131,7 @@ keysmap_non_printable = dict([
     (keyboard.Key.delete,  "DELETE"),
     #(keyboard.Key,  "APP"),  # Applications key
     (keyboard.Key.caps_lock,  "CAPSLOCK"),
+    (keyboard.Key.num_lock,  "NUMLOCK"),
     (keyboard.Key.f1, "F1"),
     (keyboard.Key.f2, "F2"),
     (keyboard.Key.f3, "F3"),
