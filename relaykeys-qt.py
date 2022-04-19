@@ -105,7 +105,7 @@ keysmap_printable = dict([
     (0x67, "7"),  # VK_NUMPAD7 in numlock mode
     (0x68, "8"),  # VK_NUMPAD8 in numlock mode
     (0x69, "9"),  # VK_NUMPAD9 in numlock mode
-    (0x6E, "KP_PERIOD"),  # VK_DECIMAL
+    (0x6E, "PERIOD"),  # VK_DECIMAL in numlock mode# 
     (0x6A, "KP_MULTIPLY"),  # keypad multiply, VK_MULTIPLY
     (0x6F, "KP_DIVIDE"),  # keypad divide, VK_DIVIDE
     (0x6B, "KP_PLUS"),
