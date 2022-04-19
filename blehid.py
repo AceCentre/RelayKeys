@@ -147,13 +147,14 @@ async def _write_atcmd(ser, msg):
         msg = msg.encode()
     logging.debug("request: {}".format(
         msg if isinstance(msg, str) else str(msg, "utf8")))
+    
+    ser.flushInput()
+
     if isinstance(ser, BLESerialWrapper):
         await ser.write(msg + b"\r\n")
     else:
         await asyncio.gather(asyncio.to_thread(ser.write, (msg + b"\r\n")))
         
-    ser.flushInput()
-
 
 async def _read_response(ser, n=1):
     v = b""
