@@ -113,55 +113,91 @@ keysmap_printable = dict([
     (12, "KP_5_DIS"),  # keypad 5 doesn't have any function when numlock disabled    
 ])
 
-keysmap_non_printable = dict([
-    (keyboard.Key.enter,  "ENTER"),
-    (keyboard.Key.space,  "SPACE"),
-    (keyboard.Key.backspace,  "BACKSPACE"),
-    (keyboard.Key.tab,  "TAB"),
-    (keyboard.Key.page_up,  "PAGEUP"),
-    (keyboard.Key.page_down,  "PAGEDOWN"),
-    (keyboard.Key.left,  "LEFTARROW"),
-    (keyboard.Key.right,  "RIGHTARROW"),
-    (keyboard.Key.up,  "UPARROW"),
-    (keyboard.Key.down,  "DOWNARROW"),
-    (keyboard.Key.esc,  "ESCAPE"),
-    (keyboard.Key.home,  "HOME"),
-    (keyboard.Key.end,  "END"),
-    (keyboard.Key.insert,  "INSERT"),
-    (keyboard.Key.delete,  "DELETE"),
-    #(keyboard.Key,  "APP"),  # Applications key
-    (keyboard.Key.caps_lock,  "CAPSLOCK"),
-    (keyboard.Key.num_lock,  "NUMLOCK"),
-    (keyboard.Key.f1, "F1"),
-    (keyboard.Key.f2, "F2"),
-    (keyboard.Key.f3, "F3"),
-    (keyboard.Key.f4, "F4"),
-    (keyboard.Key.f5, "F5"),
-    (keyboard.Key.f6, "F6"),
-    (keyboard.Key.f7, "F7"),
-    (keyboard.Key.f8, "F8"),
-    (keyboard.Key.f9, "F9"),
-    (keyboard.Key.f10, "F10"),
-    (keyboard.Key.f11, "F11"),
-    (keyboard.Key.f12, "F12"),
-    (keyboard.Key.print_screen, "PRINTSCREEN"),  # Keyboard PrintScreen, VK_SNAPSHOT
-    #(keyboard.Key., "EXECUTE"),  # VK_EXECUTE
-    #(keyboard.Key., "HELP"),  # VK_HELP
-    #(keyboard.Key., "MENU"),  # VK_MENU
-    (keyboard.Key.pause, "PAUSE"),  # VK_PAUSE
-    #(keyboard.Key., "SELECT"),  # VK_SELECT
-    #(keyboard.Key., "STOP"),  # VK_MEDIA_STOP, Keyboard Stop
-    (keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
-    (keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
-    (keyboard.Key.media_volume_down, "VOLDOWN"),  # VK_VOLUME_DOWN, Keyboard Volume Down
-    #(keyboard.Key., "CANCEL"),  # VK_CANCEL
-    #(keyboard.Key., "CLEAR"),  # VK_CLEAR, Keyboard Clear
-    #(keyboard.Key., "PRIOR"),  # VK_PRIOR, Keyboard Prior
-    #(keyboard.Key., "ENTER"),  # VK_RETURN, ENTER
-    #(keyboard.Key., "SEPARATOR"),  # VK_SEPARATOR
-    #(keyboard.Key., "POWER"),  # VK_SLEEP
-    #(keyboard.Key., "CANCEL")  # VK_CANCEL
-])
+if os.name == 'posix':
+
+	keysmap_non_printable = dict([
+		(keyboard.Key.enter,  "ENTER"),
+		(keyboard.Key.space,  "SPACE"),
+		(keyboard.Key.backspace,  "BACKSPACE"),
+		(keyboard.Key.tab,  "TAB"),
+		(keyboard.Key.page_up,  "PAGEUP"),
+		(keyboard.Key.page_down,  "PAGEDOWN"),
+		(keyboard.Key.left,  "LEFTARROW"),
+		(keyboard.Key.right,  "RIGHTARROW"),
+		(keyboard.Key.up,  "UPARROW"),
+		(keyboard.Key.down,  "DOWNARROW"),
+		(keyboard.Key.esc,  "ESCAPE"),
+		(keyboard.Key.home,  "HOME"),
+		(keyboard.Key.end,  "END"), 
+		(keyboard.Key.caps_lock,  "CAPSLOCK"),
+		(keyboard.Key.f1, "F1"),
+		(keyboard.Key.f2, "F2"),
+		(keyboard.Key.f3, "F3"),
+		(keyboard.Key.f4, "F4"),
+		(keyboard.Key.f5, "F5"),
+		(keyboard.Key.f6, "F6"),
+		(keyboard.Key.f7, "F7"),
+		(keyboard.Key.f8, "F8"),
+		(keyboard.Key.f9, "F9"),
+		(keyboard.Key.f10, "F10"),
+		(keyboard.Key.f11, "F11"),
+		(keyboard.Key.f12, "F12"),
+		(keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
+		(keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
+		(keyboard.Key.media_volume_down, "VOLDOWN"),  # VK_VOLUME_DOWN, Keyboard Volume Down
+	])
+
+else:
+
+	keysmap_non_printable = dict([
+		(keyboard.Key.enter,  "ENTER"),
+		(keyboard.Key.space,  "SPACE"),
+		(keyboard.Key.backspace,  "BACKSPACE"),
+		(keyboard.Key.tab,  "TAB"),
+		(keyboard.Key.page_up,  "PAGEUP"),
+		(keyboard.Key.page_down,  "PAGEDOWN"),
+		(keyboard.Key.left,  "LEFTARROW"),
+		(keyboard.Key.right,  "RIGHTARROW"),
+		(keyboard.Key.up,  "UPARROW"),
+		(keyboard.Key.down,  "DOWNARROW"),
+		(keyboard.Key.esc,  "ESCAPE"),
+		(keyboard.Key.home,  "HOME"),
+		(keyboard.Key.end,  "END"),
+		(keyboard.Key.insert,  "INSERT"),
+		(keyboard.Key.delete,  "DELETE"),
+		#(keyboard.Key,  "APP"),  # Applications key
+		(keyboard.Key.caps_lock,  "CAPSLOCK"),
+		(keyboard.Key.num_lock,  "NUMLOCK"),
+		(keyboard.Key.f1, "F1"),
+		(keyboard.Key.f2, "F2"),
+		(keyboard.Key.f3, "F3"),
+		(keyboard.Key.f4, "F4"),
+		(keyboard.Key.f5, "F5"),
+		(keyboard.Key.f6, "F6"),
+		(keyboard.Key.f7, "F7"),
+		(keyboard.Key.f8, "F8"),
+		(keyboard.Key.f9, "F9"),
+		(keyboard.Key.f10, "F10"),
+		(keyboard.Key.f11, "F11"),
+		(keyboard.Key.f12, "F12"),
+		(keyboard.Key.print_screen, "PRINTSCREEN"),  # Keyboard PrintScreen, VK_SNAPSHOT
+		#(keyboard.Key., "EXECUTE"),  # VK_EXECUTE
+		#(keyboard.Key., "HELP"),  # VK_HELP
+		#(keyboard.Key., "MENU"),  # VK_MENU
+		(keyboard.Key.pause, "PAUSE"),  # VK_PAUSE
+		#(keyboard.Key., "SELECT"),  # VK_SELECT
+		#(keyboard.Key., "STOP"),  # VK_MEDIA_STOP, Keyboard Stop
+		(keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
+		(keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
+		(keyboard.Key.media_volume_down, "VOLDOWN"),  # VK_VOLUME_DOWN, Keyboard Volume Down
+		#(keyboard.Key., "CANCEL"),  # VK_CANCEL
+		#(keyboard.Key., "CLEAR"),  # VK_CLEAR, Keyboard Clear
+		#(keyboard.Key., "PRIOR"),  # VK_PRIOR, Keyboard Prior
+		#(keyboard.Key., "ENTER"),  # VK_RETURN, ENTER
+		#(keyboard.Key., "SEPARATOR"),  # VK_SEPARATOR
+		#(keyboard.Key., "POWER"),  # VK_SLEEP
+		#(keyboard.Key., "CANCEL")  # VK_CANCEL
+	])
 
 char_keysmap = dict([
     (65, ("a", "A")),
