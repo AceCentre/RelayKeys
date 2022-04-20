@@ -1,4 +1,0 @@
-pywin32>=227
-PyQt5>=5.14.0
-PyQt5.sip>=12.7.0
-pynput

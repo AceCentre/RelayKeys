@@ -19,12 +19,10 @@ from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QApplication, QSystemTrayIcon, \
     QMessageBox, QLabel, QAction, QMenu, QMenuBar, QDialog, QPushButton, QMainWindow
     
-from struct import pack, unpack
-import win32api
-import win32con
-import pythoncom
 from threading import Timer, Thread
 from queue import Queue, Empty as EmptyQueue
+
+import types
 
 parser = argparse.ArgumentParser(description='Relay Keys qt client.')
 parser.add_argument('--debug', dest='debug', action='store_const',
@@ -97,71 +95,109 @@ keysmap_printable = dict([
     (221, "RIGHTBRACKET"),
     (445, "UNDERSCORE"),
     (0xC0, "BACKQUOTE"),  # Keyboard Non-US # and ~
-    (0x60, "KP_0"),  # VK_NUMPAD0
-    (0x61, "KP_1"),  # VK_NUMPAD1
-    (0x62, "KP_2"),  # VK_NUMPAD2
-    (0x63, "KP_3"),  # VK_NUMPAD3
-    (0x64, "KP_4"),  # VK_NUMPAD4
-    (0x65, "KP_5"),  # VK_NUMPAD5
-    (0x66, "KP_6"),  # VK_NUMPAD6
-    (0x67, "KP_7"),  # VK_NUMPAD7
-    (0x68, "KP_8"),  # VK_NUMPAD8
-    (0x69, "KP_9"),  # VK_NUMPAD9
-    (0x6E, "KP_PERIOD"),  # VK_DECIMAL
+    (0x60, "0"),  # VK_NUMPAD0 in numlock mode
+    (0x61, "1"),  # VK_NUMPAD1 in numlock mode
+    (0x62, "2"),  # VK_NUMPAD2 in numlock mode
+    (0x63, "3"),  # VK_NUMPAD3 in numlock mode
+    (0x64, "4"),  # VK_NUMPAD4 in numlock mode
+    (0x65, "5"),  # VK_NUMPAD5 in numlock mode
+    (0x66, "6"),  # VK_NUMPAD6 in numlock mode
+    (0x67, "7"),  # VK_NUMPAD7 in numlock mode
+    (0x68, "8"),  # VK_NUMPAD8 in numlock mode
+    (0x69, "9"),  # VK_NUMPAD9 in numlock mode
+    (0x6E, "PERIOD"),  # VK_DECIMAL in numlock mode# 
     (0x6A, "KP_MULTIPLY"),  # keypad multiply, VK_MULTIPLY
     (0x6F, "KP_DIVIDE"),  # keypad divide, VK_DIVIDE
     (0x6B, "KP_PLUS"),
-    (0x6D, "KP_MINUS"),    
+    (0x6D, "KP_MINUS"),
+    (12, "KP_5_DIS"),  # keypad 5 doesn't have any function when numlock disabled    
 ])
 
-keysmap_non_printable = dict([
-    (keyboard.Key.enter,  "ENTER"),
-    (keyboard.Key.space,  "SPACE"),
-    (keyboard.Key.backspace,  "BACKSPACE"),
-    (keyboard.Key.tab,  "TAB"),
-    (keyboard.Key.page_up,  "PAGEUP"),
-    (keyboard.Key.page_down,  "PAGEDOWN"),
-    (keyboard.Key.left,  "LEFTARROW"),
-    (keyboard.Key.right,  "RIGHTARROW"),
-    (keyboard.Key.up,  "UPARROW"),
-    (keyboard.Key.down,  "DOWNARROW"),
-    (keyboard.Key.esc,  "ESCAPE"),
-    (keyboard.Key.home,  "HOME"),
-    (keyboard.Key.end,  "END"),
-    (keyboard.Key.insert,  "INSERT"),
-    (keyboard.Key.delete,  "DELETE"),
-    #(keyboard.Key,  "APP"),  # Applications key
-    (keyboard.Key.caps_lock,  "CAPSLOCK"),
-    (keyboard.Key.f1, "F1"),
-    (keyboard.Key.f2, "F2"),
-    (keyboard.Key.f3, "F3"),
-    (keyboard.Key.f4, "F4"),
-    (keyboard.Key.f5, "F5"),
-    (keyboard.Key.f6, "F6"),
-    (keyboard.Key.f7, "F7"),
-    (keyboard.Key.f8, "F8"),
-    (keyboard.Key.f9, "F9"),
-    (keyboard.Key.f10, "F10"),
-    (keyboard.Key.f11, "F11"),
-    (keyboard.Key.f12, "F12"),
-    (keyboard.Key.print_screen, "PRINTSCREEN"),  # Keyboard PrintScreen, VK_SNAPSHOT
-    #(keyboard.Key., "EXECUTE"),  # VK_EXECUTE
-    #(keyboard.Key., "HELP"),  # VK_HELP
-    #(keyboard.Key., "MENU"),  # VK_MENU
-    (keyboard.Key.pause, "PAUSE"),  # VK_PAUSE
-    #(keyboard.Key., "SELECT"),  # VK_SELECT
-    #(keyboard.Key., "STOP"),  # VK_MEDIA_STOP, Keyboard Stop
-    (keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
-    (keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
-    (keyboard.Key.media_volume_down, "VOLDOWN"),  # VK_VOLUME_DOWN, Keyboard Volume Down
-    #(keyboard.Key., "CANCEL"),  # VK_CANCEL
-    #(keyboard.Key., "CLEAR"),  # VK_CLEAR, Keyboard Clear
-    #(keyboard.Key., "PRIOR"),  # VK_PRIOR, Keyboard Prior
-    #(keyboard.Key., "ENTER"),  # VK_RETURN, ENTER
-    #(keyboard.Key., "SEPARATOR"),  # VK_SEPARATOR
-    #(keyboard.Key., "POWER"),  # VK_SLEEP
-    #(keyboard.Key., "CANCEL")  # VK_CANCEL
-])
+if os.name == 'posix':
+
+	keysmap_non_printable = dict([
+		(keyboard.Key.enter,  "ENTER"),
+		(keyboard.Key.space,  "SPACE"),
+		(keyboard.Key.backspace,  "BACKSPACE"),
+		(keyboard.Key.tab,  "TAB"),
+		(keyboard.Key.page_up,  "PAGEUP"),
+		(keyboard.Key.page_down,  "PAGEDOWN"),
+		(keyboard.Key.left,  "LEFTARROW"),
+		(keyboard.Key.right,  "RIGHTARROW"),
+		(keyboard.Key.up,  "UPARROW"),
+		(keyboard.Key.down,  "DOWNARROW"),
+		(keyboard.Key.esc,  "ESCAPE"),
+		(keyboard.Key.home,  "HOME"),
+		(keyboard.Key.end,  "END"), 
+		(keyboard.Key.caps_lock,  "CAPSLOCK"),
+		(keyboard.Key.f1, "F1"),
+		(keyboard.Key.f2, "F2"),
+		(keyboard.Key.f3, "F3"),
+		(keyboard.Key.f4, "F4"),
+		(keyboard.Key.f5, "F5"),
+		(keyboard.Key.f6, "F6"),
+		(keyboard.Key.f7, "F7"),
+		(keyboard.Key.f8, "F8"),
+		(keyboard.Key.f9, "F9"),
+		(keyboard.Key.f10, "F10"),
+		(keyboard.Key.f11, "F11"),
+		(keyboard.Key.f12, "F12"),
+		(keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
+		(keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
+		(keyboard.Key.media_volume_down, "VOLDOWN"),  # VK_VOLUME_DOWN, Keyboard Volume Down
+	])
+
+else:
+
+	keysmap_non_printable = dict([
+		(keyboard.Key.enter,  "ENTER"),
+		(keyboard.Key.space,  "SPACE"),
+		(keyboard.Key.backspace,  "BACKSPACE"),
+		(keyboard.Key.tab,  "TAB"),
+		(keyboard.Key.page_up,  "PAGEUP"),
+		(keyboard.Key.page_down,  "PAGEDOWN"),
+		(keyboard.Key.left,  "LEFTARROW"),
+		(keyboard.Key.right,  "RIGHTARROW"),
+		(keyboard.Key.up,  "UPARROW"),
+		(keyboard.Key.down,  "DOWNARROW"),
+		(keyboard.Key.esc,  "ESCAPE"),
+		(keyboard.Key.home,  "HOME"),
+		(keyboard.Key.end,  "END"),
+		(keyboard.Key.insert,  "INSERT"),
+		(keyboard.Key.delete,  "DELETE"),
+		#(keyboard.Key,  "APP"),  # Applications key
+		(keyboard.Key.caps_lock,  "CAPSLOCK"),
+		(keyboard.Key.num_lock,  "NUMLOCK"),
+		(keyboard.Key.f1, "F1"),
+		(keyboard.Key.f2, "F2"),
+		(keyboard.Key.f3, "F3"),
+		(keyboard.Key.f4, "F4"),
+		(keyboard.Key.f5, "F5"),
+		(keyboard.Key.f6, "F6"),
+		(keyboard.Key.f7, "F7"),
+		(keyboard.Key.f8, "F8"),
+		(keyboard.Key.f9, "F9"),
+		(keyboard.Key.f10, "F10"),
+		(keyboard.Key.f11, "F11"),
+		(keyboard.Key.f12, "F12"),
+		(keyboard.Key.print_screen, "PRINTSCREEN"),  # Keyboard PrintScreen, VK_SNAPSHOT
+		#(keyboard.Key., "EXECUTE"),  # VK_EXECUTE
+		#(keyboard.Key., "HELP"),  # VK_HELP
+		#(keyboard.Key., "MENU"),  # VK_MENU
+		(keyboard.Key.pause, "PAUSE"),  # VK_PAUSE
+		#(keyboard.Key., "SELECT"),  # VK_SELECT
+		#(keyboard.Key., "STOP"),  # VK_MEDIA_STOP, Keyboard Stop
+		(keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
+		(keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
+		(keyboard.Key.media_volume_down, "VOLDOWN"),  # VK_VOLUME_DOWN, Keyboard Volume Down
+		#(keyboard.Key., "CANCEL"),  # VK_CANCEL
+		#(keyboard.Key., "CLEAR"),  # VK_CLEAR, Keyboard Clear
+		#(keyboard.Key., "PRIOR"),  # VK_PRIOR, Keyboard Prior
+		#(keyboard.Key., "ENTER"),  # VK_RETURN, ENTER
+		#(keyboard.Key., "SEPARATOR"),  # VK_SEPARATOR
+		#(keyboard.Key., "POWER"),  # VK_SLEEP
+		#(keyboard.Key., "CANCEL")  # VK_CANCEL
+	])
 
 char_keysmap = dict([
     (65, ("a", "A")),
@@ -299,6 +335,8 @@ class KeyboardStatusWidget (QWidget):
 
 class Window (QMainWindow):
     showErrorMessageSignal = pyqtSignal(str)
+    addDeviceSignal = pyqtSignal(str, types.MethodType)
+    addSeparatorSignal = pyqtSignal()
 
     def __init__(self, args, config):
         self.devList = []
@@ -442,6 +480,9 @@ class Window (QMainWindow):
 
         self.removeDeviceMenu = QMenu("&Remove BLE Device", self)
 
+        self.addDeviceSignal.connect(self.removeDeviceMenu.addAction)
+        self.addSeparatorSignal.connect(self.removeDeviceMenu.addSeparator)
+        
         self.actionResetDevices = QAction("Reset BLE Device List", self)
         self.actionResetDevices.triggered.connect(self.resetDeviceListButtonClicked)
         self.removeDeviceMenu.addAction(self.actionResetDevices)   
@@ -508,15 +549,10 @@ class Window (QMainWindow):
             QMessageBox.warning(self, 'Open Url', 'Could not open url')
     
     def clearRemoveDeviceMenu(self):
-        
         self.removeDeviceMenu.clear()
-
-        self.actionResetDevices = QAction("Reset BLE Device List", self)
-        self.actionResetDevices.triggered.connect(self.resetDeviceListButtonClicked)
-        self.removeDeviceMenu.addAction(self.actionResetDevices)   
+        self.addDeviceSignal.emit("Reset BLE Device List", self.resetDeviceListButtonClicked)
+        self.addSeparatorSignal.emit()
         
-        self.removeDeviceMenu.addSeparator()
-
     def resetDeviceListButtonClicked(self):
         self.send_action('ble_cmd', 'devreset')
 
@@ -539,11 +575,13 @@ class Window (QMainWindow):
             self.workerBLE.stop()
             self.BLEthread.quit()
             self.BLEthread.wait()
+            self.send_action('ble_cmd', 'devname')
 
         if self.addBLEDialog.isVisible() == False:
             self.workerBLE.stop()
             self.BLEthread.quit()
             self.BLEthread.wait()
+            self.send_action('ble_cmd', 'devname')
 
     def addDeviceButtonClicked(self):
 
@@ -636,7 +674,8 @@ class Window (QMainWindow):
         text = " ".join(self._last_n_chars)
         label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
                       .format(text=text, fontsize=fontsize))
-
+    
+    """
     def createTrayIcon(self):
         self.trayIconMenu = QMenu(self)
         self.trayIconMenu.addAction(
@@ -644,16 +683,21 @@ class Window (QMainWindow):
         # self.trayIconMenu.addSeparator()
         self.trayIcon = QSystemTrayIcon(self)
         self.trayIcon.setContextMenu(self.trayIconMenu)
+    """
 
+    """
     def onQuit(self):
         self._client_queue.put(("EXIT",))
         self._keyboard_listener.stop()
-        self._keyboard_listener.stop()
+        self._mouse_listener.stop()
         app.quit()
         # exit(0)
+    """
 
     def closeEvent(self, event):
         self._client_queue.put(("EXIT",))
+        self._keyboard_listener.stop()
+        self._mouse_listener.stop()
 
     def initHooks(self):
         self._keyboard_listener = keyboard.Listener(on_press=self.onKeyboardDown, on_release=self.onKeyboardUp)
@@ -737,8 +781,7 @@ class Window (QMainWindow):
                                     and 'ERROR:' not in device \
                                     and 'OK' not in device \
                                     and 'SUCCESS' not in device:
-        
-                                    self.removeDeviceMenu.addAction(device, self.removeDeviceButtonClicked)
+                                    self.addDeviceSignal.emit(device, self.removeDeviceButtonClicked)
 
                                     self.devList.append(device)
                                     
@@ -748,6 +791,7 @@ class Window (QMainWindow):
 
                         if 'devremove' in action[1]:
                             self.send_action('ble_cmd', 'devlist')
+                            self.send_action('ble_cmd', 'devname')
 
                     result = result + 1
 
