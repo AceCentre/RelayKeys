@@ -112,6 +112,8 @@ keymap = dict([
     ("LGUI", 0xE3),  # Keyboard Left GUI
     ("RGUI", 0xE7),  # Keyboard Right GUI
     ("CUSTOM~", 0x32),  # Keyboard Non-US # and ~
+    ("NONUSHASH", 0x32),  # Alias
+    ("NONUSTILDE", 0x32),  # Alias
     ("PRINTSCREEN", 0x46),  # Keyboard PrintScreen
     ("POWER", 0x66),  # Keyboard Power
     ("EXECUTE", 0x74),  # Keyboard Execute
