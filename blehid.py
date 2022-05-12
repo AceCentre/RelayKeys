@@ -109,7 +109,13 @@ keymap = dict([
     ("DOWNARROW", 0x51),
     ("UPARROW", 0x52),
     ("APP", 0x65),  # Keyboard Application
+    ("LCTRL", 0xE0),  # Keyboard Left Control
+    ("LSHIFT", 0xE1),  # Keyboard Left Shift
+    ("LALT", 0xE2),  # Keyboard Left Alt
     ("LGUI", 0xE3),  # Keyboard Left GUI
+    ("RCTRL", 0xE4),  # Keyboard Right Control
+    ("RSHIFT", 0xE5),  # Keyboard Right Shift
+    ("RALT", 0xE6),  # Keyboard Right Alt
     ("RGUI", 0xE7),  # Keyboard Right GUI
     ("CUSTOM~", 0x32),  # Keyboard Non-US # and ~
     ("NONUSHASH", 0x32),  # Alias
@@ -225,6 +231,14 @@ async def blehid_send_mousebutton(ser, btn, behavior=None):
 
 async def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
     logging.debug('key:'+str(key)+'  modifiers:'+str(modifiers))
+    existingModifiers =  list(map(
+            lambda a: a[0],
+            filter(lambda a: a[1] in keys,
+               [("LCTRL", 0xe0), ("LSHIFT", 0xe1), ("LALT", 0xe2),
+                ("LMETA", 0xe3), ("RCTRL", 0xe4), ("RSHIFT", 0xe5),
+                ("RALT", 0xe6), ("RMETA", 0xe7)])))
+    modifiers=list(set(modifiers+existingModifiers))
+    logging.debug('existing modifiers:'+str(existingModifiers))
     hidmod = reduce(operator.or_, map(
         lambda a: a[1],
         filter(lambda a: a[0] in modifiers,
