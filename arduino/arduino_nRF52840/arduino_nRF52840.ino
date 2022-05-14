@@ -30,6 +30,9 @@
 #define ADD_NEW_DEV_PROCESS_TIMEOUT 30000 // in millseconds
 #define SWAP_CONN_PROCESS_TIMEOUT 30000   // in millseconds
 
+// If Adafruit itsybitsy 
+//#define USER_SW 4
+// If Adafruit Feather board
 #define USER_SW 7
 bool old_sw_state = true;
 
