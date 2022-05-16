@@ -522,7 +522,7 @@ async def process_action(ser, keys, cmd):
                 devList = []
                 devName = ""
 
-            elif cmd[1].split("|")[0] == "devremove":
+            elif cmd[1].split("=")[0] == "devremove":
                 await blehid_send_remove_device(ser, cmd[1])
 
 

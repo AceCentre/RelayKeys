@@ -301,9 +301,9 @@ async def blehid_send_clear_device_list(ser, devicecommand):
 
 async def blehid_send_remove_device(ser, devicecommand):
     
-    logging.debug('device command:'+"at+bleremovedevice\"" + devicecommand.split("|")[1] + "\"")
+    logging.debug('device command:'+"at+bleremovedevice\"" + devicecommand.split("=")[1] + "\"")
 
-    await _write_atcmd(ser, "AT+BLEREMOVEDEVICE=\"" + devicecommand.split("|")[1] + "\"")
+    await _write_atcmd(ser, "AT+BLEREMOVEDEVICE=\"" + devicecommand.split("=")[1] + "\"")
 
 async def blehid_get_device_list(ser, devicecommand):
 
