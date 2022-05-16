@@ -120,6 +120,7 @@ keymap = dict([
     ("CUSTOM~", 0x32),  # Keyboard Non-US # and ~
     ("NONUSHASH", 0x32),  # Alias
     ("NONUSTILDE", 0x32),  # Alias
+    ("NON-US-BACKSLASH", 0x64), # Non US backslash
     ("PRINTSCREEN", 0x46),  # Keyboard PrintScreen
     ("POWER", 0x66),  # Keyboard Power
     ("EXECUTE", 0x74),  # Keyboard Execute
@@ -315,9 +316,9 @@ async def blehid_send_clear_device_list(ser, devicecommand):
 
 async def blehid_send_remove_device(ser, devicecommand):
     
-    logging.debug('device command:'+"at+bleremovedevice\"" + devicecommand.split("|")[1] + "\"")
+    logging.debug('device command:'+"at+bleremovedevice\"" + devicecommand.split("=")[1] + "\"")
 
-    await _write_atcmd(ser, "AT+BLEREMOVEDEVICE=\"" + devicecommand.split("|")[1] + "\"")
+    await _write_atcmd(ser, "AT+BLEREMOVEDEVICE=\"" + devicecommand.split("=")[1] + "\"")
 
 async def blehid_get_device_list(ser, devicecommand):
 

@@ -3,6 +3,8 @@ import os
 from time import sleep
 from sys import exit
 import sys
+from pathlib import Path
+import json
 
 # util modules
 import logging
@@ -25,6 +27,24 @@ parser.add_argument('--delay', dest='delay', type=int, default=0,
                     help='delay between each call, in miliseconds')
 parser.add_argument('commands', metavar='COMMAND', nargs='+',
                     help='One or more commands, format: <cmdname>:<data>')
+
+nonchars_key_map = None
+
+def load_keymap_file(config):
+  global nonchars_key_map  
+  keymap_file = Path(__file__).resolve().parent / "cli_keymaps" / config.get("keymap_file", "us_keymap.json")
+  if keymap_file.exists() and keymap_file.is_file():
+    with open(keymap_file, "r") as f:
+      try:
+        nonchars_key_map = json.loads(f.read()) 
+      except Exception as e:
+        print("Invalid keymap json file:", e)
+        return
+  else:
+    print("Invalid path to keymap file:", keymap_file)
+    return False
+  
+  return True
 
 def parse_commamd (cmd):
   """Parses a command provide from the command line.
@@ -113,49 +133,12 @@ def do_mousebutton (client, btn, behavior=None):
     logging.info("mousebutton ({}, {}) response: {}".format(btn, behavior, ret["result"]))
 
 def do_devicecommand(client, devcommand):
-  ret = client.devicecommand(devcommand)
+  ret = client.ble_cmd(devcommand)
   if 'result' not in ret:
     logging.error("devicecommand ({}) response error: {}".format(devcommand, ret.get("error", "undefined")))
     raise CommandErrorResponse()
   else:
     logging.info("devicecommand ({}) response : {}".format(devcommand, ret["result"]))
-
-nonchars_key_map = {
-  "\r": (None, None),
-  "\t": ("TAB", []),
-  " ": ("SPACE", []),
-  "`": ("BACKQUOTE", []),
-  "~": ("BACKQUOTE", ["LSHIFT"]),
-  "!": ("1", ["LSHIFT"]),
-  "@": ("2", ["LSHIFT"]),
-  "#": ("3", ["LSHIFT"]),
-  "$": ("4", ["LSHIFT"]),
-  "%": ("5", ["LSHIFT"]),
-  "^": ("6", ["LSHIFT"]),
-  "&": ("7", ["LSHIFT"]),
-  "*": ("8", ["LSHIFT"]),
-  "(": ("9", ["LSHIFT"]),
-  ")": ("0", ["LSHIFT"]),
-  "_": ("MINUS", ["LSHIFT"]),
-  "+": ("EQUALS", ["LSHIFT"]),
-  "-": ("MINUS", []),
-  "=": ("EQUALS", []),
-  ";": ("SEMICOLON", []),
-  ":": ("SEMICOLON", ["LSHIFT"]),
-  "[": ("LEFTBRACKET", []),
-  "{": ("LEFTBRACKET", ["LSHIFT"]),
-  "]": ("RIGHTBRACKET", []),
-  "}": ("RIGHTBRACKET", ["LSHIFT"]),
-  "\\": ("BACKSLASH", []),
-  "|": ("BACKSLASH", ["LSHIFT"]),
-  "\n": ("ENTER", ["LSHIFT"]), # In some apps textfield requires holding shift in order to go to next line, Like most IMs
-  ",": ("COMMA", []),
-  ".": ("PERIOD", []),
-  "<": ("COMMA", ["LSHIFT"]),
-  ">": ("PERIOD", ["LSHIFT"]),
-  "/": ("SLASH", []),
-  "?": ("SLASH", ["LSHIFT"]),
-}
 
 def char_to_keyevent_params (char):
   ret = nonchars_key_map.get(char, None)
@@ -258,9 +241,9 @@ def do_main (args, config):
       do_mousebutton(client, btn, behavior)
       if delay > 0:
         sleep(delay/1000.0)
-    elif name == "device-cmd":
+    elif name == "ble_cmd":
       parts = data.split(",")
-      print(parts)
+      #print(parts)
       command = parts[0]
       do_devicecommand(client,command)
     else:
@@ -286,6 +269,13 @@ def main ():
     config.read([args.config])
   if "client" not in config.sections():
     config["client"] = {}
+
+  if "cli" not in config.sections():
+    config["cli"] = {}
+  
+  if not load_keymap_file(config["cli"]):
+    return
+   
   return do_main(args, config["client"])
 
 if __name__ == '__main__':

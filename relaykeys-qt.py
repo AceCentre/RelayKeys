@@ -562,7 +562,7 @@ class Window (QMainWindow):
 
     def removeDeviceButtonClicked(self):
         action = self.sender()
-        self.send_action('ble_cmd', 'devremove|' + action.text()[2:])
+        self.send_action('ble_cmd', 'devremove=' + action.text()[2:])
 
     def addDeviceUpdateDialog(self, found):
 

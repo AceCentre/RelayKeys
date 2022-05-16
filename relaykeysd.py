@@ -199,14 +199,21 @@ def rpc_server_worker(host, port, username, password, queue):
             return "TIMEOUT"
 
     @dispatcher.add_method
-    def devicecommand(args):
-        devcommand = args
+    def ble_cmd(args):
+        devcommand = args[0]
         respqueue = Queue(1)
-        queue.put((respqueue, "devicecommand", devcommand), True)
-        try:
-            return respqueue.get(True, 5)
+        queue.put((respqueue, "ble_cmd", devcommand), True)
+        try:            
+            respqueue.get(True, 5)  # here get used as waiting for commands execution           
         except QueueEmpty:
             return "TIMEOUT"
+        
+        if devcommand == 'devname':
+            return devName
+        elif devcommand == 'devlist':
+            return devList
+        else:
+            return "OK"
 
     @dispatcher.add_method
     def exit(args):
@@ -515,7 +522,7 @@ async def process_action(ser, keys, cmd):
                 devList = []
                 devName = ""
 
-            elif cmd[1].split("|")[0] == "devremove":
+            elif cmd[1].split("=")[0] == "devremove":
                 await blehid_send_remove_device(ser, cmd[1])
 
 
