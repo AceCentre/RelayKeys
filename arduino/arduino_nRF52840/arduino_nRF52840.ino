@@ -30,10 +30,23 @@
 #define ADD_NEW_DEV_PROCESS_TIMEOUT 30000 // in millseconds
 #define SWAP_CONN_PROCESS_TIMEOUT 30000   // in millseconds
 
-// If Adafruit itsybitsy 
-//#define USER_SW 4
-// If Adafruit Feather board
-#define USER_SW 7
+
+// The following defines which pin for the User button to go into BLE mode. 
+// NB: using this neat trick: https://electronics.stackexchange.com/a/280379
+#if defined(NRF52840_ITSYBITSY)
+//Adafruit itsybitsy 
+  #define USER_SW 4
+#elif defined(NRF52840_FEATHER)
+//Adafruit feather nrf52840
+    #define USER_SW 7
+#else
+  #ifdef DEBUG
+    Serial.print("Unsupported hardware. Possibly not critical unless you want to initiate BLE mode with a button");
+  #endif
+  // lazy - but going to pretend its a itsybitsy. Its the one with a wierd board name. 
+  #define USER_SW 4
+#endif
+
 bool old_sw_state = true;
 
 BLEDis bledis;
