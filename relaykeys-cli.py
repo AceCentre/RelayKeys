@@ -113,7 +113,7 @@ def do_mousebutton (client, btn, behavior=None):
     logging.info("mousebutton ({}, {}) response: {}".format(btn, behavior, ret["result"]))
 
 def do_devicecommand(client, devcommand):
-  ret = client.devicecommand(devcommand)
+  ret = client.ble_cmd(devcommand)
   if 'result' not in ret:
     logging.error("devicecommand ({}) response error: {}".format(devcommand, ret.get("error", "undefined")))
     raise CommandErrorResponse()
@@ -258,9 +258,9 @@ def do_main (args, config):
       do_mousebutton(client, btn, behavior)
       if delay > 0:
         sleep(delay/1000.0)
-    elif name == "device-cmd":
+    elif name == "ble_cmd":
       parts = data.split(",")
-      print(parts)
+      #print(parts)
       command = parts[0]
       do_devicecommand(client,command)
     else:
