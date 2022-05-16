@@ -196,7 +196,23 @@ Send a right click:
 
 `relaykeys-cli.exe mousebutton:R,click`
 
-What about dragging?
+**What about dragging?**
+
+Activate Drag Start button&#x20;
+
+`relaykeys-cli mousebutton:L,press`&#x20;
+
+User moves mouse&#x20;
+
+`relaykeys-cli mousemove:x,y`&#x20;
+
+User moves mouse some more&#x20;
+
+`relaykeys-cli mousemove:x,y`&#x20;
+
+user activates Drag Stop button&#x20;
+
+`relaykeys-cli mousebutton:0`
 
 ### BLE Commands
 
