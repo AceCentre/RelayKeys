@@ -32,6 +32,8 @@ To run relaykeys-cli with other keymap either change the cfg setting or use the 
 
 `relaykeys-cli.exe -c .\relaykeys-example.cfg type:@`
 
+See more info on the format [here](relaykeys-cfg.md#introduction)
+
 ### Command: paste
 
 This takes the pasteboard of the computer (i.e. when you copy some text) and pastes the resulting string to RelayKeys
