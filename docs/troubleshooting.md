@@ -2,7 +2,9 @@
 
 > Below are solutions to some common issues that you may experience when working with RelayKeys.
 
-::: warning Premium Support AceCentre is a charity and we are providing this as-is. If you need something urgently and can pay we ask you to donate to us - or another developer to help fix your problem :::
+{% hint style="info" %}
+**AceCentre is a charity and we are providing this as-is. If you need something urgently and can pay we ask you to donate to us - or another developer to help fix your problem**
+{% endhint %}
 
 ## Installation Issues
 
