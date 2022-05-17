@@ -224,11 +224,15 @@ user activates Drag Stop button&#x20;
 
 `relaykeys-cli mousebutton:0`
 
-### BLE Commands
+### Device Management Commands
 
 `relaykeys-cli.exe ble_cmd:devlist`
 
+Gets a list of devices that the device has in memory
+
 `relaykeys-cli.exe ble_cmd:devadd`
+
+Put the device into a pairing state
 
 `relaykeys-cli.exe ble_cmd:devreset`
 
