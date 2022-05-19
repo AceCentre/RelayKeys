@@ -16,6 +16,7 @@
   * [Daemon reference](developers/reference.md)
   * [Serial API](developers/reference-1.md)
   * [Command Line Usage](developers/reference-2.md)
+  * [Building a binary](developers/building-a-binary.md)
   * [other-projects](developers/other-projects.md)
   * [👩‍💻 Contributing](developers/contributing.md)
   * [Credits](developers/credits.md)
