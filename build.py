@@ -41,6 +41,7 @@ with open("relaykeys-example.cfg", "r") as f:
 for script, exename, console in [
     ('relaykeysd.py', 'relaykeysd', True),
     ('relaykeysd-service.py', 'relaykeysd-service', True),
+    ('relaykeysd-service-stop.py', 'relaykeysd-service-stop', True),
     ('relaykeys-cli.py', 'relaykeys-cli', True),
     ('relaykeys-cli.py', 'relaykeys-cli-win', False),
         ('relaykeys-qt.py', 'relaykeys-qt', False)]:
@@ -62,6 +63,7 @@ for spec in ['relaykeysd.spec', 'relaykeys-cli.spec', 'relaykeys-cli-win.spec', 
 
 if os.name == 'nt':
     subprocess.run(["pyinstaller", '-y', 'relaykeysd-service.spec'])
+    subprocess.run(["pyinstaller", '-y', 'relaykeysd-service-stop.spec'])
 
 # Create a PDF of the readme - and in future any other docs..
 # NB: I realise the next lines are insane. I'm in a hurry
@@ -74,7 +76,7 @@ for doc in ['README.md']:
 
 # Merge all directories
 if os.name == 'nt':
-	for item in [r"dist\relaykeysd-service", r"dist\relaykeys-cli", r"dist\relaykeys-cli-win", r"dist\relaykeys-qt"]:
+	for item in [r"dist\relaykeysd-service", r"dist\relaykeysd-service-stop", r"dist\relaykeys-cli", r"dist\relaykeys-cli-win", r"dist\relaykeys-qt"]:
 		moveTree(item, r'dist\relaykeysd')
 if os.name == 'posix':
 	for item in [r"dist/relaykeys-cli", r"dist/relaykeys-cli-win", r"dist/relaykeys-qt"]:

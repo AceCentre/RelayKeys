@@ -388,10 +388,14 @@ async def hardware_serial_loop(queue, args, config, interrupt):
                         try:
                             # with timeout
                             cmd = queue.get(True, QUEUE_TIMEOUT)
-                            output = await process_action(ser, keys, cmd[1:])
-                            if cmd[0] is not None:
-                                cmd[0].put(output)
-                            queue.task_done()
+                            if cmd[1] == "exit":
+                               quit = True
+                               break 
+                            else:
+                                output = await process_action(ser, keys, cmd[1:])
+                                if cmd[0] is not None:
+                                    cmd[0].put(output)
+                                queue.task_done()
                         except KeyboardInterrupt:
                             raise SystemExit()
                         except QueueEmpty:
