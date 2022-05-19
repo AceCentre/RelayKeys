@@ -20,3 +20,4 @@
   * [👩‍💻 Contributing](developers/contributing.md)
   * [Credits](developers/credits.md)
 * [❤️ Supporting RelayKeys](supporting-relaykeys.md)
+* [Wireless Mode](wireless-mode.md)

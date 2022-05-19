@@ -22,6 +22,18 @@ Where 'command' and 'data' are provided below.
 
 ::: tip If you are developing with the code You must make sure the daemon code is running when you call the cli files. The daemon is the code that turns these commands into the correct AT syntax and access the com port :::
 
+### Defining a Keymap -c
+
+Keymap files are located in [**cli\_keymap**](https://github.com/AceCentre/RelayKeys/tree/master/cli\_keymaps) folder. You can choose which keymap file the CLI is going to use in the cfg by assigning file name to keymap\_file variable (see [here](https://github.com/AceCentre/RelayKeys/blob/12d3eadca2cea53561a5a3979562aae8b4b6cd7c/relaykeys-example.cfg#L17))
+
+By default the **us\_keymap.json** is loaded.\
+\
+To run relaykeys-cli with other keymap either change the cfg setting or use the -c flag on the cli application. E.g.
+
+`relaykeys-cli.exe -c .\relaykeys-example.cfg type:@`
+
+See more info on the format [here](relaykeys-cfg.md#introduction)
+
 ### Command: paste
 
 This takes the pasteboard of the computer (i.e. when you copy some text) and pastes the resulting string to RelayKeys
@@ -214,11 +226,15 @@ user activates Drag Stop button&#x20;
 
 `relaykeys-cli mousebutton:0`
 
-### BLE Commands
+### Device Management Commands
 
 `relaykeys-cli.exe ble_cmd:devlist`
 
+Gets a list of devices that the device has in memory
+
 `relaykeys-cli.exe ble_cmd:devadd`
+
+Put the device into a pairing state
 
 `relaykeys-cli.exe ble_cmd:devreset`
 
