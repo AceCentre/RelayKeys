@@ -1,5 +1,11 @@
 """
 
+What does this do?
+
+It runs every n seconds and copys the current clipboard. If its new it adds to a history sqllite db with max_history length (5 by default)
+You can then retieve the clipboard history but it has some functions to rewrite the current clipboard back to a previous clipboard. 
+Why? because aac software have limited programming functionality. by passing content back and forth in the clipboard we can do stuff!
+
 This program needs to be run like so:
 1. On first ever run use 
 	paperclip.py setup
