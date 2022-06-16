@@ -10,6 +10,7 @@
   * [Jabbla MindExpress](guides/mindexpress.md)
   * [Tobii Dynavox - Snap + CoreFirst](guides/snap-corefirst.md)
 * [Developer Information](developers/README.md)
+  * [Wireless Mode](developers/wireless-mode.md)
   * [Architecture of RelayKeys](developers/architecture.md)
   * [Supported Electronics Boards](developers/supported-boards.md)
   * [Config File details](developers/relaykeys-cfg.md)
