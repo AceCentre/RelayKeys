@@ -944,9 +944,23 @@ void bleConnectCallback(uint16_t conn_handle)
   uint16_t connectionHandle = 0;
   BLEConnection *connection = NULL;
   char central_name[32] = {0};
-
+  uint8_t timeout_counter = 10;
+  
   connection = Bluefruit.Connection(conn_handle);
   connection->getPeerName(central_name, sizeof(central_name));
+  
+  // when unpaired iPhone connects wait in while until it will pair and give its full device name
+  while(!strcmp((char *)central_name, "iPhone")){
+    if(connection->connected() && timeout_counter > 0) {
+      delay(1000);
+      connection->getPeerName(central_name, sizeof(central_name));
+      timeout_counter--;            
+    } else {
+      connection->disconnect();
+      return;
+    }    
+  }
+    
   connection_count++;
 
   if (flag_bleSwapConnProsStarted == 1)
