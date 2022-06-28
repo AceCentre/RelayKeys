@@ -7,7 +7,7 @@
   * [Tobii Communicator 5](guides/communicator.md)
   * [Smartbox Grid 3](guides/grid3.md)
   * [Jabbla MindExpress](guides/mindexpress.md)
-  * [Tobii Dynavox - Snap + CoreFirst](guides/snap-corefirst.md)
+  * [Tobii Dynavox - Snap](guides/snap-corefirst.md)
 * [👩💻 Developer Information](developers/README.md)
   * [Architecture of RelayKeys](developers/architecture.md)
   * [Supported Electronics Boards](developers/supported-boards.md)

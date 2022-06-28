@@ -89,10 +89,10 @@ Note that this mode is useful on devices where you can't plug anything into your
 
 You can get going by using one of these example files that work with your AAC Software:
 
-* [The Grid 3](https://www.dropbox.com/s/3mcvnpnyi36lpdh/RelayKeysDemo.gridset?dl=1)
-* [MindExpress](https://www.dropbox.com/s/pen6fcxnnm0byqr/RelayKeysQwerty.jmm?dl=1)
-* Tobii Communicator
-* Dynavox Series 5
+* [The Grid 3](guides/grid3.md)
+* [MindExpress](guides/mindexpress.md)
+* [Tobii Communicator](guides/communicator.md)
+* [Tobii Dynavox Snap](guides/snap-corefirst.md)&#x20;
 
 When you are ready, [have a read of how to integrate the features you need](../guides/basic-principles.html).
 
