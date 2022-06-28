@@ -60,20 +60,7 @@ So for example, to send the @ symbol:
 
 `relaykeys-cli.exe type:@`
 
-All codes which are converted can be seen below. **NB: \t = Tab \r\n are line breaks**
-
-| \r | &  | {  |
-| -- | -- | -- |
-|    | \* | ]  |
-|    | (  | }  |
-| \` | )  | \\ |
-| \~ | \_ | \| |
-| !  | +  |    |
-| @  | -  |    |
-| #  | =  | .  |
-| $  | ;  | <  |
-| %  | :  | >  |
-| ^  | \[ | /  |
+All codes which are converted can be seen below. **NB: \t = Tab \r\n are line breaks\~**
 
 ### Command: keypress:KEY,MODIFIER
 
@@ -101,48 +88,147 @@ Will press the right arrow, left shit and left control (would select the next wo
 * Right Shift/🔼 : `RSHIFT`
 * (Right) Meta/Windows Key/Mac Key/Command Key: \`\`RMETA\`\`\`
 
-#### Keys
+So the keys are defined below. We will try and explain what these are when its ambiguous
 
-So the keys are defined below.
+<details>
 
-| Defined Key | Detail | Defined Key          | Detail             | Defined Key | Detail                   | Defined Key        | Detail |
-| ----------- | ------ | -------------------- | ------------------ | ----------- | ------------------------ | ------------------ | ------ |
-| 0           |        | BACKSPACE            | Back Delete key    | KP\_EQSIGN  |                          | HELP               |        |
-| 1           |        | ENTER                | Return             | UP          |                          | MENU               |        |
-| 2           |        | DELETE               | Forward delete key | DOWN        |                          | SELECT             |        |
-| 3           |        | TAB                  |                    | RIGHT       |                          | STOP               |        |
-| 4           |        | PAUSE                |                    | LEFT        |                          | AGAIN              |        |
-| 5           |        | ESCAPE               |                    | INSERT      |                          | UNDO               |        |
-| 6           |        | SPACE                |                    | HOME        |                          | CUT                |        |
-| 7           |        | QUOTE                |                    | END         |                          | COPY               |        |
-| 8           |        | COMMA                |                    | PAGEUP      |                          | PASTE              |        |
-| 9           |        | MINUS                |                    | PAGEDOWN    |                          | FIND               |        |
-| A           |        | PERIOD               |                    | F1          |                          | MUTE               |        |
-| B           |        | SLASH                |                    | F2          |                          | VOLUP              |        |
-| C           |        | SEMICOLON            |                    | F3          |                          | VOLDOWN            |        |
-| D           |        | EQUALS               |                    | F4          |                          | LOCKING\_CAPSLOCK  |        |
-| E           |        | LEFTBRACKET          |                    | F5          |                          | LOCKING\_NUMLOCK   |        |
-| F           |        | BACKSLASH            |                    | F6          |                          | LOCKING\_SCROLLOCK |        |
-| G           |        | RIGHTBRACKET         |                    | F7          |                          | ALTERASE           |        |
-| H           |        | BACKQUOTE            |                    | F8          |                          | ATTENTION          |        |
-| I           |        | KP0                  |                    | F9          |                          | CANCEL             |        |
-| J           |        | KP1                  |                    | F10         |                          | CLEAR              |        |
-| K           |        | KP2                  |                    | F11         |                          | PRIOR              |        |
-| L           |        | KP3                  |                    | F12         |                          | RETURN             |        |
-| M           |        | KP4                  |                    | NUMLOCK     |                          | SEPARATOR          |        |
-| N           |        | KP5                  |                    | CAPSLOCK    |                          | OUT 0xA0           |        |
-| O           |        | KP6                  |                    | SCROLLOCK   |                          | OPER 0xA1          |        |
-| P           |        | KP7                  |                    | RIGHTARROW  |                          |                    |        |
-| Q           |        | KP8                  |                    | LEFTARROW   |                          |                    |        |
-| R           |        | KP9                  |                    | DOWNARROW   |                          |                    |        |
-| S           |        | KP\_PERIOD           |                    | UPARROW     |                          |                    |        |
-| T           |        | KP\_DIVIDE           |                    | APP         |                          |                    |        |
-| U           |        | KP\_MULTIPLY         |                    | LGUI        | Keyboard Left GUI        |                    |        |
-| V           |        | KP\_MINUS            |                    | RGUI        | Keyboard Right GUI       |                    |        |
-| W           |        | KP\_PLUS             |                    | CUSTOM\~    | Keyboard Non-US # and \~ |                    |        |
-| X           |        | KP\_ENTER            |                    | PRINTSCREEN |                          |                    |        |
-| Y           |        | KP\_EQUAL # Keypad = |                    | POWER       |                          |                    |        |
-| Z           |        | KP\_COMMA            |                    | EXECUTE     |                          |                    |        |
+<summary>Keys</summary>
+
+* 0
+* 1
+* 2
+* 3
+* 4
+* 5
+* 6
+* 7
+* 8
+* 9
+* A
+* B
+* C
+* D
+* E
+* F
+* G
+* H
+* I
+* J
+* K
+* L
+* M
+* N
+* O
+* P
+* Q
+* R
+* S
+* T
+* U
+* V
+* W
+* X
+* Y
+* Z
+* BACKSPACE - Back Delete key
+* ENTER - Return
+* DELETE - Forward delete key
+* TAB
+* PAUSE
+* ESCAPE
+* SPACE
+* QUOTE
+* COMMA
+* MINUS
+* PERIOD
+* SLASH
+* SEMICOLON
+* EQUALS
+* LEFTBRACKET
+* BACKSLASH
+* RIGHTBRACKET
+* BACKQUOTE
+* KP0
+* KP1
+* KP2
+* KP3
+* KP4
+* KP5
+* KP6
+* KP7
+* KP8
+* KP9
+* KP\_PERIOD
+* KP\_DIVIDE
+* KP\_MULTIPLY
+* KP\_MINUS
+* KP\_PLUS
+* KP\_ENTER
+* KP\_EQUAL - Keypad =
+* KP\_COMMA
+* KP\_EQSIGN
+* UP
+* DOWN
+* RIGHT
+* LEFT
+* INSERT
+* HOME
+* END
+* PAGEUP
+* PAGEDOWN
+* F1
+* F2
+* F3
+* F4
+* F5
+* F6
+* F7
+* F8
+* F9
+* F10
+* F11
+* F12
+* NUMLOCK
+* CAPSLOCK
+* SCROLLOCK
+* RIGHTARROW
+* LEFTARROW
+* DOWNARROW
+* UPARROW
+* APP
+* LGUI - Keyboard Left GUI
+* RGUI - Keyboard Right GUI
+* CUSTOM\~ - Keyboard Non-US # and \~
+* PRINTSCREEN
+* POWER
+* EXECUTE
+* HELP
+* MENU
+* SELECT
+* STOP
+* AGAIN
+* UNDO
+* CUT
+* COPY
+* PASTE
+* FIND
+* MUTE
+* VOLUP
+* VOLDOWN
+* LOCKING\_CAPSLOCK
+* LOCKING\_NUMLOCK
+* LOCKING\_SCROLLOCK
+* ALTERASE
+* ATTENTION
+* CANCEL
+* CLEAR
+* PRIOR
+* RETURN
+* SEPARATOR
+* OUT 0xA0
+* OPER 0xA1&#x20;
+
+</details>
 
 ### Command: keyevent:KEY,MODIFIER,Up/Down
 
