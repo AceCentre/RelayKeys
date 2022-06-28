@@ -81,14 +81,14 @@ Will press the right arrow, left shit and left control (would select the next wo
 #### Modifiers
 
 * Left Control/CTRL: `LCTRL`
-* Left Shift/🔼 : `LSHIFT`
+* Left Shift : `LSHIFT`
 * Left Alt/Alt: `LALT`
 * (Left) Meta/Windows Key/Mac Key/Command Key: `LMETA` **Note: On Windows there is generally only one Windows key. So use LMETA to emulate pressing the Windows key**
 * Right Control/CTRL:: `LCTRL`
-* Right Shift/🔼 : `RSHIFT`
-* (Right) Meta/Windows Key/Mac Key/Command Key: \`\`RMETA\`\`\`
+* Right Shift : `RSHIFT`
+* (Right) Meta/Windows Key/Mac Key/Command Key: `RMETA`
 
-So the keys are defined below. We will try and explain what these are when its ambiguous
+So all the other keys are defined below. We will try and explain what these are when its ambiguous
 
 <details>
 
