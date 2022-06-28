@@ -32,7 +32,7 @@ Keymap files are located in [**cli\_keymap**](https://github.com/AceCentre/Relay
 
 By default the **us\_keymap.json** is loaded.\
 \
-To run relaykeys-cli with other keymap either change the cfg setting or use the -c flag on the cli application. E.g.
+To run relaykeys-cli with other keymap either change the cfg setting [or use the -c flag](relaykeys-cfg.md) on the cli application. E.g.
 
 `relaykeys-cli.exe -c .\relaykeys-example.cfg type:@`
 
