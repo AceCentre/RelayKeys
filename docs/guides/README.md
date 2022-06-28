@@ -14,4 +14,4 @@ Take a look at the guides for your software.
 
 The key application you want to access is the `relaykeys-cli-win.exe` found in `C:\Program Files (x86)\Ace Centre\RelayKeys`\
 ``\
-``For a full list of commands you can send see [here](../developers/reference-2.md).&#x20;
+``For a full list of commands you can send see [here](../developers/reference.md).&#x20;

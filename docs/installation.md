@@ -77,7 +77,7 @@ Note that this mode is useful on devices where you can't plug anything into your
 3. Disconnect the relaykeys hardware.&#x20;
 4. Upload [this file ](../arduino/arduino\_nRF52840/arduino\_nRF52840.ino)to the RelayKeys hardware setting the `bool ble_mode = false;` to `bool ble_mode  = true;` (i.e. change [this line](https://github.com/AceCentre/RelayKeys/blob/ad625ca2f7ca612b3f496880516fc0e3bd8ff9af/arduino/arduino\_nRF52840/arduino\_nRF52840.ino#L76)) (You'll need to understand how to upload and configure an arduino board to do this! [This guide as a starter will help](https://support.arduino.cc/hc/en-us/articles/4733418441116-Upload-a-sketch-in-Arduino-IDE))&#x20;
 5. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.
-6. Run RelayKeysd with `--ble_mode`  See [here](developers/reference.md) for more details&#x20;
+6. Run RelayKeysd with `--ble_mode`  See [here](developers/reference-1.md) for more details&#x20;
 
 ## Checking it works
 
