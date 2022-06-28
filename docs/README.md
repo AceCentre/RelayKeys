@@ -15,6 +15,10 @@ coverY: 0
 
 Solutions exist to do the same thing - either over a network connection (which can be laggy, slow and hard to configure reliably), or over wired serial connections but these are not easy to implement. Some commercial solutions exist but these are operating system/device specific or have been discontinued. We wanted to create something that is device agnostic and open. Too often indviduals with disabilities are let down when features are no longer profitable for companies to keep developing. **By creating an open system we aim for longeivity; even if a developer wants to create their own system we ask to make it compatible by using the same standard way of calling devices.**&#x20;
 
+{% embed url="https://www.youtube.com/watch?v=2wrZMGWgvcE" %}
+**Short demonstration of the main aspects of RelayKeys**
+{% endembed %}
+
 ## Core Principles
 
 * **No-Software/Hardware on Client** — Because so many people have restrictions in the workplace or education settings we have designed this solution to not use any additional software or hardware for the client device. This means as long as your client device _supports Bluetooth LE_ then RelayKeys will work.
@@ -25,7 +29,7 @@ Solutions exist to do the same thing - either over a network connection (which c
 
 There are several components of the RelayKeys ecosystem, below is a brief overview.
 
-### RelayKeys-Serial API
+### RelayKeys-Serial API&#x20;
 
 We have defined a standard for calling a RelayKeys (or relaykeys compatible) hardware device when available over serial. RelayKeys can be used over a USB bus or Bluetooth serial connection. See [here](developers/reference-1.md) for more information.&#x20;
 
