@@ -18,9 +18,13 @@ and the non-verbose, non-windowed version
 
 Where 'command' and 'data' are provided below.
 
-::: tip Remember to change your application accordingly We regularly use the verbose command line application 'relaykeys-cli' in this documentation. Often though you will want to use the 'relaykeys-cli-win' application that will run a little quicker and has no printed output. :::
+{% hint style="info" %}
+Remember to change your application accordingly We regularly use the verbose command line application 'relaykeys-cli' in this documentation. Often though you will want to use the 'relaykeys-cli-win' application that will run a little quicker and has no printed output
+{% endhint %}
 
-::: tip If you are developing with the code You must make sure the daemon code is running when you call the cli files. The daemon is the code that turns these commands into the correct AT syntax and access the com port :::
+{% hint style="info" %}
+If you are developing with the code You must make sure the daemon code is running when you call the cli files. The daemon is the code that turns these commands into the correct AT syntax and access the com port
+{% endhint %}
 
 ### Defining a Keymap -c
 
@@ -238,6 +242,12 @@ Put the device into a pairing state
 
 `relaykeys-cli.exe ble_cmd:devreset`
 
+Reset the entire stored devices (its like wiping the volatile memory)
+
 `relaykeys-cli.exe ble_cmd:switch`
 
+Switch the current connected device to the next one in RelayKeys memory
+
 `relaykeys-cli.exe ble_cmd:devremove=DEVNAME`
+
+Remove just one named device from the memory.
