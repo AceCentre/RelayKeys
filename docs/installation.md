@@ -20,26 +20,37 @@ RelayKeys is designed to work on Windows, Linux, Mac Operating Systems. We have 
 and most importantly:
 
 * **A supported piece of RelayKeys ready hardware**
-  * Right now: this is designed to work with the Adafruit nrf52840 express. Others will be added to the list as this is developed.
+  * Right now: this is designed to work with the [Adafruit nrf52840 express](https://www.adafruit.com/product/4062) or [Adafruit nrf52840 Itsybitsy](https://www.adafruit.com/product/4481). Others will be added to the list as this is developed.
 
-::: tip If you have a RelayKeys stick provided by the AceCentre Carry on reading below. If you wish to by your own hardware [read this guide](../technical/supported-boards.html). :::
+{% hint style="info" %}
+If you have a RelayKeys stick provided by the AceCentre Carry on reading below. If you wish to by your own hardware [read this guide](../technical/supported-boards.html).
+{% endhint %}
 
 ## Download and Setup
 
 Download the installer from [here](https://github.com/AceCentre/RelayKeys/releases/latest). When downloaded 'Run' the program
 
-::: warning The programme is not 'signed' This means that you may need to allow it access to your computer to run. Hit 'more' to allow this :::
+Step-through the install procedure. Select 'Normal install' and let the RelayKeys setup software do its thing to install the software in the correct place (By default: `C:\Program Files (x86)\Ace Centre`).
 
-Step-through the install procedure. Select 'Normal install' and let the RelayKeys setup software do its thing to install the software in the correct place (By default: C:\Program Files (x86)\AceCentre).
+{% hint style="info" %}
+If you use 'Portable' or change the location of the software: Make a note of where you have stored the programme as you will need this when linking it with your software
+{% endhint %}
 
-::: warning If you use 'Portable' or change the location of the software: Make a note of where you have stored the programme as you will need this when linking it with your software. :::
-
-## Plug-in Your RelayKeys stick & pair with a computer
+## Plug-in Your RelayKeys stick & pair with a computer (Wired mode)
 
 1. Make sure the Micro-USB connector is attached to the stick and then attach the female end of the USB lead into your computer
 2. You should see your stick light a solid blue ("Paired") or flashing blue ("Un-paired")
 
 If "Flashing". This means you have yet to pair the RelayKeys device with another computer.
+
+### Put RelayKeys into a pairing mode
+
+You can do this in three different ways:
+
+* Send a command using the "`RelayKeys-QT.exe`" app and press "Add a device" in the toolbar  - or -&#x20;
+* Run "`relaykeys-cli.exe ble_cmd:devadd" - or -`&#x20;
+* Press the Button on the RelayKeys hardware.&#x20;
+* Next pair your device with RelayKeys.&#x20;
 
 ### Pair with a Windows Computer
 
@@ -55,10 +66,23 @@ To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
 
 ![Pairing Mac](img/screenshots/mac-pairing.gif)
 
+## Wireless mode
+
+{% hint style="info" %}
+Note that this mode is useful on devices where you cant plug anything into your device. Please note that its definitely a bit fiddly to setup and its a bit slower. i.e. This is for only those who are willing to experiment right now!&#x20;
+{% endhint %}
+
+1. Plug in device and follow instructions [as above](installation.md#plug-in-your-relaykeys-stick-and-pair-with-a-computer-wired-mode)&#x20;
+2. Pair the main AAC/Host device with it. So pair the computer you have attached it to with RelayKeys hardware. This can feel a bit strange - you are connecting the hardware to the same machine you are on. See [here](installation.md#undefined-1) for how to put it into pairing mode.&#x20;
+3. Disconnect the relaykeys hardware.&#x20;
+4. Upload [this file ](../arduino/arduino\_nRF52840/arduino\_nRF52840.ino)to the RelayKeys hardware setting the `bool ble_mode = false;` to `bool ble_mode  = true;` (i.e. change [this line](https://github.com/AceCentre/RelayKeys/blob/ad625ca2f7ca612b3f496880516fc0e3bd8ff9af/arduino/arduino\_nRF52840/arduino\_nRF52840.ino#L76)) (You'll need to understand how to upload and configure an arduino board to do this! [This guide as a starter will help](https://support.arduino.cc/hc/en-us/articles/4733418441116-Upload-a-sketch-in-Arduino-IDE))&#x20;
+5. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.
+6. Run RelayKeysd with --ble\_mode &#x20;
+
 ## Checking it works
 
 1. Open up something on the second computer that you can enter text into. E.g. Notes on the iPad, Notepad on Windows or Notes on a mac
-2. On your server computer (the one with RelayKeys attached) run "RelayKeys" (search for it in your Windows search bar). Alternatively find it in `C:\Program Files(x86)\AceCentre\RelayKeys\relaykeys-qt.exe`
+2. On your server computer (the one with RelayKeys attached) run "RelayKeys" (search for it in your Windows search bar). Alternatively find it in `C:\Program Files(x86)\Ace Centre\RelayKeys\relaykeys-qt.exe`
 3. With the window having focus - type into it. You should see the keystrokes appear on the second computer
 
 ## Using it with your AAC software
