@@ -1,4 +1,4 @@
-# Troubleshooting
+# ❓ Troubleshooting
 
 > Below are solutions to some common issues that you may experience when working with RelayKeys.
 

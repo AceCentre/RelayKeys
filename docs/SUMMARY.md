@@ -4,7 +4,6 @@
 * [⚙️ Installation](installation.md)
 * [❓ Troubleshooting](troubleshooting.md)
 * [💬 Guides for use with AAC](guides/README.md)
-  * [Basic Principles to integrate RelayKeys into your AAC Software](guides/basic-principles.md)
   * [Tobii Communicator 5](guides/communicator.md)
   * [Smartbox Grid 3](guides/grid3.md)
   * [Jabbla MindExpress](guides/mindexpress.md)
