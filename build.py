@@ -83,7 +83,7 @@ if os.name == 'posix':
 		moveTree(item, r'dist/relaykeysd')
 
 # Copy some other stuff to Dist
-for item in ['relaykeys.cfg', 'logfile.txt', 'LICENSE', 'README.html', 'cli_keymaps']:
+for item in ['relaykeys.cfg', 'logfile.txt', 'LICENSE', 'README.html', 'cli_keymaps', 'macros']:
     if os.path.isdir(item):
         shutil.copytree(item, r"dist/relaykeysd/"+item, dirs_exist_ok=True)
     else:
