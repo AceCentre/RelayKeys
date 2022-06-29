@@ -1,0 +1,4 @@
+keypress:H,LMETA
+keypress:SPACE,LMETA
+type:notes
+keypress:ENTER

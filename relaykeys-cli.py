@@ -25,7 +25,9 @@ parser.add_argument('--url', '-u', dest='url', default=None,
                     help='rpc http url, default: http://127.0.0.1:5383/')
 parser.add_argument('--delay', dest='delay', type=int, default=0,
                     help='delay between each call, in miliseconds')
-parser.add_argument('commands', metavar='COMMAND', nargs='+',
+parser.add_argument('-f', dest='macro',
+                    default=None, help='Path to macro file')
+parser.add_argument('commands', metavar='COMMAND', nargs='*',
                     help='One or more commands, format: <cmdname>:<data>')
 
 nonchars_key_map = None
@@ -45,6 +47,24 @@ def load_keymap_file(config):
     return False
   
   return True
+
+def parse_macro(file_name):
+  file_path = keymap_file = Path(__file__).resolve().parent / "macros" / file_name
+  macro_commands = []
+
+  try:
+    with open(file_path, "r") as file:
+      for line in file.readlines():
+        cmd = line.strip("\n")
+        if cmd == "":
+          continue
+        else:
+          macro_commands.append(cmd)
+  
+  except FileNotFoundError:
+    print("Macro file doesn't exist: ", file_path)
+  
+  return macro_commands
 
 def parse_commamd (cmd):
   """Parses a command provide from the command line.
@@ -162,8 +182,15 @@ def do_main (args, config):
     if url is None:
       url = "http://127.0.0.1:5383/"
     client = RelayKeysClient(url=url)
+  
   delay = config.getint("delay", 0) if args.delay == 0 else args.delay
-  for cmd in args.commands:
+
+  commands_list = []
+  if args.macro != None:    
+    commands_list += parse_macro(args.macro)
+  commands_list += args.commands
+
+  for cmd in commands_list:
     name, data = parse_commamd(cmd)
     if name == "type":
       def type_char (char):
