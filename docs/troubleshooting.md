@@ -1,8 +1,10 @@
-# Troubleshooting
+# ❓ Troubleshooting
 
 > Below are solutions to some common issues that you may experience when working with RelayKeys.
 
-::: warning Premium Support AceCentre is a charity and we are providing this as-is. If you need something urgently and can pay we ask you to donate to us - or another developer to help fix your problem :::
+{% hint style="info" %}
+**AceCentre is a charity and we are providing this as-is. If you need something urgently and can pay we ask you to donate to us - or another developer to help fix your problem**
+{% endhint %}
 
 ## Installation Issues
 
@@ -17,4 +19,4 @@ Try and go through these steps:
 
 ### So I send LSHIFT,2 and I was expecting " but I get a @ - What gives?
 
-We don't support different keyboard layouts yet. Be aware that LSHIFT,' will send " and LSHIFT,2 will send @.
+Have a look at the [keyboard map.](https://docs.acecentre.org.uk/products/v/relaykeys/developers/reference-2#defining-a-keymap-c) You'll need to define/edit a keyboard map for the keyboard you are expecting it to be.&#x20;
