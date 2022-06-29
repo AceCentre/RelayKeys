@@ -337,3 +337,7 @@ Switch the current connected device to the next one in RelayKeys memory
 `relaykeys-cli.exe ble_cmd:devremove=DEVNAME`
 
 Remove just one named device from the memory.
+
+`relaykeys-cli.exe ble_cmd:reconnect`
+
+Tells the daemon/server to try and reconnect to the serial port.
