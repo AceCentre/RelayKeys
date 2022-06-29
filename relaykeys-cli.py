@@ -273,6 +273,10 @@ def do_main (args, config):
       #print(parts)
       command = parts[0]
       do_devicecommand(client,command)
+    elif name == "pause":
+      logging.info("pause: {}ms".format(data))
+      pause_value = float(data)
+      sleep(pause_value/1000.0)
     else:
       raise ValueError("Unknown command: {}".format(cmd))
 
