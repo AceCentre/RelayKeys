@@ -316,6 +316,14 @@ user activates Drag Stop button&#x20;
 
 `relaykeys-cli mousebutton:0`
 
+### Command: delay: nms
+
+Adds a delay. Particularly useful when writing a macro and you need to wait for something to happen on the client operating system.&#x20;
+
+`relaykeys-cli delay:1000`
+
+Puts in a a delay of 1 second.&#x20;
+
 ### Device Management Commands
 
 `relaykeys-cli.exe ble_cmd:devlist`
@@ -341,3 +349,22 @@ Remove just one named device from the memory.
 `relaykeys-cli.exe ble_cmd:reconnect`
 
 Tells the daemon/server to try and reconnect to the serial port.
+
+### Command: -f file.txt (Macro)
+
+Provide a macro file - where each line in a text file is a cli command.  For example **ios\_open\_notes.txt** found in the _macros_ directory of the installation folder (i.e at _C:\Program Files (x86)\Ace Centre\RelayKeys\maccros)_
+
+`relaykeys-cli -f ios_open_notes.txt`
+
+where ios\_open\_notes.txt is:
+
+```
+keypress:H,LMETA
+keypress:SPACE,LMETA
+type:notes
+keypress:ENTER
+```
+
+{% hint style="info" %}
+Warning: There is no syntax checking of this document.&#x20;
+{% endhint %}
