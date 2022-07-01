@@ -47,7 +47,6 @@
   #define USER_SW 4
 #endif
 
-bool old_sw_state = true;
 
 BLEDis bledis;
 BLEHidAdafruit blehid;
@@ -66,7 +65,10 @@ volatile uint8_t switchBleConnCurrIndex = 0;
 ///
 using namespace Adafruit_LittleFS_Namespace;
 #define FILENAME "/devNameList.txt"
+#define MODE_FILENAME "/config.txt"
+
 File file(InternalFS);
+
 volatile bool flag_saveListToFile = false;
 ///
 
@@ -79,6 +81,25 @@ uint16_t target_ble_conn = 0;
 uint16_t response_ble_conn = 0;
 
 void set_keyboard_led(uint8_t led_bitmap);
+
+uint8_t detect_click() {
+  uint32_t press_time = millis();
+  uint8_t click_counter = 0;
+  
+  while((millis() - press_time) < 500) {
+    if(digitalRead(USER_SW) == false && (millis() - press_time) < 500) {
+        click_counter++;
+        delay(100);      
+        while(digitalRead(USER_SW) == false) {
+          delay(100); // wait until button released
+        }
+        press_time = millis();
+    }
+  }
+  
+  return click_counter;
+    
+}
 
 void save_devList_toFile(void)
 {
@@ -168,10 +189,57 @@ void load_devList_fromFile(void)
   }
 }
 
+void load_mode_file(){
+  file.open(MODE_FILENAME, FILE_O_READ);
+  // file existed
+  if (file)
+  {
+    file.read((void *)&ble_mode, 1);
+    file.close();
+  } else {
+    #ifdef DEBUG
+    Serial.println(MODE_FILENAME " Read Failed");
+    #endif
+  }
+}
+
+void change_mode() {
+  #ifdef DEBUG
+    Serial.print("Changing operating mode");
+  #endif
+
+  ble_mode = !ble_mode;
+
+  file.open(MODE_FILENAME, FILE_O_WRITE);
+  if(file) {
+    file.seek(0);
+    file.write((const uint8_t *)&ble_mode, 1);
+    file.close();
+  } else {
+    #ifdef DEBUG
+    Serial.print(MODE_FILENAME " Write Failed");
+    #endif
+  }
+
+  BLEConnection *connection = NULL;
+  for(int i=0;i<max_prph_connection;i++) {
+    connection = Bluefruit.Connection(i);
+    connection->disconnect();
+  }
+  
+  delay(1000);
+  NVIC_SystemReset();  
+}
+
 void setup()
 {
   Serial.begin(115200);
   //while ( !Serial && millis() < 2000) delay(10);   // for nrf52840 with native usb
+
+  // Initialize Internal File System
+  InternalFS.begin();
+
+  load_mode_file();
 
   pinMode(USER_SW, INPUT_PULLUP);
   
@@ -870,13 +938,12 @@ void loop()
     }    
   }
 
-  if(digitalRead(USER_SW) == false && old_sw_state == true) {
-    old_sw_state = false;
-    delay(100);
-  } else if(digitalRead(USER_SW) == true && old_sw_state == false){
-    old_sw_state = true;
-    delay(100);
-    addNewBleDevice("");
+  if(digitalRead(USER_SW) == false) {    
+    if(detect_click() == 1){      
+      addNewBleDevice("");
+    } else {
+      change_mode();
+    }
   }
 
   if (flag_saveListToFile)
