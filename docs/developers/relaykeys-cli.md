@@ -354,7 +354,18 @@ Tells the daemon/server to try and reconnect to the serial port.
 
 Provide a macro file - where each line in a text file is a cli command.  For example **ios\_open\_notes.txt** found in the _macros_ directory of the installation folder (i.e at _C:\Program Files (x86)\Ace Centre\RelayKeys\maccros)_
 
-`relaykeys-cli -f ios_open_notes.txt`
+`relaykeys-cli.exe -f ios_open_notes.txt`
+
+or like this&#x20;
+
+`relaykeys-cli.exe -f Documents/open_ios_notes.txt`
+
+where it reads the file from a file path.. or..\
+\
+`relaykeys-cli.exe -f ./open_ios_notes.txt`&#x20;
+
+where it reads the file in folder where current exe is run from\
+
 
 where ios\_open\_notes.txt is:
 

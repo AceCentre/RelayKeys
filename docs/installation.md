@@ -47,10 +47,10 @@ If "Flashing". This means you have yet to pair the RelayKeys device with another
 
 You can do this in three different ways:
 
-* Send a command using the "`RelayKeys-QT.exe`" app and press "Add a device" in the toolbar  - or -&#x20;
-* Run "`relaykeys-cli.exe ble_cmd:devadd" - or -`&#x20;
-* Press the Button on the RelayKeys hardware.&#x20;
-* Next pair your device with RelayKeys.&#x20;
+* Send a command using the "`RelayKeys-QT.exe`" app and press "Add a device" in the toolbar - or -
+* Run "`relaykeys-cli.exe ble_cmd:devadd" - or -`
+* Press the Button on the RelayKeys hardware.
+* Next pair your device with RelayKeys.
 
 ### Pair with a Windows Computer
 
@@ -69,15 +69,15 @@ To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
 ## Wireless mode
 
 {% hint style="info" %}
-Note that this mode is useful on devices where you can't plug anything into your device. Its definitely a bit fiddly to setup and its a bit slower. i.e. This is for only those who are willing to experiment right now!&#x20;
+Note that this mode is useful on devices where you can't plug anything into your device. Its definitely a bit fiddly to setup and its a bit slower. i.e. This is for only those who are willing to experiment right now!
 {% endhint %}
 
-1. Plug in device and follow instructions [as above](installation.md#plug-in-your-relaykeys-stick-and-pair-with-a-computer-wired-mode)&#x20;
-2. Pair the main AAC/Host device with it. So pair the computer you have attached it to with RelayKeys hardware. This can feel a bit strange - you are connecting the hardware to the same machine you are on. See [here](installation.md#undefined-1) for how to put it into pairing mode.&#x20;
-3. Disconnect the relaykeys hardware.&#x20;
-4. Upload [this file ](../arduino/arduino\_nRF52840/arduino\_nRF52840.ino)to the RelayKeys hardware setting the `bool ble_mode = false;` to `bool ble_mode  = true;` (i.e. change [this line](https://github.com/AceCentre/RelayKeys/blob/ad625ca2f7ca612b3f496880516fc0e3bd8ff9af/arduino/arduino\_nRF52840/arduino\_nRF52840.ino#L76)) (You'll need to understand how to upload and configure an arduino board to do this! [This guide as a starter will help](https://support.arduino.cc/hc/en-us/articles/4733418441116-Upload-a-sketch-in-Arduino-IDE))&#x20;
+1. Plug in device and follow instructions [as above](installation.md#plug-in-your-relaykeys-stick-and-pair-with-a-computer-wired-mode)
+2. Pair the main AAC/Host device with it. So pair the computer you have attached it to with RelayKeys hardware. This can feel a bit strange - you are connecting the hardware to the same machine you are on. See [here](installation.md#undefined-1) for how to put it into pairing mode.
+3. Disconnect the relaykeys hardware.
+4. Double press the User switch&#x20;
 5. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.
-6. Run RelayKeysd with `--ble_mode`  See [here](developers/relaykeys-daemon.md) for more details&#x20;
+6. Run RelayKeysd with `--ble_mode` See [here](developers/relaykeys-daemon.md) for more details
 
 ## Checking it works
 
@@ -92,7 +92,7 @@ You can get going by using one of these example files that work with your AAC So
 * [The Grid 3](guides/grid3.md)
 * [MindExpress](guides/mindexpress.md)
 * [Tobii Communicator](guides/communicator.md)
-* [Tobii Dynavox Snap](guides/snap-corefirst.md)&#x20;
+* [Tobii Dynavox Snap](guides/snap-corefirst.md)
 
 When you are ready, [have a read of how to integrate the features you need](../guides/basic-principles.html).
 
