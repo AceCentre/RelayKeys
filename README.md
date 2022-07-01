@@ -1,6 +1,7 @@
 # RelayKeys
 
-Allow a Computer to mimic a Bluetooth Keyboard (& Mouse). Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then receive the keystrokes. **For full documentation (and updated docs!) see http://acecentre.github.io/RelayKeys**
+Allow a Computer to mimic a Bluetooth Keyboard (& Mouse). 
+Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then receive the keystrokes. **For full documentation (and updated docs!) see http://acecentre.github.io/RelayKeys**
 
 <!--ts-->
    * [RelayKeys](#relaykeys)
@@ -8,7 +9,6 @@ Allow a Computer to mimic a Bluetooth Keyboard (& Mouse). Using some hardware (a
       * [Getting Started](#getting-started)
          * [Don't have any hardware yet? Want to see what the software does?](#dont-have-any-hardware-yet-want-to-see-what-the-software-does)
          * [1. Setup: Adafruit Feather nRF52840 Express](#1-setup-adafruit-feather-nrf52840-express)
-         * [1. Setup: Bluefruit LE Friend](#1-setup-bluefruit-le-friend)
          * [2. Setup: Connect the partner/client machine via Bluetooth](#2-setup-connect-the-partnerclient-machine-via-bluetooth)
          * [3. Setup: Run the software.](#3-setup-run-the-software)
       * [How does this all work?](#how-does-this-all-work)
@@ -65,28 +65,6 @@ then in another terminal run
 - Upload the [sketch](arduino_nRF52840/arduino_nRF52840.ino) to your feather. 
 - Run the server side code
 - Done!  
-
-### 1. Setup: Bluefruit LE Friend 
-
-- [Install the CP2104 Driver](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers)
-- Update it to 0.8.0. Easiest way to do this is to connect to using the Bluefruit app - it will auto update it if required. 
-- Plug it in
-- Set the switch on the device to CMD mode
-- Open up a serial terminal and connect to the device (See [here](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/terminal-settings#terraterm-windows-5-2) for exact settings for your Operating System)
-- Turn on HID Mode. More info [here](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/ble-services#at-plus-blehiden-14-31). To be precise - enter this into your serial terminal
-
-		AT+BLEHIDEN=1
-
-		ATZ 
-
-(You should see 'OK' after each entry)
-
-- Next change the default speed. i.e. enter this in your serial terminal:
-
-		AT+BAUDRATE=115200
-
-- Leave the device in CMD mode (TY [@joedevsys](https://github.com/AceCentre/RelayKeys/issues/69))
-
 
 ### 2. Setup: Connect the partner/client machine via Bluetooth
 
