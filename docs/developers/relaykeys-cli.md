@@ -362,9 +362,14 @@ where ios\_open\_notes.txt is:
 keypress:H,LMETA
 keypress:SPACE,LMETA
 type:notes
+delay:500
 keypress:ENTER
 ```
 
 {% hint style="info" %}
 Warning: There is no syntax checking of this document.&#x20;
+{% endhint %}
+
+{% hint style="info" %}
+Want to send a long string of mouse commands and want to record your movements for a script? Start by using [https://github.com/rmpr/atbswp](https://github.com/rmpr/atbswp) - You'll need to edit the file but its a handy starting point
 {% endhint %}
