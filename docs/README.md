@@ -31,7 +31,7 @@ There are several components of the RelayKeys ecosystem, below is a brief overvi
 
 ### RelayKeys-Serial API&#x20;
 
-We have defined a standard for calling a RelayKeys (or relaykeys compatible) hardware device when available over serial. RelayKeys can be used over a USB bus or Bluetooth serial connection. See [here](developers/reference-2.md) for more information.&#x20;
+We have defined a standard for calling a RelayKeys (or relaykeys compatible) hardware device when available over serial. RelayKeys can be used over a USB bus or Bluetooth serial connection. See [here](developers/relaykeys-serial.md) for more information.&#x20;
 
 ### RelayKeys-Service
 
