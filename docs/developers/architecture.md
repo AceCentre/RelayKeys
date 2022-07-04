@@ -1,6 +1,6 @@
 # Architecture of RelayKeys
 
-![RelayKeys Sketch](../.gitbook/assets/relaykeys-architecture-new.png)
+![RelayKeys Sketch](<../.gitbook/assets/untitled\_page (1).png>)
 
 RelayKeys is a mixture of a Open Hardware board that communicates in Bluetooth LE (4), a RPC server (2) to communicate over serial to the board (3) and then RPC clients (1) such as the relaykeys-cli and relaykeys-qt applications. The Arduino based board is currently a **Adafruit nrf52840 express or Adafruit nrf52840 itsybitsy**.  We have created a serial interface using **AT** Commands to this hardware. It can then emulate **all** keyboard keys and their modifiers. We can also put the device into a wireless mode allowing it to act without being plugged into a USB bus. A developer would connect to it via BLE Serial (5). If a software developer on Windows or Mac wanted to ignore our Command line application or RPC server - they could just connect directly via their own serial interface (6).
 

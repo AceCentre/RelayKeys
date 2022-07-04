@@ -1,5 +1,5 @@
 ---
-cover: .gitbook/assets/jessimage.jpeg
+cover: .gitbook/assets/jessimage (1).jpeg
 coverY: 0
 ---
 
@@ -9,11 +9,11 @@ coverY: 0
 
 ## What is RelayKeys?
 
-**RelayKeys is an open-source suite of software & hardware for communicating with computers,tablets,phones over a bluetooth connection.** It has been designed to work with AAC (Alternative & Augmenative Communication) devices first and foremost but the technology behind this is useful to many people who need to input text/mouse commands on one computer to access another bluetooth-enabled device.&#x20;
+**RelayKeys is an open-source suite of software & hardware for communicating with computers,tablets,phones over a bluetooth connection.** It has been designed to work with AAC (Alternative & Augmenative Communication) devices first and foremost but the technology behind this is useful to many people who need to input text/mouse commands on one computer to access another bluetooth-enabled device.
 
 ### Why?
 
-Solutions exist to do the same thing - either over a network connection (which can be laggy, slow and hard to configure reliably), or over wired serial connections but these are not easy to implement. Some commercial solutions exist but these are operating system/device specific or have been discontinued. We wanted to create something that is device agnostic and open. Too often indviduals with disabilities are let down when features are no longer profitable for companies to keep developing. **By creating an open system we aim for longeivity; even if a developer wants to create their own system we ask to make it compatible by using the same standard way of calling devices.**&#x20;
+Solutions exist to do the same thing - either over a network connection (which can be laggy, slow and hard to configure reliably), or over wired serial connections but these are not easy to implement. Some commercial solutions exist but these are operating system/device specific or have been discontinued. We wanted to create something that is device agnostic and open. Too often indviduals with disabilities are let down when features are no longer profitable for companies to keep developing. **By creating an open system we aim for longeivity; even if a developer wants to create their own system we ask to make it compatible by using the same standard way of calling devices.**
 
 {% embed url="https://www.youtube.com/watch?v=2wrZMGWgvcE" %}
 **Short demonstration of the main aspects of RelayKeys**
@@ -29,9 +29,9 @@ Solutions exist to do the same thing - either over a network connection (which c
 
 There are several components of the RelayKeys ecosystem, below is a brief overview.
 
-### RelayKeys-Serial API&#x20;
+### RelayKeys-Serial API
 
-We have defined a standard for calling a RelayKeys (or relaykeys compatible) hardware device when available over serial. RelayKeys can be used over a USB bus or Bluetooth serial connection. See [here](developers/relaykeys-serial.md) for more information.&#x20;
+We have defined a standard for calling a RelayKeys (or relaykeys compatible) hardware device when available over serial. RelayKeys can be used over a USB bus or Bluetooth serial connection. See [here](developers/relaykeys-serial.md) for more information.
 
 ### RelayKeys-Service
 
