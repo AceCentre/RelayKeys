@@ -6,7 +6,7 @@
 
 So RelayKeys consists of a hardware solution that talks Bluetooth HID to secondary devices - anything that can pair with bluetooth and understand a keyboard works, and some software on the 'server' device; i.e. the device sending the key/mouse movements. So for our installation we really focus on the 'server' since the client needs no additional hardware or software.
 
-![RelayKeys Overview](img/overview.png)
+![RelayKeys Overview](.gitbook/assets/overview.png)
 
 ## Requirements
 
@@ -54,17 +54,17 @@ You can do this in three different ways:
 
 ### Pair with a Windows Computer
 
-So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys" ![Pairing Windows](img/screenshots/windows-pairing.gif)
+So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys" ![Pairing Windows](.gitbook/assets/windows-pairing.gif)
 
 ### Pair with an iOS device
 
-To connect to an iPad/iPhone, go to Settings, Bluetooth and add "Bluefruit52" or "RelayKeys" ![Pairing iPad](img/screenshots/ipad-pairing.gif)
+To connect to an iPad/iPhone, go to Settings, Bluetooth and add "Bluefruit52" or "RelayKeys" ![Pairing iPad](.gitbook/assets/ipad-pairing.gif)
 
 ### Pair with a Mac
 
 To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
 
-![Pairing Mac](img/screenshots/mac-pairing.gif)
+![Pairing Mac](.gitbook/assets/mac-pairing.gif)
 
 ## Wireless mode
 
@@ -76,7 +76,7 @@ Note that this mode is useful on devices where you can't plug anything into your
 2. Pair the main AAC/Host device with it. So pair the computer you have attached it to with RelayKeys hardware. This can feel a bit strange - you are connecting the hardware to the same machine you are on. See [here](installation.md#undefined-1) for how to put it into pairing mode.
 3. Disconnect the relaykeys hardware.
 4. Double press the User switch&#x20;
-5. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.
+5. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.&#x20;
 6. Run RelayKeysd with `--ble_mode` See [here](developers/relaykeys-daemon.md) for more details
 
 ## Checking it works
