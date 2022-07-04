@@ -1,7 +1,7 @@
 # RelayKeys
 
 Allow a Computer to mimic a Bluetooth Keyboard (& Mouse). 
-Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then receive the keystrokes. **For full documentation (and updated docs!) see http://acecentre.github.io/RelayKeys**
+Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then receive the keystrokes. **For full documentation (and updated docs!) see https://docs.acecentre.org.uk/products/v/relaykeys/**
 
 <!--ts-->
    * [RelayKeys](#relaykeys)
