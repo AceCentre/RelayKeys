@@ -48,22 +48,29 @@ def load_keymap_file(config):
   
   return True
 
-def parse_macro(file_name):
-  file_path = keymap_file = Path(__file__).resolve().parent / "macros" / file_name
+def parse_macro(file_arg):
+  # if argument is file name without any path check it in macros folder
+  if file_arg.find('/') == -1 and file_arg.find('/') == -1:
+    file_path = Path(__file__).resolve().parent / "macros" / file_arg 
+    if not Path(file_path).is_file():
+      print("Specified file doesn't exist in macros folder: ", file_path)
+      return []
+  elif Path(file_arg).is_file(): # otherwise check it as file_path
+    file_path = file_arg
+  else:
+      print("Invalid path to macro file: ", file_arg)
+      return []
+  
   macro_commands = []
 
-  try:
-    with open(file_path, "r") as file:
-      for line in file.readlines():
-        cmd = line.strip("\n")
-        if cmd == "":
-          continue
-        else:
-          macro_commands.append(cmd)
-  
-  except FileNotFoundError:
-    print("Macro file doesn't exist: ", file_path)
-  
+  with open(file_path, "r") as file:
+    for line in file.readlines():
+      cmd = line.strip("\n")
+      if cmd == "":
+        continue
+      else:
+        macro_commands.append(cmd)
+
   return macro_commands
 
 def parse_commamd (cmd):
@@ -273,10 +280,10 @@ def do_main (args, config):
       #print(parts)
       command = parts[0]
       do_devicecommand(client,command)
-    elif name == "pause":
-      logging.info("pause: {}ms".format(data))
-      pause_value = float(data)
-      sleep(pause_value/1000.0)
+    elif name == "delay":
+      logging.info("delay: {}ms".format(data))
+      delay_value = float(data)
+      sleep(delay_value/1000.0)
     else:
       raise ValueError("Unknown command: {}".format(cmd))
 

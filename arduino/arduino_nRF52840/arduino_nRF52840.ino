@@ -33,12 +33,18 @@
 
 // The following defines which pin for the User button to go into BLE mode. 
 // NB: using this neat trick: https://electronics.stackexchange.com/a/280379
-#if defined(NRF52840_ITSYBITSY)
+#if defined(_VARIANT_ITSY52840_)
 //Adafruit itsybitsy 
   #define USER_SW 4
-#elif defined(NRF52840_FEATHER)
+
+  #include <Adafruit_DotStar.h>
+  Adafruit_DotStar statusLED(1, 8, 6, DOTSTAR_BRG);
+#elif defined(_VARIANT_FEATHER52840_)
 //Adafruit feather nrf52840
     #define USER_SW 7
+
+    #include <Adafruit_NeoPixel.h>
+    Adafruit_NeoPixel statusLED = Adafruit_NeoPixel(1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 #else
   #ifdef DEBUG
     Serial.print("Unsupported hardware. Possibly not critical unless you want to initiate BLE mode with a button");
@@ -47,7 +53,6 @@
   #define USER_SW 4
 #endif
 
-bool old_sw_state = true;
 
 BLEDis bledis;
 BLEHidAdafruit blehid;
@@ -66,7 +71,10 @@ volatile uint8_t switchBleConnCurrIndex = 0;
 ///
 using namespace Adafruit_LittleFS_Namespace;
 #define FILENAME "/devNameList.txt"
+#define MODE_FILENAME "/config.txt"
+
 File file(InternalFS);
+
 volatile bool flag_saveListToFile = false;
 ///
 
@@ -79,6 +87,38 @@ uint16_t target_ble_conn = 0;
 uint16_t response_ble_conn = 0;
 
 void set_keyboard_led(uint8_t led_bitmap);
+
+void updateStatusLED() {
+  if(flag_addDevProsStarted) {
+    statusLED.setPixelColor(0, 128, 128, 0);  // set yellow color
+  }else if(ble_mode) {
+    statusLED.setPixelColor(0, 0, 0, 128);    // set blue color
+  } else {
+    statusLED.setPixelColor(0, 0, 128, 0);    // set green color
+  }
+
+  statusLED.show();
+  
+}
+
+uint8_t detect_click() {
+  uint32_t press_time = millis();
+  uint8_t click_counter = 0;
+  
+  while((millis() - press_time) < 500) {
+    if(digitalRead(USER_SW) == false && (millis() - press_time) < 500) {
+        click_counter++;
+        delay(100);      
+        while(digitalRead(USER_SW) == false) {
+          delay(100); // wait until button released
+        }
+        press_time = millis();
+    }
+  }
+  
+  return click_counter;
+    
+}
 
 void save_devList_toFile(void)
 {
@@ -168,12 +208,62 @@ void load_devList_fromFile(void)
   }
 }
 
+void load_mode_file(){
+  file.open(MODE_FILENAME, FILE_O_READ);
+  // file existed
+  if (file)
+  {
+    file.read((void *)&ble_mode, 1);
+    file.close();
+  } else {
+    #ifdef DEBUG
+    Serial.println(MODE_FILENAME " Read Failed");
+    #endif
+  }
+}
+
+void change_mode() {
+  #ifdef DEBUG
+    Serial.print("Changing operating mode");
+  #endif
+
+  ble_mode = !ble_mode;
+
+  file.open(MODE_FILENAME, FILE_O_WRITE);
+  if(file) {
+    file.seek(0);
+    file.write((const uint8_t *)&ble_mode, 1);
+    file.close();
+  } else {
+    #ifdef DEBUG
+    Serial.print(MODE_FILENAME " Write Failed");
+    #endif
+  }
+
+  BLEConnection *connection = NULL;
+  for(int i=0;i<max_prph_connection;i++) {
+    connection = Bluefruit.Connection(i);
+    connection->disconnect();
+  }
+  
+  delay(1000);
+  NVIC_SystemReset();  
+}
+
 void setup()
 {
   Serial.begin(115200);
   //while ( !Serial && millis() < 2000) delay(10);   // for nrf52840 with native usb
 
+  // Initialize Internal File System
+  InternalFS.begin();
+
+  load_mode_file();
+
   pinMode(USER_SW, INPUT_PULLUP);
+  
+  statusLED.begin();
+  updateStatusLED();
   
   if(ble_mode) {
     max_prph_connection = 2;    
@@ -551,6 +641,7 @@ void addNewBleDevice(char *myLine)
     //Serial.println("Disconnected from " + String(bleDeviceName));
 
     flag_addDevProsStarted = 1;
+    updateStatusLED();
     addDevProsStartTicks = millis();
 
     snprintf(buff, sizeof(buff), "Connect your device with %s\n", BLE_NAME);
@@ -870,13 +961,12 @@ void loop()
     }    
   }
 
-  if(digitalRead(USER_SW) == false && old_sw_state == true) {
-    old_sw_state = false;
-    delay(100);
-  } else if(digitalRead(USER_SW) == true && old_sw_state == false){
-    old_sw_state = true;
-    delay(100);
-    addNewBleDevice("");
+  if(digitalRead(USER_SW) == false) {    
+    if(detect_click() == 1){      
+      addNewBleDevice("");
+    } else {
+      change_mode();
+    }
   }
 
   if (flag_saveListToFile)
@@ -890,7 +980,7 @@ void loop()
     if (millis() - addDevProsStartTicks >= ADD_NEW_DEV_PROCESS_TIMEOUT)
     {
       flag_addDevProsStarted = 0;
-      
+      updateStatusLED();
       #ifdef DEBUG
       Serial.println("ERROR: Timeout");
       #endif
@@ -1037,6 +1127,7 @@ void bleConnectCallback(uint16_t conn_handle)
       if (flag_addDevProsStarted)
       {
         flag_addDevProsStarted = 0;
+        updateStatusLED();
         if (bleDeviceNameListIndex > maxBleDevListSize)
         {
           connection->disconnect();
