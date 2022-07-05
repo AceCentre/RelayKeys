@@ -36,9 +36,15 @@
 #if defined(_VARIANT_ITSY52840_)
 //Adafruit itsybitsy 
   #define USER_SW 4
+
+  #include <Adafruit_DotStar.h>
+  Adafruit_DotStar statusLED(1, 8, 6, DOTSTAR_BRG);
 #elif defined(_VARIANT_FEATHER52840_)
 //Adafruit feather nrf52840
     #define USER_SW 7
+
+    #include <Adafruit_NeoPixel.h>
+    Adafruit_NeoPixel statusLED = Adafruit_NeoPixel(1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 #else
   #ifdef DEBUG
     Serial.print("Unsupported hardware. Possibly not critical unless you want to initiate BLE mode with a button");
@@ -81,6 +87,19 @@ uint16_t target_ble_conn = 0;
 uint16_t response_ble_conn = 0;
 
 void set_keyboard_led(uint8_t led_bitmap);
+
+void updateStatusLED() {
+  if(flag_addDevProsStarted) {
+    statusLED.setPixelColor(0, 128, 128, 0);  // set yellow color
+  }else if(ble_mode) {
+    statusLED.setPixelColor(0, 0, 0, 128);    // set blue color
+  } else {
+    statusLED.setPixelColor(0, 0, 128, 0);    // set green color
+  }
+
+  statusLED.show();
+  
+}
 
 uint8_t detect_click() {
   uint32_t press_time = millis();
@@ -242,6 +261,9 @@ void setup()
   load_mode_file();
 
   pinMode(USER_SW, INPUT_PULLUP);
+  
+  statusLED.begin();
+  updateStatusLED();
   
   if(ble_mode) {
     max_prph_connection = 2;    
@@ -619,6 +641,7 @@ void addNewBleDevice(char *myLine)
     //Serial.println("Disconnected from " + String(bleDeviceName));
 
     flag_addDevProsStarted = 1;
+    updateStatusLED();
     addDevProsStartTicks = millis();
 
     snprintf(buff, sizeof(buff), "Connect your device with %s\n", BLE_NAME);
@@ -957,7 +980,7 @@ void loop()
     if (millis() - addDevProsStartTicks >= ADD_NEW_DEV_PROCESS_TIMEOUT)
     {
       flag_addDevProsStarted = 0;
-      
+      updateStatusLED();
       #ifdef DEBUG
       Serial.println("ERROR: Timeout");
       #endif
@@ -1104,6 +1127,7 @@ void bleConnectCallback(uint16_t conn_handle)
       if (flag_addDevProsStarted)
       {
         flag_addDevProsStarted = 0;
+        updateStatusLED();
         if (bleDeviceNameListIndex > maxBleDevListSize)
         {
           connection->disconnect();
