@@ -49,7 +49,7 @@ You can do this in three different ways:
 
 * Send a command using the "`RelayKeys-QT.exe`" app and press "Add a device" in the toolbar - or -
 * Run "`relaykeys-cli.exe ble_cmd:devadd" - or -`
-* Press the Button on the RelayKeys hardware.
+* Press the Button on the RelayKeys hardware. It will now flash <mark style="background-color:yellow;">yellow</mark>&#x20;
 * Next pair your device with RelayKeys.
 
 ### Pair with a Windows Computer
