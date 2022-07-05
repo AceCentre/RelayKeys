@@ -74,9 +74,9 @@ Note that this mode is useful on devices where you can't plug anything into your
 
 1. Plug in device and follow instructions [as above](installation.md#plug-in-your-relaykeys-stick-and-pair-with-a-computer-wired-mode)
 2. Pair the main AAC/Host device with it. So pair the computer you have attached it to with RelayKeys hardware. This can feel a bit strange - you are connecting the hardware to the same machine you are on. See [here](installation.md#undefined-1) for how to put it into pairing mode.
-3. Disconnect the relaykeys hardware.
-4. Double press the User switch&#x20;
-5. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.&#x20;
+3. Disconnect the relaykeys hardware. In your bluetooth settings you actually need to click on the item and "Remove" device.&#x20;
+4. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.&#x20;
+5. Double press the User switch It should now shine a nice blue colour!&#x20;
 6. Run RelayKeysd with `--ble_mode` See [here](developers/relaykeys-daemon.md) for more details
 
 ## Checking it works
