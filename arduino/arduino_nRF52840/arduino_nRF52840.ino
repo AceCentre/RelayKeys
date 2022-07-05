@@ -33,10 +33,10 @@
 
 // The following defines which pin for the User button to go into BLE mode. 
 // NB: using this neat trick: https://electronics.stackexchange.com/a/280379
-#if defined(NRF52840_ITSYBITSY)
+#if defined(_VARIANT_ITSY52840_)
 //Adafruit itsybitsy 
   #define USER_SW 4
-#elif defined(NRF52840_FEATHER)
+#elif defined(_VARIANT_FEATHER52840_)
 //Adafruit feather nrf52840
     #define USER_SW 7
 #else
