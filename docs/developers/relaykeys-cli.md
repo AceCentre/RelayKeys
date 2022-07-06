@@ -19,7 +19,7 @@ and the non-verbose, non-windowed version
 Where 'command' and 'data' are provided below.
 
 {% hint style="info" %}
-Remember to change your application accordingly We regularly use the verbose command line application 'relaykeys-cli' in this documentation. Often though you will want to use the 'relaykeys-cli-win' application that will run a little quicker and has no printed output
+Remember to change your application accordingly We regularly use the term for  command line application '_relaykeys-cli_'  in this documentation. Often though you will want to use the '**relaykeys-cli-win.exe**' application that will run a little quicker and has no printed output. Use this for your default call to relaykeys from other applications. If you want to see any errors use '_relaykeys-cli.exe_'
 {% endhint %}
 
 {% hint style="info" %}
