@@ -6,6 +6,8 @@
 * **bbx10** on the adafruit forums. **bbx10** developed the Ascii to HID translation function. A massive thanks - the code is currently mostly his. He also worked out some of the early problems on speed issues we were having. You can read the full thread [here](https://forums.adafruit.com/viewtopic.php?f=53\&t=145081\&start=15).
 * [HID-Relay](https://github.com/juancgarcia/HID-Relay) from [juancgarcia](https://github.com/juancgarcia). Not really spent much time looking at this - but looks neat. Converts hardware keyboards to Bluetooth.
 * [232Key](https://www.232key.com/index.html) - Converts Serial devices to Keyboard. Kind of the other way round to what we want.
+* [BL\_keyboard\_RPI](https://github.com/quangthanh010290/BL\_keyboard\_RPI). Turns a Pi into keyboard emulator
+* [ESP32\_mouse\_keyboard](https://github.com/RoganDawes/esp32\_mouse\_keyboard). Uses a ESP32 as a mouse/keyboard over serial. Very similar idea. (See [issue 39](https://github.com/AceCentre/RelayKeys/issues/29)for details about this in relation to using VNC (TY [@RoganDawes](https://github.com/RoganDawes))
 
 ### AAC projects
 
