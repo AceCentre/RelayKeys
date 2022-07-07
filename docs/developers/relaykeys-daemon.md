@@ -36,7 +36,7 @@ File to use as a log file for the debugging messages.
 
 ## --config=configfile
 
-File to use as a config file. For more info see [here](../../developers/relaykeys-cfg.html)
+File to use as a config file. For more info see [here](relaykeys-cfg.md)
 
 **Default: relaykeys.cfg**
 
