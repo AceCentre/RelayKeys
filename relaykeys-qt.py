@@ -352,6 +352,8 @@ class Window (QMainWindow):
         super(Window, self).__init__()
         clientconfig = config["client"]
 
+        self.app_obj = QApplication.instance()
+        
         self.showErrorMessageSignal.connect(self.showErrorMessage)
         self._keyboard_disabled = False
         self._mouse_disabled = True
@@ -469,12 +471,18 @@ class Window (QMainWindow):
 
         self.toggleRecordSignal.connect(self.toggleMacroRecord)
         
+        self.macroStatusLabel = QLabel()
+        self.macroStatusLabel.setAlignment(Qt.AlignCenter)
+        self.updateMacroStatusLabel("Idle")
+        
+
         self.updateTogglesStatus()
         controlBar.addLayout(keyboardControlSect)
         controlBar.addLayout(mouseControlSect)
         mainLayout.addLayout(controlBar)
         mainLayout.addLayout(bleControlBar)
         mainLayout.addLayout(macroControlBar)
+        mainLayout.addWidget(self.macroStatusLabel)
 
         self.keyboardStatusWidget = KeyboardStatusWidget()
         mainLayout.addWidget(self.keyboardStatusWidget)
@@ -510,7 +518,7 @@ class Window (QMainWindow):
         self.setContentsMargins(0, 0, 0, 0)
 
         self.setWindowTitle("Relay Keys Display")
-        self.resize(400, 250)
+        self.resize(400, 350)
 
         # New Menu
         self.userMenu = self.menuBar()
@@ -582,11 +590,13 @@ class Window (QMainWindow):
     def toggleMacroRecord(self):
         self._recordMacroStatus = not self._recordMacroStatus
         if self._recordMacroStatus:
+            self.updateMacroStatusLabel("Recording new macro")
             self.macroRecordSwitch.setText('Stop recording macro')
             self._macroBuffer = []
         else:
             self.macroRecordSwitch.setText('Start recording macro')
             self.saveMacro()
+            self.updateMacroStatusLabel("Idle")
 
     @pyqtSlot()
     def replayLastMacro(self):
@@ -599,7 +609,10 @@ class Window (QMainWindow):
         self._keyboard_disabled = True
         self._mouse_disabled = True
 
+        self.updateMacroStatusLabel("Replaying last macro")
+        self.app_obj.processEvents()
         self.executeMacroBuffer()
+        self.updateMacroStatusLabel("Idle")
 
         # return previous states
         self._keyboard_disabled = keyboard_state_tmp
@@ -616,8 +629,10 @@ class Window (QMainWindow):
         self._keyboard_disabled = True
         self._mouse_disabled = True
 
-        file_path = QFileDialog.getOpenFileName(self, 'Open File', macros_folder, "Text files (*.txt)")[0]        
-        if file_path != '':
+        file_path = QFileDialog.getOpenFileName(self, 'Open File', macros_folder, "Text files (*.txt)")[0]
+        file_name = file_path[file_path.rfind('/')+1:]
+
+        if file_path != '':            
             self._macroBuffer = []
             with open(file_path, "r") as file:
                 for line in file.readlines():
@@ -626,7 +641,12 @@ class Window (QMainWindow):
                         continue
                     else:
                         self._macroBuffer.append(cmd)
+            
+            self.updateMacroStatusLabel("Running {}".format(file_name))
+            self.app_obj.processEvents()
             self.executeMacroBuffer()
+            self.updateMacroStatusLabel("Idle")
+            
         
         # return previous states
         self._keyboard_disabled = keyboard_state_tmp
@@ -635,6 +655,9 @@ class Window (QMainWindow):
 
     def getShortcutText(self, key, modifiers):
         return " + ".join((key, ) + tuple(modifiers))
+
+    def updateMacroStatusLabel(self, text):
+        self.macroStatusLabel.setText("<font size='5'>Macro status: {}</font>".format(text))
 
     #Menu Functions
 
@@ -1137,7 +1160,7 @@ class Window (QMainWindow):
                 
                 self.send_action("keyevent", key, modifiers, event)
             elif cmd_type == "keypress":
-                print("keypress args", cmd_args) #temp
+                #print("keypress args", cmd_args) #temp
                 key = cmd_args[0]
                 modifiers = []                
                 if len(cmd_args) > 1:
@@ -1161,7 +1184,7 @@ class Window (QMainWindow):
                 delay_value = float(cmd_args[0])
                 sleep(delay_value/1000.0)
             elif cmd_type == "type":
-                print("got type command: ", cmd_args[0]) #temp
+                #print("got type command: ", cmd_args[0]) #temp
                 for char in cmd_args[0]:
                     type_key, type_mods = relaykeys_cli.char_to_keyevent_params(char)
                     
