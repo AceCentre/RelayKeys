@@ -6,8 +6,8 @@ Name "${NAME}"
 Outfile "${NAME} setup.exe"
 ;RequestExecutionlevel highest
 RequestExecutionLevel admin ;Require admin rights on NT6+ (When UAC is turned on)
-;SetCompressor LZMA
-SetCompress Off
+SetCompressor LZMA
+;SetCompress Off
 
 Var NormalDestDir
 Var PortableDestDir
@@ -169,6 +169,7 @@ Section Uninstall
     SimpleSC::StopService "RelayKeysDaemon" 10 30
     SimpleSC::RemoveService "RelayKeysDaemon"
     Delete "$INSTDIR\uninstall.exe"
+    SetShellVarContext all
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk"
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Help.lnk"
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Uninstall.lnk"
