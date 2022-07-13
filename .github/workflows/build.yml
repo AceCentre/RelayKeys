@@ -12,6 +12,12 @@ jobs:
       run: |
         scoop bucket add extras
         scoop install nsis
+    - name Install SCService Plugin
+      run:  |
+        scoop install curl unzip
+        curl -oL https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip ss.zip
+        unzip ss.zip
+        move NSIS_Simple_Service_Plugin_Unicode\SimpleSC.dll ~\scoop\apps\nsis\3.08\Plugins\x86-unicode\
     - name: Print NSIS version
       run: makensis -VERSION
     - name: Print NSIS compile flags
