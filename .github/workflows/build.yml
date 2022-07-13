@@ -11,10 +11,10 @@ jobs:
       with:
         allow-install-as-admin: true
         extension: 'ps1'
+    - name: Install NSIS
       run: |
         scoop bucket add extras
         scoop install nsis
-        scoop install python310
     - name: Print NSIS version
       run: makensis -VERSION
     - name: Print NSIS compile flags
@@ -22,6 +22,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install Python
       run:  |
+        scoop install python310
         pip install -r requirements.txt 
         python build.py
-
