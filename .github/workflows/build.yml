@@ -22,8 +22,4 @@ jobs:
 
     - run: pip install -r requirements.txt 
     - run: python build.py
-    # Optionally verify that it works (provided that it does not need user interaction)
-    - ./RelayKeysSetup.exe
-    - uses: actions/upload-artifact@v2
-      with:
-        path: dist/*
+
