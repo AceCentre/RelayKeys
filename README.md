@@ -28,6 +28,10 @@ Well a range of purposes. For some - its just a convenient way of saving some mo
 
 For the [AceCentre](http://acecentre.org.uk) we want people with disabilities who are forced to use one system (e.g. a dedicated Eyegaze system) to be able to access other computers and systems they may need to use for work or leisure. This has only been available on a couple of commercial AAC systems - and often need to be on the same network which is sadly often impossible in schools or government workplaces - Or they do work over bluetooth but for only one system in the field exists like this (see [here for more details on these](https://docs.acecentre.org.uk/products/v/relaykeys/developers/other-projects#aac-projects)). Some people may also want to jyst control their tablet or phone using this technique rather than rely on computer control functions - for example to control music software or photo editing software which usually demands the full screen. Or others want to make custom full screen custom keyboards using their specialist software. 
 
+**Why not just rely on other solutions?** Some commercial solutions are great. We advocate using them over our solution when you can. When you can't (e.g. no alternative or restrictions to what devices you can control) then this may be a solution. 
+
+**We are a commercial developer.. I like it but I think I could do it differently**. Thats great! But please consider the end user. If you as a commercial supplier dont want to continue making this hardware/software solution in the future consider a route to how a user could use a open solution. Please consider either replicating our command set at a serial or CLI level. 
+
 ![Image of Person Using AAC](https://acecentre.org.uk/wp-content/uploads/2017/05/Helping-children-with-AAC-needs-1280x492.jpg)
 
 
