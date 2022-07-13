@@ -1,5 +1,5 @@
 ---
-cover: .gitbook/assets/jessimage.jpeg
+cover: .gitbook/assets/jessimage (1).jpeg
 coverY: 0
 ---
 
@@ -19,7 +19,9 @@ For the [AceCentre](http://acecentre.org.uk/) we want people with disabilities w
 
 **Why not just rely on other solutions?** Some commercial solutions are great. We advocate using them over our solution when you can. When you can't (e.g. no alternative or restrictions to what devices you can control) then this may be a solution.
 
-**We are a commercial developer.. I like it but I think I could do it differently**. Thats great! But please consider the end user. If you as a commercial supplier don**'**t want to continue making this hardware/software solution in the future consider a route to how a user could use a open solution. Please consider either replicating our command set at a serial or CLI level.
+**We are a commercial developer.. I like it but I think I could do it differently**. Thats great! But please consider the end user. If you as a commercial supplier dont want to continue making this hardware/software solution in the future consider a route to how a user could use a open solution. Please consider either replicating our command set at a serial or CLI level. Are we missing something that your solution provides? Please let us know so we can improve it.
+
+**Why not just do this in software alone?** Sure. If you can. On windows - its not possible.. Yet. Maybe in Windows 11. In MacOS it _should_be - and iOS & Android its definitely possible. But our solution kind of offloads the problem. If you work in one of the mobile environments and want to replicate the functionality go for it - just please consider following some similarity in command structure (take a look at the macros for example)
 
 **By creating an open system we aim for longeivity; even if a developer wants to create their own system we ask to make it compatible by using the same standard way of calling devices.**
 

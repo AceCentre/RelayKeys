@@ -6,7 +6,7 @@ When you use our installer it installs this as a service. If you run the code wi
 
 ## --noserial
 
-Run the daemon and dont try and connect to hardware. If you are on linux/MacOS you can fake a serial port [following these tips](../../developers/supported-boards.html#developing-without-a-board). If you are on Windows just fix a COM port in the config file or use the `--dev` option - just choose a non-existent COM port
+Run the daemon and dont try and connect to hardware. If you are on linux/MacOS you can fake a serial port [following these tips](supported-boards.md#developing-without-a-board). If you are on Windows just fix a COM port in the config file or use the `--dev` option - just choose a non-existent COM port
 
 ## --dev
 
@@ -36,7 +36,7 @@ File to use as a log file for the debugging messages.
 
 ## --config=configfile
 
-File to use as a config file. For more info see [here](../../developers/relaykeys-cfg.html)
+File to use as a config file. For more info see [here](relaykeys-cfg.md)
 
 **Default: relaykeys.cfg**
 

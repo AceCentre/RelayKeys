@@ -6,7 +6,7 @@
 
 So RelayKeys consists of a hardware solution that talks Bluetooth HID to secondary devices - anything that can pair with bluetooth and understand a keyboard works, and some software on the 'server' device; i.e. the device sending the key/mouse movements. So for our installation we really focus on the 'server' since the client needs no additional hardware or software.
 
-![RelayKeys Overview](img/overview.png)
+![RelayKeys Overview](.gitbook/assets/overview.png)
 
 ## Requirements
 
@@ -54,17 +54,17 @@ You can do this in three different ways:
 
 ### Pair with a Windows Computer
 
-So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys" ![Pairing Windows](img/screenshots/windows-pairing.gif)
+So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys" ![Pairing Windows](.gitbook/assets/windows-pairing.gif)
 
 ### Pair with an iOS device
 
-To connect to an iPad/iPhone, go to Settings, Bluetooth and add "Bluefruit52" or "RelayKeys" ![Pairing iPad](img/screenshots/ipad-pairing.gif)
+To connect to an iPad/iPhone, go to Settings, Bluetooth and add "Bluefruit52" or "RelayKeys" ![Pairing iPad](.gitbook/assets/ipad-pairing.gif)
 
 ### Pair with a Mac
 
 To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
 
-![Pairing Mac](img/screenshots/mac-pairing.gif)
+![Pairing Mac](.gitbook/assets/mac-pairing.gif)
 
 ## Wireless mode
 
