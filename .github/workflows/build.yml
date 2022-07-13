@@ -6,10 +6,8 @@ jobs:
   build:
     runs-on: windows-latest      
     steps:
-    - uses: sharpninja/install-scoop-action@master
-      with:
-        allow-install-as-admin: true
-        extension: 'ps1'
+    - name: Set up scoop (Windows)
+      uses: brechtm/setup-scoop@v2
     - name: Install NSIS
       run: |
         scoop bucket add extras
