@@ -1,5 +1,5 @@
 ---
-cover: .gitbook/assets/jessimage (1).jpeg
+cover: .gitbook/assets/jessimage.jpeg
 coverY: 0
 ---
 
@@ -13,7 +13,15 @@ coverY: 0
 
 ### Why?
 
-Solutions exist to do the same thing - either over a network connection (which can be laggy, slow and hard to configure reliably), or over wired serial connections but these are not easy to implement. Some commercial solutions exist but these are operating system/device specific or have been discontinued. We wanted to create something that is device agnostic and open. Too often indviduals with disabilities are let down when features are no longer profitable for companies to keep developing. **By creating an open system we aim for longeivity; even if a developer wants to create their own system we ask to make it compatible by using the same standard way of calling devices.**
+Well a range of purposes. For some - its just a convenient way of saving some money on a [KVM switch](https://en.wikipedia.org/wiki/KVM\_switch) - or replacing now hard to find [commercial solutions](https://docs.acecentre.org.uk/products/v/relaykeys/developers/other-projects).
+
+For the [AceCentre](http://acecentre.org.uk/) we want people with disabilities who are forced to use one system (e.g. a dedicated Eyegaze system) to be able to access other computers and systems they may need to use for work or leisure. This has only been available on a couple of commercial AAC systems - and often need to be on the same network which is sadly often impossible in schools or government workplaces - Or they do work over bluetooth but for only one system in the field exists like this (see [here for more details on these](https://docs.acecentre.org.uk/products/v/relaykeys/developers/other-projects#aac-projects)). Some people may also want to jyst control their tablet or phone using this technique rather than rely on computer control functions - for example to control music software or photo editing software which usually demands the full screen. Or others want to make custom full screen custom keyboards using their specialist software.
+
+**Why not just rely on other solutions?** Some commercial solutions are great. We advocate using them over our solution when you can. When you can't (e.g. no alternative or restrictions to what devices you can control) then this may be a solution.
+
+**We are a commercial developer.. I like it but I think I could do it differently**. Thats great! But please consider the end user. If you as a commercial supplier don**'**t want to continue making this hardware/software solution in the future consider a route to how a user could use a open solution. Please consider either replicating our command set at a serial or CLI level.
+
+**By creating an open system we aim for longeivity; even if a developer wants to create their own system we ask to make it compatible by using the same standard way of calling devices.**
 
 {% embed url="https://www.youtube.com/watch?v=2wrZMGWgvcE" %}
 **Short demonstration of the main aspects of RelayKeys**
