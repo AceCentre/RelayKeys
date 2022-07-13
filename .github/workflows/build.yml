@@ -12,7 +12,6 @@ jobs:
       run: |
         scoop bucket add extras
         scoop install nsis
-        Get-Command nsis
     - name: Install SCService Plugin
       run:  |
         scoop install curl unzip
