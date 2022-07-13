@@ -1,0 +1,29 @@
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Install NSIS
+      run: |
+        Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+        scoop bucket add extras
+        scoop install nsis
+    - name: Print NSIS version
+      run: makensis -VERSION
+    - name: Print NSIS compile flags
+      run: makensis -HDRINFO
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.7
+
+    - run: pip install -r requirements.txt 
+    - run: python build.py
+    # Optionally verify that it works (provided that it does not need user interaction)
+    - ./RelayKeysSetup.exe
+    - uses: actions/upload-artifact@v2
+      with:
+        path: dist/*
