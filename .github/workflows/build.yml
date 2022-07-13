@@ -8,7 +8,9 @@ jobs:
     steps:
     - name: Install NSIS
       run: |
-        Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+        irm get.scoop.sh -outfile 'install.ps1'
+        .\install.ps1 -RunAsAdmin [-OtherParameters ...]
+        iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
         scoop bucket add extras
         scoop install nsis
     - name: Print NSIS version
@@ -16,10 +18,9 @@ jobs:
     - name: Print NSIS compile flags
       run: makensis -HDRINFO
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v4
-      with:
-        python-version: 3.7
-
-    - run: pip install -r requirements.txt 
-    - run: python build.py
+    - name: Install Python
+      run:  |
+        scoop install python310
+        pip install -r requirements.txt 
+        python build.py
 
