@@ -15,8 +15,8 @@ jobs:
     - name: Install SCService Plugin
       run:  |
         scoop install curl unzip
-        curl -oL https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip ss.zip
-        unzip ss.zip
+        curl -oL https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip
+        unzip NSIS_Simple_Service_Plugin_Unicode_1.30.zip
         move NSIS_Simple_Service_Plugin_Unicode\SimpleSC.dll ~\scoop\apps\nsis\3.08\Plugins\x86-unicode\
     - uses: actions/checkout@v2
     - name: Install Python
