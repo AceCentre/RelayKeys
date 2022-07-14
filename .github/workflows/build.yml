@@ -36,7 +36,7 @@ jobs:
         CERTP12B64: ${{ secrets.CERTP12B64 }}
         CERTPASSWORD: ${{ secrets.CERTPASSWORD }}
       run: |
-        curl -L http://www.ssesetup.com/ezsignit.html#:~:text=Portable%20version%20available-,here,-See%20the%20redist --output ezsign.zip 
+        curl -L "http://www.ssesetup.com/ezsignit.html#:~:text=Portable%20version%20available-,here,-See%20the%20redist" --output ezsign.zip 
         unzip ezsign.zip
         echo $CERTP12B64 | base64 --decode > ./win-cert.pfx
     - name: Sign Windows Binary
