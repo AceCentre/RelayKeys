@@ -17,11 +17,11 @@ jobs:
         scoop install curl unzip
         curl -L https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip --output ss.zip
         unzip ss.zip
-        dir
         move SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\"        
     - uses: actions/checkout@v2
     - name: Install Python
       run:  |
+        type nul >> "logile.txt"
         scoop install python310
         pip install -r requirements.txt 
         pip install -r requirements-build.txt
