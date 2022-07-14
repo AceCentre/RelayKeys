@@ -31,6 +31,5 @@ jobs:
       with:
         certificate: '${{ secrets.CERTP12B64 }}'
         password: '${{ secrets.CERTPASSWORD }}'
-        certificatesha1: '${{ secrets.CERTHASH }}'
         folder: 'RelayKeys setup.exe'
         recursive: true
