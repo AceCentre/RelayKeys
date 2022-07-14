@@ -17,12 +17,18 @@ from pynput import mouse, keyboard
 from PyQt5.QtCore import pyqtSignal, Qt, pyqtSlot, QObject, QThread, QUrl
 from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QApplication, QSystemTrayIcon, \
-    QMessageBox, QLabel, QAction, QMenu, QMenuBar, QDialog, QPushButton, QMainWindow
+    QMessageBox, QLabel, QAction, QMenu, QMenuBar, QDialog, QPushButton, QMainWindow, QFileDialog
     
 from threading import Timer, Thread
 from queue import Queue, Empty as EmptyQueue
 
 import types
+
+from pathlib import Path
+
+# this import is only to support 'type' command in macrofiles
+import importlib
+relaykeys_cli = importlib.import_module("relaykeys-cli")
 
 parser = argparse.ArgumentParser(description='Relay Keys qt client.')
 parser.add_argument('--debug', dest='debug', action='store_const',
@@ -34,6 +40,8 @@ parser.add_argument('--url', '-u', dest='url', default=None,
                     help='rpc http url, default: http://127.0.0.1:5383/')
 
 devList = []
+
+macros_folder = str(Path(__file__).resolve().parent / "macros")
 
 modifiers_map = dict([
     (keyboard.Key.ctrl_l, "LCTRL"),
@@ -337,12 +345,15 @@ class Window (QMainWindow):
     showErrorMessageSignal = pyqtSignal(str)
     addDeviceSignal = pyqtSignal(str, types.MethodType)
     addSeparatorSignal = pyqtSignal()
+    toggleRecordSignal = pyqtSignal()
 
     def __init__(self, args, config):
         self.devList = []
         super(Window, self).__init__()
         clientconfig = config["client"]
 
+        self.app_obj = QApplication.instance()
+        
         self.showErrorMessageSignal.connect(self.showErrorMessage)
         self._keyboard_disabled = False
         self._mouse_disabled = True
@@ -359,6 +370,8 @@ class Window (QMainWindow):
         self._last_mouse_pos = None
         self._last_mouse_calltime = 0
         self._curBleDeviceName = '---'
+        self._macroBuffer = []
+        self._recordMacroStatus = False
 
         url = clientconfig.get("url", None) if args.url == None else args.url
         host = clientconfig.get("host", None)
@@ -372,6 +385,13 @@ class Window (QMainWindow):
             if url is None:
                 url = "http://127.0.0.1:5383/"
             self.client = RelayKeysClient(url=url)
+        
+        # loading ketmap for supporting type command in macros
+        if "cli" not in config.sections():
+            config["cli"] = {}  
+        if not relaykeys_cli.load_keymap_file(config["cli"]):
+            return
+
         self._client_queue = Queue(64)
         t = Thread(target=self.client_worker, args=(self._client_queue,))
         t.start()
@@ -425,11 +445,44 @@ class Window (QMainWindow):
         bleControlBar.addWidget(self.bleConnectionSwitch)
         bleControlBar.addWidget(self.bleDeviceRead)
 
+        # macro controls section
+        macroControlBar = QHBoxLayout()
+        
+        self.macroRecordSwitch = QPushButton()
+        self.macroRecordSwitch.setText('Start recording macro')
+        self.macroRecordSwitch.setToolTip('Start recording new macro')
+        self.macroRecordSwitch.clicked.connect(self.toggleMacroRecord)
+        self.macroRecordSwitch.setFocusPolicy(Qt.NoFocus)
+        macroControlBar.addWidget(self.macroRecordSwitch)        
+        
+        self.replayMacroSwitch = QPushButton()
+        self.replayMacroSwitch.setText('Replay last macro')
+        self.replayMacroSwitch.setToolTip('Replay last macro')
+        self.replayMacroSwitch.clicked.connect(self.replayLastMacro)
+        self.replayMacroSwitch.setFocusPolicy(Qt.NoFocus)
+        macroControlBar.addWidget(self.replayMacroSwitch)
+        
+        self.executeMacroSwitch = QPushButton()
+        self.executeMacroSwitch.setText('Run macro file')
+        self.executeMacroSwitch.setToolTip('Run macro file')
+        self.executeMacroSwitch.clicked.connect(self.loadMacroFile)
+        self.executeMacroSwitch.setFocusPolicy(Qt.NoFocus)
+        macroControlBar.addWidget(self.executeMacroSwitch)
+
+        self.toggleRecordSignal.connect(self.toggleMacroRecord)
+        
+        self.macroStatusLabel = QLabel()
+        self.macroStatusLabel.setAlignment(Qt.AlignCenter)
+        self.updateMacroStatusLabel("Idle")
+        
+
         self.updateTogglesStatus()
         controlBar.addLayout(keyboardControlSect)
         controlBar.addLayout(mouseControlSect)
         mainLayout.addLayout(controlBar)
         mainLayout.addLayout(bleControlBar)
+        mainLayout.addLayout(macroControlBar)
+        mainLayout.addWidget(self.macroStatusLabel)
 
         self.keyboardStatusWidget = KeyboardStatusWidget()
         mainLayout.addWidget(self.keyboardStatusWidget)
@@ -465,7 +518,7 @@ class Window (QMainWindow):
         self.setContentsMargins(0, 0, 0, 0)
 
         self.setWindowTitle("Relay Keys Display")
-        self.resize(400, 250)
+        self.resize(400, 350)
 
         # New Menu
         self.userMenu = self.menuBar()
@@ -533,8 +586,78 @@ class Window (QMainWindow):
         self._mouse_disabled = not self._mouse_disabled
         self.updateTogglesStatus()
 
+    @pyqtSlot()
+    def toggleMacroRecord(self):
+        self._recordMacroStatus = not self._recordMacroStatus
+        if self._recordMacroStatus:
+            self.updateMacroStatusLabel("Recording new macro")
+            self.macroRecordSwitch.setText('Stop recording macro')
+            self._macroBuffer = []
+        else:
+            self.macroRecordSwitch.setText('Start recording macro')
+            self.saveMacro()
+            self.updateMacroStatusLabel("Idle")
+
+    @pyqtSlot()
+    def replayLastMacro(self):
+        if self._recordMacroStatus or len(self._macroBuffer) == 0:
+            return
+
+        # remember previous states and disable sending keyboard and mouse actions while executing macro
+        keyboard_state_tmp = self._keyboard_disabled    
+        mouse_state_tmp = self._mouse_disabled
+        self._keyboard_disabled = True
+        self._mouse_disabled = True
+
+        self.updateMacroStatusLabel("Replaying last macro")
+        self.app_obj.processEvents()
+        self.executeMacroBuffer()
+        self.updateMacroStatusLabel("Idle")
+
+        # return previous states
+        self._keyboard_disabled = keyboard_state_tmp
+        self._mouse_disabled = mouse_state_tmp
+
+    @pyqtSlot()
+    def loadMacroFile(self):
+        if self._recordMacroStatus:
+            return
+
+        # remember previous states and disable sending keyboard and mouse actions while executing macro
+        keyboard_state_tmp = self._keyboard_disabled    
+        mouse_state_tmp = self._mouse_disabled
+        self._keyboard_disabled = True
+        self._mouse_disabled = True
+
+        file_path = QFileDialog.getOpenFileName(self, 'Open File', macros_folder, "Text files (*.txt)")[0]
+        file_name = file_path[file_path.rfind('/')+1:]
+
+        if file_path != '':            
+            self._macroBuffer = []
+            with open(file_path, "r") as file:
+                for line in file.readlines():
+                    cmd = line.strip("\n")
+                    if cmd == "":
+                        continue
+                    else:
+                        self._macroBuffer.append(cmd)
+            
+            self.updateMacroStatusLabel("Running {}".format(file_name))
+            self.app_obj.processEvents()
+            self.executeMacroBuffer()
+            self.updateMacroStatusLabel("Idle")
+            
+        
+        # return previous states
+        self._keyboard_disabled = keyboard_state_tmp
+        self._mouse_disabled = mouse_state_tmp
+
+
     def getShortcutText(self, key, modifiers):
         return " + ".join((key, ) + tuple(modifiers))
+
+    def updateMacroStatusLabel(self, text):
+        self.macroStatusLabel.setText("<font size='5'>Macro status: {}</font>".format(text))
 
     #Menu Functions
 
@@ -825,6 +948,10 @@ class Window (QMainWindow):
         return False
 
     def send_action(self, action, *args):
+        # capture actions if recording
+        if self._recordMacroStatus:            
+            self.appendMacroCommand(action, args)
+
         self._client_queue.put((action,) + args)
 
     def checkShortcutTrigger(self, key, mods, tkey, tmods):
@@ -867,11 +994,19 @@ class Window (QMainWindow):
                 self._modifiers.append(mod)
         elif key_ev not in self._unknown_keys:
             self._unknown_keys.append(key_ev)
+
+        # check for SHIFT+ESC combination that toggles macro recording
+        if len(self._keys) != 0 and len(self._modifiers) != 0:
+            if self._keys[0] == "ESCAPE" and self._modifiers[0] == "LSHIFT":                
+                self.toggleRecordSignal.emit()
+                return
+        
         ret = self._keyboardToggleCheck(key)
         if ret is not None:
             return
         if self._keyboard_disabled:
             return
+
         self.updateKeyboardState()
         if key is not None:
             if isinstance(key_ev, keyboard.KeyCode) and self._show_last_n_chars > 0:
@@ -894,7 +1029,6 @@ class Window (QMainWindow):
         mod = None
         if(isinstance(key_ev, keyboard.KeyCode)):            
             key = keysmap_printable.get(key_ev.vk, None)
-            print(key)
         else:           
            key = keysmap_non_printable.get(key_ev, None)
            mod = modifiers_map.get(key_ev, None)
@@ -968,6 +1102,101 @@ class Window (QMainWindow):
         self._keystate_update_timer = Timer(0.05, self.onUpdateKeyState)
         self._keystate_update_timer.start()
 
+
+    def appendMacroCommand(self, action, args):        
+        recorded_cmd = action + ":"
+        if action == "keyevent":
+            recorded_cmd += str(args[0]) + ","
+            if len(args[1])==0:
+                recorded_cmd += "None,"
+            else:
+                recorded_cmd += ",".join(args[1]) + ","
+            recorded_cmd += str(int(args[2]))
+        elif action == "mousemove":
+            for arg in args:
+                recorded_cmd += str(arg) + ","
+            recorded_cmd = recorded_cmd[0:-1]
+        elif action == "mousebutton":
+            recorded_cmd += ",".join(args)
+        else:
+            return
+        
+        self._macroBuffer.append(recorded_cmd)
+    
+    def saveMacro(self):
+        if len(self._macroBuffer) == 0:
+            return
+        
+        # remember previous states and disable sending keyboard and mouse actions while saving
+        keyboard_state_tmp = self._keyboard_disabled    
+        mouse_state_tmp = self._mouse_disabled
+        self._keyboard_disabled = True
+        self._mouse_disabled = True
+
+        file_path = QFileDialog.getSaveFileName(self, 'Save File', macros_folder, "Text files (*.txt)")[0]
+        if file_path != '':
+            with open(file_path, "w") as file:            
+                for line in self._macroBuffer:
+                    file.write(line)
+                    file.write('\n')
+        
+        
+        # return previous states
+        self._keyboard_disabled = keyboard_state_tmp
+        self._mouse_disabled = mouse_state_tmp
+
+    def executeMacroBuffer(self):        
+        for command in self._macroBuffer:
+            parts = command.split(":")
+            cmd_type = parts[0]
+            cmd_args = parts[1].split(",")
+            
+            if cmd_type == "keyevent":
+                key = cmd_args[0]
+                modifiers = []                
+                if cmd_args[1] != "None":
+                    modifiers = cmd_args[1:-1]
+                event = bool(int(cmd_args[-1]))
+                
+                self.send_action("keyevent", key, modifiers, event)
+            elif cmd_type == "keypress":
+                #print("keypress args", cmd_args) #temp
+                key = cmd_args[0]
+                modifiers = []                
+                if len(cmd_args) > 1:
+                    modifiers = cmd_args[1:]
+                
+                self.send_action("keyevent", key, modifiers, True)
+                sleep(0.05)
+                self.send_action("keyevent", key, modifiers, False)
+
+            elif cmd_type == "mousemove":
+                if len(cmd_args) == 4:                
+                    self.send_action("mousemove", int(cmd_args[0]), int(cmd_args[1]), int(cmd_args[2]), int(cmd_args[3]))
+                else:
+                    self.send_action("mousemove", int(cmd_args[0]), int(cmd_args[1]))
+            elif cmd_type == "mousebutton":
+                if len(cmd_args) == 2:                
+                    self.send_action("mousebutton", cmd_args[0], cmd_args[1])
+                else:
+                    self.send_action("mousebutton", cmd_args[0])
+            elif cmd_type == "delay":
+                delay_value = float(cmd_args[0])
+                sleep(delay_value/1000.0)
+            elif cmd_type == "type":
+                #print("got type command: ", cmd_args[0]) #temp
+                for char in cmd_args[0]:
+                    type_key, type_mods = relaykeys_cli.char_to_keyevent_params(char)
+                    
+                    self.send_action("keyevent", type_key, type_mods, True)
+                    sleep(0.05)
+                    self.send_action("keyevent", type_key, type_mods, False)
+                    sleep(0.05)
+                pass
+            else:
+                continue
+
+            sleep(0.05)
 
 
 
