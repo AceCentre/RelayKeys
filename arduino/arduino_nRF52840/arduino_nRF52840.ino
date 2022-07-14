@@ -860,7 +860,7 @@ const command_action_t commands[] = {
 void update_connections(uint16_t conn_handle){
     target_ble_conn = 1;
     response_ble_conn = 0;
-    if(connection_count == 2 && conn_handle == 1) {
+    if(conn_handle == 1) {
       target_ble_conn = 0;      
       response_ble_conn = 1;
     }
@@ -881,14 +881,15 @@ void execute(uint16_t conn_handle, char *myLine)
     return;
 
   toLower(cmd);
+
+  if(ble_mode) {
+    update_connections(conn_handle);
+  }
   
   for (size_t i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
   {
     if (strcmp(cmd, commands[i].command) == 0)
-    {      
-      if(ble_mode) {
-        update_connections(conn_handle);
-      }
+    {
       commands[i].action(myLine); //strtok(NULL, "=")
       if(!ble_mode) {
         delay(30);
@@ -936,7 +937,7 @@ void at_response(char *msg) {
   int len = strlen(msg);
 
   if(ble_mode) {
-    bleuart.write(response_ble_conn, (const uint8_t*)msg, len);    
+    bleuart.write(response_ble_conn, (const uint8_t*)msg, len);
   } else {
     Serial.write(msg, len);
   }
