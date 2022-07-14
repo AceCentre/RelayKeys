@@ -27,10 +27,10 @@ jobs:
         pip install -r requirements-build.txt
         python build.py
     - name: Sign Windows Binary
-      uses: nodefactoryio/windows-codesign-action@master
+      uses: DanaBear/code-sign-action@v4
       with:
-        binaryPath: RelayKeys setup.exe
-        verify: "true"
-        keystore: ${{ secrets.CERTP12B64 }}
-        password: ${{ secrets.CERTPASSWORD }}
-        appName: 'RelayKeys'
+        certificate: '${{ secrets.CERTP12B64 }}'
+        password: '${{ secrets.CERTPASSWORD }}'
+        certificatesha1: '${{ secrets.CERTHASH }}'
+        folder: 'RelayKeys setup.exe'
+        recursive: true
