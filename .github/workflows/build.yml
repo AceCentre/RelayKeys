@@ -17,6 +17,7 @@ jobs:
         scoop install curl unzip
         curl -L https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip --output ss.zip
         unzip ss.zip
+        dir
         move NSIS_Simple_Service_Plugin_Unicode\SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\Plugins\x86-unicode\"
     - uses: actions/checkout@v2
     - name: Install Python
@@ -29,7 +30,7 @@ jobs:
       uses: nodefactoryio/windows-codesign-action@master
          binaryPath: ".\RelayKeys setup.exe"
          verify: "true"
-         keystore: ${{ secrets.KEYSTORE }}
-         password: ${{ secrets.PASSWORD }}
+         keystore: ${{ secrets.CERTP12B64 }}
+         password: ${{ secrets.CERTPASSWORD }}
          appName: 'RelayKeys'
          domain: 'acecentre.org.uk'
