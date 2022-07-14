@@ -31,10 +31,10 @@ jobs:
         mkdir 'Installer'
         move 'RelayKeys setup.exe' 'Installer\'
     - name: Sign Windows Binary
-      uses: DanaBear/code-sign-action@v4
+      uses: GabrielAcostaEngler/signtool-code-sign@main
       with:
         certificate: '${{ secrets.CERTP12B64 }}'
-        password: '${{ secrets.CERTPASSWORD }}'
-        certificatesha1: "${{ secrets.CERTHASH }}"
+        cert-password: '${{ secrets.CERTPASSWORD }}'
+        cert-sha1: "${{ secrets.CERTHASH }}"
         folder: 'Installer'
         recursive: false
