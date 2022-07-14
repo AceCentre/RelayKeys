@@ -19,6 +19,8 @@ jobs:
         unzip ss.zip
         dir
         move SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\Plugins\x86-unicode\"
+        where nsis 
+        
     - uses: actions/checkout@v2
     - name: Install Python
       run:  |
