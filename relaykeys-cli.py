@@ -15,6 +15,8 @@ import pyperclip
 
 from relaykeysclient import RelayKeysClient
 
+from notifypy import Notify
+
 parser = argparse.ArgumentParser(description='Relay keys daemon, BLEHID controller.')
 parser.add_argument('--debug', dest='debug', action='store_const',
                     const=True, default=False,
@@ -25,6 +27,8 @@ parser.add_argument('--url', '-u', dest='url', default=None,
                     help='rpc http url, default: http://127.0.0.1:5383/')
 parser.add_argument('--delay', dest='delay', type=int, default=0,
                     help='delay between each call, in miliseconds')
+parser.add_argument('--notify', dest='notify', action='store_const',
+                    const=True, default=False, help='Send response as notification')
 parser.add_argument('-f', dest='macro',
                     default=None, help='Path to macro file')
 parser.add_argument('commands', metavar='COMMAND', nargs='*',
@@ -72,6 +76,17 @@ def parse_macro(file_arg):
         macro_commands.append(cmd)
 
   return macro_commands
+
+def send_notification(command_type, command, result):
+  notification = Notify()
+  notification.application_name = "Relaykeys"
+  notification.title = command_type + " response" 
+  if isinstance(result, list):
+    result = "\n" + "\n".join(result)
+  notification.message = command + " : " + result
+
+  
+  notification.send()
 
 def parse_commamd (cmd):
   """Parses a command provide from the command line.
@@ -159,13 +174,25 @@ def do_mousebutton (client, btn, behavior=None):
   else:
     logging.info("mousebutton ({}, {}) response: {}".format(btn, behavior, ret["result"]))
 
-def do_devicecommand(client, devcommand):
+def do_devicecommand(client, devcommand, notify=False):
   ret = client.ble_cmd(devcommand)
   if 'result' not in ret:
     logging.error("devicecommand ({}) response error: {}".format(devcommand, ret.get("error", "undefined")))
     raise CommandErrorResponse()
   else:
     logging.info("devicecommand ({}) response : {}".format(devcommand, ret["result"]))
+    if notify:
+      send_notification("device command", devcommand, ret["result"])
+
+def do_daemoncommand(client, command, notify=False):
+  ret = client.daemon(command)
+  if 'result' not in ret:
+    logging.error("daemoncommand ({}) response error: {}".format(command, ret.get("error", "undefined")))
+    raise CommandErrorResponse()
+  else:
+    logging.info("daemoncommand ({}) response : {}".format(command, ret["result"]))
+    if notify:
+      send_notification("daemon command", command, ret["result"])
 
 def char_to_keyevent_params (char):
   ret = nonchars_key_map.get(char, None)
@@ -275,11 +302,16 @@ def do_main (args, config):
       do_mousebutton(client, btn, behavior)
       if delay > 0:
         sleep(delay/1000.0)
-    elif name == "ble_cmd":
+    elif name == "ble_cmd":      
       parts = data.split(",")
       #print(parts)
       command = parts[0]
-      do_devicecommand(client,command)
+      do_devicecommand(client,command,args.notify)
+    elif name == "daemon":
+      parts = data.split(",")      
+      command = parts[0]
+
+      do_daemoncommand(client,command,args.notify)
     elif name == "delay":
       logging.info("delay: {}ms".format(data))
       delay_value = float(data)
