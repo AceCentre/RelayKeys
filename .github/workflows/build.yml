@@ -26,10 +26,13 @@ jobs:
         pip install -r requirements.txt 
         pip install -r requirements-build.txt
         python build.py
+    - name: Prepare Signing
+      run: mkdir 'Installer'
+      run: move 'RelayKeys setup.exe' 'Installer\'
     - name: Sign Windows Binary
       uses: DanaBear/code-sign-action@v4
       with:
         certificate: '${{ secrets.CERTP12B64 }}'
         password: '${{ secrets.CERTPASSWORD }}'
-        folder: 'RelayKeys setup.exe'
+        folder: 'Installer'
         recursive: true
