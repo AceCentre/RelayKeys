@@ -167,6 +167,14 @@ def do_devicecommand(client, devcommand):
   else:
     logging.info("devicecommand ({}) response : {}".format(devcommand, ret["result"]))
 
+def do_daemoncommand(client, command):
+  ret = client.daemon(command)
+  if 'result' not in ret:
+    logging.error("devicecommand ({}) response error: {}".format(command, ret.get("error", "undefined")))
+    raise CommandErrorResponse()
+  else:
+    logging.info("devicecommand ({}) response : {}".format(command, ret["result"]))
+
 def char_to_keyevent_params (char):
   ret = nonchars_key_map.get(char, None)
   if ret is not None:
@@ -275,11 +283,16 @@ def do_main (args, config):
       do_mousebutton(client, btn, behavior)
       if delay > 0:
         sleep(delay/1000.0)
-    elif name == "ble_cmd":
+    elif name == "ble_cmd":      
       parts = data.split(",")
       #print(parts)
       command = parts[0]
       do_devicecommand(client,command)
+    elif name == "daemon":
+      parts = data.split(",")      
+      command = parts[0]
+
+      do_daemoncommand(client,command)
     elif name == "delay":
       logging.info("delay: {}ms".format(data))
       delay_value = float(data)
