@@ -4,6 +4,7 @@ Allow a Computer to mimic a Bluetooth Keyboard (& Mouse).
 Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then receive the keystrokes. **For full documentation (and updated docs!) see https://docs.acecentre.org.uk/products/v/relaykeys/**
 
 <p align="center">
+  <img src="https://github.com/acecentre/relaykeys/actions/workflows/build.yml/badge.svg?branch=master" alt="Github Action Build workflow status" />
   <img alt="GitHub" src="https://img.shields.io/github/license/acecentre/relaykeys">
   <img alt="GitHub issues" src="https://img.shields.io/github/issues-raw/acecentre/relaykeys">
   <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/acecentre/relaykeys">
