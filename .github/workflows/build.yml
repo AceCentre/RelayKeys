@@ -40,7 +40,7 @@ jobs:
         recursive: false
     - name: Upload exe
       uses: actions/upload-artifact@v3
-        with:
-          name: 'Windows Release'
-          path: 'Installer/RelayKeys setup.exe'
-          retention-days: 5
+      with:
+        name: 'Windows Release'
+        path: 'Installer/RelayKeys setup.exe'
+        retention-days: 5
