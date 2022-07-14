@@ -187,10 +187,10 @@ def do_devicecommand(client, devcommand, notify=False):
 def do_daemoncommand(client, command, notify=False):
   ret = client.daemon(command)
   if 'result' not in ret:
-    logging.error("devicecommand ({}) response error: {}".format(command, ret.get("error", "undefined")))
+    logging.error("daemoncommand ({}) response error: {}".format(command, ret.get("error", "undefined")))
     raise CommandErrorResponse()
   else:
-    logging.info("devicecommand ({}) response : {}".format(command, ret["result"]))
+    logging.info("daemoncommand ({}) response : {}".format(command, ret["result"]))
     if notify:
       send_notification("daemon command", command, ret["result"])
 
