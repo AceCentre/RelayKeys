@@ -27,8 +27,9 @@ jobs:
         pip install -r requirements-build.txt
         python build.py
     - name: Prepare Signing
-      run: mkdir 'Installer'
-      run: move 'RelayKeys setup.exe' 'Installer\'
+      run:  |
+        mkdir 'Installer'
+        move 'RelayKeys setup.exe' 'Installer\'
     - name: Sign Windows Binary
       uses: DanaBear/code-sign-action@v4
       with:
