@@ -7,10 +7,6 @@ jobs:
   build:
     runs-on: windows-latest      
     steps:
-    - shell: cmd
-      env:
-        CERTP12B64: ${{ secrets.CERTP12B64 }}
-        CERTPASSWORD: ${{ secrets.CERTPASSWORD }}
     - name: Set up scoop (Windows)
       uses: brechtm/setup-scoop@v2
     - name: Install NSIS
@@ -35,13 +31,17 @@ jobs:
         mkdir 'Installer'
         move 'RelayKeys setup.exe' 'Installer\'
     - name: Sign Windows Binary prep
+      shell: cmd
+        env:
+          CERTP12B64: ${{ secrets.CERTP12B64 }}
+          CERTPASSWORD: ${{ secrets.CERTPASSWORD }}
       run: |
         curl -L http://www.ssesetup.com/ezsignit.html#:~:text=Portable%20version%20available-,here,-See%20the%20redist --output ezsign.zip 
         unzip ezsign.zip
         echo $CERTP12B64 | base64 --decode > ./win-cert.pfx
     - name: Sign Windows Binary
       run: |
-        EZSignIt.exe /sn "Installer\RelayKeys setup.exe" /d "RelayKeys installer from AceCentre" /f win-cert.pfx /fd SHA256 /trs2 "http://timestamp.comodoca.com/?td=sha256" /p "$CERTPASSWD"
+      EZSignIt.exe /sn "Installer\RelayKeys setup.exe" /d "RelayKeys installer from AceCentre" /f win-cert.pfx /fd SHA256 /trs2 "http://timestamp.comodoca.com/?td=sha256" /p "$CERTPASSWD"
     - name: Upload exe
       uses: actions/upload-artifact@v3
       with:
