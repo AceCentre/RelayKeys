@@ -25,3 +25,11 @@ jobs:
         pip install -r requirements.txt 
         pip install -r equirements-build.txt
         python build.py
+    - name: Sign Windows Binary
+      uses: nodefactoryio/windows-codesign-action@master
+         binaryPath: ".\RelayKeys setup.exe"
+         verify: "true"
+         keystore: ${{ secrets.KEYSTORE }}
+         password: ${{ secrets.PASSWORD }}
+         appName: 'RelayKeys'
+         domain: 'acecentre.org.uk'
