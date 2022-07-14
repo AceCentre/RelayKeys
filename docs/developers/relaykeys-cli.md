@@ -326,6 +326,10 @@ Puts in a a delay of 1 second.&#x20;
 
 ### Device Management Commands
 
+#### Optional extra flag --notfiy
+
+On the following commands you can provide a `--notify` flag. If so your Operating System will return a system notification. Useful if you dont have access to view the command line.&#x20;
+
 `relaykeys-cli.exe ble_cmd:devlist`
 
 Gets a list of devices that the device has in memory
@@ -349,6 +353,18 @@ Remove just one named device from the memory.
 `relaykeys-cli.exe ble_cmd:reconnect`
 
 Tells the daemon/server to try and reconnect to the serial port.
+
+`relaykeys-cli.exe daemon:switch_mode`
+
+Tells the daemon/server to try and switch between wired
+
+`relaykeys-cli.exe daemon:get_mode`
+
+Returns current mode&#x20;
+
+`relaykeys-cli.exe daemon:dongle_status`
+
+Returns whether it is connected or not
 
 ### Command: -f file.txt (Macro)
 
