@@ -31,24 +31,20 @@ jobs:
         mkdir 'Installer'
         move 'RelayKeys setup.exe' 'Installer\'
     - name: Dump cert
-      uses: joutvhu/write-file@v1
+      uses: kitek/decode-base64-into-file-action@1.0
       with:
-        path: win-cert-headers-b64.pfx
-        contents: ${{ secrets.CERTP12B64 }}
-        write_mode: overwrite
-        encoding: base64
+        encoded-value: ${{ secrets.CERTP12B64 }}
+        destination-file: win-cert.p12
     - name: Sign Windows Binary prep
       shell: cmd
       env:
         CERTP12B64: ${{ secrets.CERTP12B64 }}
         CERTPASSWORD: ${{ secrets.CERTPASSWORD }}
       run: |
-        indstr /v CERTIFICATE win-cert-headers-b64.pfx >win-cert-b64.pfx
-        certutil -decode win-cert-b64.pfx win-cert.pfx
         curl -L http://www.ssesetup.com/downloads/EZSignIt41noinstall.zip --output ezsign.zip 
         unzip ezsign.zip
     - name: Sign Windows Binary
-      run: .\EZSignIt.exe /sn "Installer\RelayKeys setup.exe" /d "RelayKeys installer from AceCentre" /f win-cert.pfx /fd SHA256 /trs2 "http://timestamp.comodoca.com/?td=sha256" /p "$CERTPASSWD"
+      run: .\EZSignIt.exe /sn "Installer\RelayKeys setup.exe" /d "RelayKeys installer from AceCentre" /f win-cert.p12 /fd SHA256 /trs2 "http://timestamp.comodoca.com/?td=sha256" /p "$CERTPASSWD"
     - name: Upload exe
       uses: actions/upload-artifact@v3
       with:
