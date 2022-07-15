@@ -19,6 +19,6 @@ jobs:
           # The folder that contains the files to sign.
           folder: . 
           # The password
-          password: ${{ secrets.CERTPASSWD }}
+          password: ${{ secrets.CERTPASSWORD }}
           # The Name of the certificate
  
