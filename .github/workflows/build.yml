@@ -31,7 +31,7 @@ jobs:
         encoded-value: ${{ secrets.CERTP12B64 }}
         destination-file: win-cert.p12
     - name: Sign Windows Binary
-      run: signtool.exe sign /f win-cert.p12 /p "${{ secrets.CERTPASSWD }}" ".\Installer\RelayKeys setup.exe"
+      run: C:\Program/ Files/ (x86)\Windows/ Kits\10\bin\10.0.17763.0\x64\signtool.exe sign /f win-cert.p12 /p "${{ secrets.CERTPASSWD }}" ".\Installer\RelayKeys setup.exe"
     - name: Upload exe
       uses: actions/upload-artifact@v3
       with:
