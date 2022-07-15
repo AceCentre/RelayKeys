@@ -36,18 +36,14 @@ jobs:
         encoded-value: ${{ secrets.CERTP12B64 }}
         destination-file: win-cert.p12
     - name: Sign Windows Binary prep
-      shell: cmd
-      env:
-        CERTP12B64: ${{ secrets.CERTP12B64 }}
-        CERTPASSWORD: ${{ secrets.CERTPASSWORD }}
       run: |
         curl -L http://www.ssesetup.com/downloads/EZSignIt41noinstall.zip --output ezsign.zip 
         unzip ezsign.zip
     - name: Sign Windows Binary
-      run: .\EZSignIt.exe /sn "Installer\RelayKeys setup.exe" /d "RelayKeys installer from AceCentre" /f win-cert.p12 /fd SHA256 /trs2 "http://timestamp.comodoca.com/?td=sha256" /p "$CERTPASSWD"
+      run: .\EZSignIt.exe /sn ".\Installer\RelayKeys setup.exe" /d "RelayKeys installer from AceCentre" /f .\win-cert.p12 /fd SHA256 /trs2 "http://timestamp.comodoca.com/?td=sha256" /p "${{ secrets.CERTPASSWD }}"
     - name: Upload exe
       uses: actions/upload-artifact@v3
       with:
         name: 'Windows Release'
         path: 'Installer/RelayKeys setup.exe'
-        retention-days: 5
+        retention-days: 1
