@@ -45,7 +45,6 @@ jobs:
       run: |
         curl -L http://www.ssesetup.com/downloads/EZSignIt41noinstall.zip --output ezsign.zip 
         unzip ezsign.zip
-        # certutil -decode win-certb64.bin win-cert.pfx
     - name: Sign Windows Binary
       run: EZSignIt.exe /sn "Installer\RelayKeys setup.exe" /d "RelayKeys installer from AceCentre" /f win-cert.pfx /fd SHA256 /trs2 "http://timestamp.comodoca.com/?td=sha256" /p "$CERTPASSWD"
     - name: Upload exe
