@@ -4,11 +4,18 @@ jobs:
   build:
     runs-on: windows-latest      
     steps:
+      - name: Write File
+        uses: DamianReeves/write-file-action@v1.0
+        with:
+          # The path to the file to write
+          path: cert.p12
+          # The contents of the file
+          contents: ${{ secrets.CERTP12B64 }}
       - name: Test sign
         uses: skymatic/code-sign-action@v1.1.0
         with:
           # The base64 encoded certificate.
-          certificate:  ${{ secrets.CERTP12B64 }}
+          certificate:  cert.p12
           # The folder that contains the files to sign.
           folder: . 
           # The password
