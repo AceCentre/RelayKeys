@@ -9,12 +9,6 @@ jobs:
     steps:
     - name: Set up scoop (Windows)
       uses: brechtm/setup-scoop@v2
-    - name: test signtool
-      run:   |
-        pip install getgist
-        getgist realslacker signthis.cmd
-        .\signthis.cmd
-        which signtool.exe
     - name: Install SCService Plugin
       run:  |
         scoop install curl unzip
