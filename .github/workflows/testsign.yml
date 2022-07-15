@@ -1,0 +1,12 @@
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest      
+    steps:
+    - name: test signtool
+      run:   |
+        pip install getgist
+        getgist realslacker signthis.cmd
+        .\signthis.cmd
+        which signtool.exe
