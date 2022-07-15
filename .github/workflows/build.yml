@@ -33,7 +33,7 @@ jobs:
     - name: Dump cert
       uses: joutvhu/write-file@v1
       with:
-        path: in-cert.pfx
+        path: win-cert-headers.pfx
         contents: ${{ secrets.CERTP12B64 }}
         write_mode: overwrite
         encoding: base64
@@ -43,6 +43,7 @@ jobs:
         CERTP12B64: ${{ secrets.CERTP12B64 }}
         CERTPASSWORD: ${{ secrets.CERTPASSWORD }}
       run: |
+        indstr /v CERTIFICATE win-cert-headers.pfx >win-cert.pfx
         curl -L http://www.ssesetup.com/downloads/EZSignIt41noinstall.zip --output ezsign.zip 
         unzip ezsign.zip
     - name: Sign Windows Binary
