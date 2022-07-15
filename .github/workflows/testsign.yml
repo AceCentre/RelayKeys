@@ -4,9 +4,21 @@ jobs:
   build:
     runs-on: windows-latest      
     steps:
-    - name: test signtool
-      run:   |
-        pip install getgist
-        getgist realslacker signthis.cmd
-        .\signthis.cmd
-        which signtool.exe
+      uses: skymatic/code-sign-action@v1.1.0
+      with:
+        # The base64 encoded certificate.
+        certificate: 
+        # The folder that contains the files to sign.
+        folder: 
+        # Recursively search for supported files.
+        recursive: # optional
+        # The password
+        password: # optional
+        # The sha1 or fingerprint of the certification
+        certificatesha1: # optional
+        # The Name of the certificate
+        certificatename: # optional
+        # Description of the signed content (signtool /d flag)
+        description: # optional
+        # URL of the timestamp server
+        timestampUrl: # optional, default is http://timestamp.digicert.com
