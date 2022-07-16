@@ -21,10 +21,6 @@ jobs:
         pip install -r requirements.txt 
         pip install -r requirements-build.txt
         python build.py
-    - name: Prepare Signing
-      run:  |
-        mkdir 'Installer'
-        move 'RelayKeys setup.exe' 'Installer\'
     - name: Dump cert
       uses: kitek/decode-base64-into-file-action@1.0
       with:
@@ -32,10 +28,10 @@ jobs:
         destination-file: win-cert.p12
     - name: Sign Windows Binary
       run:  |
-        "C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe" sign /a /td sha256 /fd sha256 /v /f "win-cert.p12" /p "${{ secrets.CERTPASSWD }}" /v ".\Installer\RelayKeys setup.exe"
+        "C:\Program Files (x86)\Windows Kits\10/bin\10.0.17763.0\x86\signtool.exe" sign /a /td sha256 /fd sha256 /v /f "win-cert.p12" /p "${{ secrets.CERTPASSWD }}" /v "RelayKeys setup.exe"
     - name: Upload exe
       uses: actions/upload-artifact@v3
       with:
         name: 'Windows Release'
-        path: 'Installer/RelayKeys setup.exe'
+        path: 'RelayKeys setup.exe'
         retention-days: 1
