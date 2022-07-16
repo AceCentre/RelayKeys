@@ -28,10 +28,10 @@ jobs:
         destination-file: win-cert.p12
     - name: Sign Windows Binary
       run:  |
-        "C:\Program Files (x86)\Windows Kits\10/bin\10.0.17763.0\x86\signtool.exe" sign /a /td sha256 /fd sha256 /v /f "win-cert.p12" /p "${{ secrets.CERTPASSWD }}" /v "RelayKeys setup.exe"
+        "C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe" sign /a /td sha256 /fd sha256 /v /f "win-cert.p12" /p "${{ secrets.CERTPASSWD }}" /v "RelayKeys setup.exe"
     - name: Upload exe
       uses: actions/upload-artifact@v3
       with:
         name: 'Windows Release'
         path: 'RelayKeys setup.exe'
-        retention-days: 1
+        retention-days: 
