@@ -7,13 +7,10 @@ jobs:
   build:
     runs-on: windows-latest      
     steps:
-    - name: Set up scoop (Windows)
-      uses: brechtm/setup-scoop@v2
     - name: Install SCService Plugin
       run:  |
-        scoop install curl unzip
-        curl -L https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip --output ss.zip
-        unzip ss.zip
+        Invoke-Webrequest -Uri 'https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip' -OutFile ss.zip
+        Expand-Archive ss.zip -DestinationPath .
         move SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\"        
     - uses: actions/checkout@v2
     - name: Install Python
