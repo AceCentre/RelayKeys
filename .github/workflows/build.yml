@@ -10,8 +10,8 @@ jobs:
     - name: Install SCService Plugin
       run:  |
         Invoke-Webrequest -Uri 'https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip' -OutFile ss.zip
-        Expand-Archive ss.zip -DestinationPath .
-        move SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\"        
+        Expand-Archive ss.zip -DestinationPath .\ss
+        move ss\SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\"        
     - uses: actions/checkout@v2
     - name: Install Python
       run:  |
