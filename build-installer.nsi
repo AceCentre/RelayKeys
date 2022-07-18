@@ -142,6 +142,8 @@ Section
       CreateDirectory "$SMPROGRAMS\Ace Centre\RelayKeys"
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk" "$INSTDIR\relaykeys-qt.exe" "" "$INSTDIR\relaykeys-qt.exe" 0
       WinShell::SetLnkAUMI "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk" "${MyApp_AppUserModelId}"
+      CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk" "$INSTDIR\relaykeys-cli-win.exe" "" "$INSTDIR\relaykeys-cli-win.exe" 0
+      WinShell::SetLnkAUMI "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-cli-win.lnk" "AceCentre.RelayKeys.CLI.001"
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-Config.lnk" "$INSTDIR\relaykeys.cfg" "" "$INSTDIR\relaykeys.cfg" 0
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Help.lnk" "$INSTDIR\README.html" "" "$INSTDIR\README.html" 0
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
@@ -181,5 +183,7 @@ Section Uninstall
     Delete "$DESKTOP\RelayKeys-QT.lnk"
     WinShell::UninstAppUserModelId "${MyApp_AppUserModelId}"
     WinShell::UninstShortcut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk"
+    WinShell::UninstAppUserModelId "AceCentre.RelayKeys.CLI.001"
+    WinShell::UninstShortcut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-cli-win.lnk"
     RMDir /r "$INSTDIR"
 SectionEnd
