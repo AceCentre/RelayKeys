@@ -8,6 +8,8 @@ Outfile "${NAME} setup.exe"
 RequestExecutionLevel admin ;Require admin rights on NT6+ (When UAC is turned on)
 SetCompressor LZMA
 ;SetCompress Off
+; CompanyName.ProductName.SubProduct.VersionInformation
+!define MyApp_AppUserModelId "AceCentre.RelayKeys.Desktop.001"
 
 Var NormalDestDir
 Var PortableDestDir
@@ -139,6 +141,7 @@ Section
     ;create start-menu items
       CreateDirectory "$SMPROGRAMS\Ace Centre\RelayKeys"
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk" "$INSTDIR\relaykeys-qt.exe" "" "$INSTDIR\relaykeys-qt.exe" 0
+      WinShell::SetLnkAUMI "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk" "${MyApp_AppUserModelId}"
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-Config.lnk" "$INSTDIR\relaykeys.cfg" "" "$INSTDIR\relaykeys.cfg" 0
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Help.lnk" "$INSTDIR\README.html" "" "$INSTDIR\README.html" 0
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
@@ -176,5 +179,7 @@ Section Uninstall
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Restart-RelayKeys.lnk"
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Restart-Config.lnk"
     Delete "$DESKTOP\RelayKeys-QT.lnk"
+    WinShell::UninstAppUserModelId "${MyApp_AppUserModelId}"
+    WinShell::UninstShortcut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk"
     RMDir /r "$INSTDIR"
 SectionEnd
