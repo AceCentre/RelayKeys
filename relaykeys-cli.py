@@ -17,6 +17,8 @@ from relaykeysclient import RelayKeysClient
 
 from notifypy import Notify
 
+from cli_keymap import *
+
 parser = argparse.ArgumentParser(description='Relay keys daemon, BLEHID controller.')
 parser.add_argument('--debug', dest='debug', action='store_const',
                     const=True, default=False,
@@ -33,24 +35,6 @@ parser.add_argument('-f', dest='macro',
                     default=None, help='Path to macro file')
 parser.add_argument('commands', metavar='COMMAND', nargs='*',
                     help='One or more commands, format: <cmdname>:<data>')
-
-nonchars_key_map = None
-
-def load_keymap_file(config):
-  global nonchars_key_map  
-  keymap_file = Path(__file__).resolve().parent / "cli_keymaps" / config.get("keymap_file", "us_keymap.json")
-  if keymap_file.exists() and keymap_file.is_file():
-    with open(keymap_file, "r") as f:
-      try:
-        nonchars_key_map = json.loads(f.read()) 
-      except Exception as e:
-        print("Invalid keymap json file:", e)
-        return
-  else:
-    print("Invalid path to keymap file:", keymap_file)
-    return False
-  
-  return True
 
 def parse_macro(file_arg):
   # if argument is file name without any path check it in macros folder
@@ -194,16 +178,6 @@ def do_daemoncommand(client, command, notify=False):
     if notify:
       send_notification("daemon command", command, ret["result"])
 
-def char_to_keyevent_params (char):
-  ret = nonchars_key_map.get(char, None)
-  if ret is not None:
-    return ret
-  if (char.isdigit()):
-    return (char,[])
-  if (char.upper() == char):
-    return (char.upper(),["LSHIFT"])
-  return (char.upper(),[])
-    
 def do_main (args, config):
   url = config.get("url", None) if args.url == None else args.url
   host = config.get("host", None)
