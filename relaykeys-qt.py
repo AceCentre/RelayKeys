@@ -27,8 +27,9 @@ import types
 from pathlib import Path
 
 # this import is only to support 'type' command in macrofiles
-import importlib
-relaykeys_cli = importlib.import_module("relaykeys-cli")
+from cli_keymap import *
+#import importlib
+#relaykeys_cli = importlib.import_module("relaykeys-cli")
 
 parser = argparse.ArgumentParser(description='Relay Keys qt client.')
 parser.add_argument('--debug', dest='debug', action='store_const',
@@ -390,7 +391,7 @@ class Window (QMainWindow):
         # loading ketmap for supporting type command in macros
         if "cli" not in config.sections():
             config["cli"] = {}  
-        if not relaykeys_cli.load_keymap_file(config["cli"]):
+        if not load_keymap_file(config["cli"]):
             return
 
         self._client_queue = Queue(64)
@@ -1250,7 +1251,7 @@ class Window (QMainWindow):
             elif cmd_type == "type":
                 #print("got type command: ", cmd_args[0]) #temp
                 for char in cmd_args[0]:
-                    type_key, type_mods = relaykeys_cli.char_to_keyevent_params(char)
+                    type_key, type_mods = char_to_keyevent_params(char)
                     
                     self.send_action("keyevent", type_key, type_mods, True)
                     sleep(0.05)
