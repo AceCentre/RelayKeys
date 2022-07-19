@@ -57,4 +57,3 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 <a href = "https://github.com/AceCentre/RelayKeys/graphs/contributors">
 <img src = "https://contrib.rocks/image?repo=AceCentre/RelayKeys"/>
 </a>
-Made with [contributors-img](https://contrib.rocks).
