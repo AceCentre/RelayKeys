@@ -37,20 +37,20 @@ For the [AceCentre](http://acecentre.org.uk/) we want people with disabilities w
 
 ## The RelayKeys Ecosystem
 
-There are several components of the RelayKeys ecosystem, below is a brief overview.
+There are several components of the RelayKeys ecosystem, below is a brief overview. Remember that the software below works on one computer (a _**server computer**_ - often the AAC device) and the computers/tablets/mobile phones it connects to are _**receiving devices**_.&#x20;
 
-### RelayKeys-Serial API
+### RelayKeys-Serial API (_aka_ _RK-Serial_)
 
 We have defined a standard for calling a RelayKeys (or relaykeys compatible) hardware device when available over serial. RelayKeys can be used over a USB bus or Bluetooth serial connection. See [here](developers/relaykeys-serial.md) for more information.
 
-### RelayKeys-Service
+### RelayKeys-Service (_aka_ _RK-Service_ / _Daemon_)
 
 This is a [RPC](https://en.wikipedia.org/wiki/Remote\_procedure\_call) service that listens for incoming connections and parses the commands. These commands are then converted to AT-Commands that are HID Keyboard/Mouse commands. These AT Commands are then sent over a serial connection to a piece of hardware that talks in Bluetooth to a secondary computer. On Windows we have built an installer that runs this continually.
 
-### RelayKeys-QT
+### RelayKeys-QT (_aka_ _RK-Desktop_)
 
 This is a windowed application that captures keypress' (and one day mouse input) and sends this data to the RelayKeys Service
 
-### RelayKeys-CLI
+### RelayKeys-CLI (_aka_ _RK-CLI_)
 
 This is a '_command line interface_' which allows programs that do not support native RPC calls to talk to the Service. It allows us to abstract certain features away from the service - and do more complex things like capturing the pasteboard of the computer.

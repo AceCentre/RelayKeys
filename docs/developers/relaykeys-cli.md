@@ -23,7 +23,7 @@ Remember to change your application accordingly We regularly use the term for  c
 {% endhint %}
 
 {% hint style="info" %}
-If you are developing with the code You must make sure the daemon code is running when you call the cli files. The daemon is the code that turns these commands into the correct AT syntax and access the com port
+If you are developing with the code You must make sure the server  is running when you call the cli files. The [server (aka Daemon)](relaykeys-daemon.md) is the code that turns these commands into the correct AT syntax and access the com port
 {% endhint %}
 
 ### Defining a Keymap -c

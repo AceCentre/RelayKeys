@@ -1,10 +1,10 @@
 # ⚙️ Installation
 
-> The easiest way to get up-and-running is with the [Windows Installer](https://github.com/AceCentre/RelayKeys/releases/latest), which includes the RelayKeys-CLI, and the RelayKeys-QT software. Read on to see how to install and setup.
+> The easiest way to get up-and-running is with the [Windows Installer](https://github.com/AceCentre/RelayKeys/releases/latest), which includes the RelayKeys-CLI, and the RelayKeys-Desktop software. Read on to see how to install and setup.
 
 ## A quick reminder of how this works
 
-So RelayKeys consists of a hardware solution that talks Bluetooth HID to secondary devices - anything that can pair with bluetooth and understand a keyboard works, and some software on the 'server' device; i.e. the device sending the key/mouse movements. So for our installation we really focus on the 'server' since the client needs no additional hardware or software.
+So RelayKeys consists of a hardware solution that talks Bluetooth HID to secondary devices - anything that can pair with bluetooth and understand a keyboard works, and some software on the 'server' device; i.e. the device sending the key/mouse movements. So for our installation we really focus on the 'server' since the recieving device needs no additional hardware or software.
 
 ![RelayKeys Overview](img/overview.png)
 
@@ -23,7 +23,7 @@ and most importantly:
   * Right now: this is designed to work with the [Adafruit nrf52840 express](https://www.adafruit.com/product/4062) or [Adafruit nrf52840 Itsybitsy](https://www.adafruit.com/product/4481). Others will be added to the list as this is developed.
 
 {% hint style="info" %}
-If you have a RelayKeys stick provided by the AceCentre Carry on reading below. If you wish to by your own hardware [read this guide](developers/supported-boards.md).
+If you have a RelayKeys stick provided by the AceCentre Carry on reading below. If you wish to by your own hardware that hasnt been prepared [read this guide](developers/supported-boards.md).
 {% endhint %}
 
 ## Download and Setup

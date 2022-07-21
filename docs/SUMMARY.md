@@ -13,7 +13,7 @@
   * [Supported Electronics Boards](developers/supported-boards.md)
   * [Config File details](developers/relaykeys-cfg.md)
   * [Command Line Usage](developers/relaykeys-cli.md)
-  * [Daemon reference](developers/relaykeys-daemon.md)
+  * [Server (Daemon) reference](developers/relaykeys-daemon.md)
   * [Serial API](developers/relaykeys-serial.md)
   * [Building a binary](developers/building-a-binary.md)
   * [Prior Art/Related Projects](developers/other-projects.md)

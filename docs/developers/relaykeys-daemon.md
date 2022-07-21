@@ -1,6 +1,6 @@
-# Daemon reference
+# Server (Daemon) reference
 
-The daemon (or RPC server) is the component that opens up a connection to the COM port and sends the correct AT command to the board. You can control it with some arguments
+The _server_ (_RPC server_ or _daemon_ as we sometimes refer to it) is the component that opens up a connection to the COM port and sends the correct AT command to the board. You can control it with some arguments
 
 When you use our installer it installs this as a service. If you run the code without installing (or you turn the service off for some reason) you can run it as `relaykeysd.py` or `relaykeysd.exe`&#x20;
 
