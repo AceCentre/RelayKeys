@@ -1,6 +1,6 @@
 # Table of contents
 
-* [⌨️ Welcome to the RelayKeys Docs!](README.md)
+* [Welcome to the RelayKeys Docs!](README.md)
 * [⚙️ Installation](installation.md)
 * [❓ Troubleshooting](troubleshooting.md)
 * [💬 Guides for use with AAC](guides/README.md)

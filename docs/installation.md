@@ -54,7 +54,9 @@ You can do this in three different ways:
 
 ### Pair with a Windows Computer
 
-So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys" ![Pairing Windows](img/screenshots/windows-pairing.gif)
+So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys"
+
+&#x20;<img src="img/screenshots/windows-pairing.gif" alt="Pairing Windows" data-size="original">
 
 ### Pair with an iOS device
 

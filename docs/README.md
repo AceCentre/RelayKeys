@@ -3,13 +3,13 @@ cover: .gitbook/assets/jessimage.jpeg
 coverY: 0
 ---
 
-# ⌨️ Welcome to the RelayKeys Docs!
+# Welcome to the RelayKeys Docs!
 
 > These Docs will help get you up-and-running quickly, guide you through advanced features, and explain the concepts that make RelayKeys so unique.
 
 ## What is RelayKeys?
 
-**RelayKeys is an open-source suite of software & hardware for communicating with computers,tablets,phones over a bluetooth connection.** It has been designed to work with AAC (Alternative & Augmenative Communication) devices first and foremost but the technology behind this is useful to many people who need to input text/mouse commands on one computer to access another bluetooth-enabled device.
+**RelayKeys is an open-source suite of software & hardware for communicating with computers, tablets, phones over a bluetooth connection.** It has been designed to work with AAC (Alternative & Augmentative Communication) devices first and foremost but the technology behind this is useful to many people who need to input text/mouse commands on one computer to access another bluetooth-enabled device.
 
 ### Why?
 
@@ -21,9 +21,9 @@ For the [AceCentre](http://acecentre.org.uk/) we want people with disabilities w
 
 **We are a commercial developer.. I like it but I think I could do it differently**. Thats great! But please consider the end user. If you as a commercial supplier dont want to continue making this hardware/software solution in the future consider a route to how a user could use a open solution. Please consider either replicating our command set at a serial or CLI level. Are we missing something that your solution provides? Please let us know so we can improve it.
 
-**Why not just do this in software alone?** Sure. If you can. On windows - its not possible.. Yet. Maybe in Windows 11. In MacOS it _should_be - and iOS & Android its definitely possible. But our solution kind of offloads the problem. If you work in one of the mobile environments and want to replicate the functionality go for it - just please consider following some similarity in command structure (take a look at the macros for example)
+**Why not just do this in software alone?** Sure. If you can. On windows - its not possible.. Yet. Maybe in Windows 11. In MacOS it _should_ be - and iOS & Android its definitely possible. But our solution kind of offloads the problem. If you work in one of the mobile environments and want to replicate the functionality go for it - just please consider following some similarity in command structure (take a look at the macros for example)
 
-**By creating an open system we aim for longeivity; even if a developer wants to create their own system we ask to make it compatible by using the same standard way of calling devices.**
+**By creating an open system we aim for longevity; even if a developer wants to create their own system we ask to make it compatible by using the same standard way of calling devices.**
 
 {% embed url="https://www.youtube.com/watch?v=2wrZMGWgvcE" %}
 **Short demonstration of the main aspects of RelayKeys**
@@ -41,7 +41,7 @@ There are several components of the RelayKeys ecosystem, below is a brief overvi
 
 ### RelayKeys-Serial API (_aka_ _RK-Serial_)
 
-We have defined a standard for calling a RelayKeys (or relaykeys compatible) hardware device when available over serial. RelayKeys can be used over a USB bus or Bluetooth serial connection. See [here](developers/relaykeys-serial.md) for more information.
+We have defined a standard for calling a RelayKeys (or RelayKeys compatible) hardware device when available over serial. RelayKeys can be used over a USB bus or Bluetooth serial connection. See [here](developers/relaykeys-serial.md) for more information.
 
 ### RelayKeys-Service (_aka_ _RK-Service_ / _Daemon_)
 
