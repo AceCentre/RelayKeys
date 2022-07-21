@@ -330,6 +330,10 @@ Puts in a a delay of 1 second.&#x20;
 
 On the following commands you can provide a `--notify` flag. If so your Operating System will return a system notification. Useful if you dont have access to view the command line.&#x20;
 
+`relaykeys-cli.exe ble_cmd:devname`
+
+Returns the currently connected device
+
 `relaykeys-cli.exe ble_cmd:devlist`
 
 Gets a list of devices that the device has in memory
