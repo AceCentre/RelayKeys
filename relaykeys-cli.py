@@ -15,6 +15,10 @@ import pyperclip
 
 from relaykeysclient import RelayKeysClient
 
+from notifypy import Notify
+
+from cli_keymap import *
+
 parser = argparse.ArgumentParser(description='Relay keys daemon, BLEHID controller.')
 parser.add_argument('--debug', dest='debug', action='store_const',
                     const=True, default=False,
@@ -25,26 +29,48 @@ parser.add_argument('--url', '-u', dest='url', default=None,
                     help='rpc http url, default: http://127.0.0.1:5383/')
 parser.add_argument('--delay', dest='delay', type=int, default=0,
                     help='delay between each call, in miliseconds')
-parser.add_argument('commands', metavar='COMMAND', nargs='+',
+parser.add_argument('--notify', dest='notify', action='store_const',
+                    const=True, default=False, help='Send response as notification')
+parser.add_argument('-f', dest='macro',
+                    default=None, help='Path to macro file')
+parser.add_argument('commands', metavar='COMMAND', nargs='*',
                     help='One or more commands, format: <cmdname>:<data>')
 
-nonchars_key_map = None
-
-def load_keymap_file(config):
-  global nonchars_key_map  
-  keymap_file = Path(__file__).resolve().parent / "cli_keymaps" / config.get("keymap_file", "us_keymap.json")
-  if keymap_file.exists() and keymap_file.is_file():
-    with open(keymap_file, "r") as f:
-      try:
-        nonchars_key_map = json.loads(f.read()) 
-      except Exception as e:
-        print("Invalid keymap json file:", e)
-        return
+def parse_macro(file_arg):
+  # if argument is file name without any path check it in macros folder
+  if file_arg.find('/') == -1 and file_arg.find('/') == -1:
+    file_path = Path(__file__).resolve().parent / "macros" / file_arg 
+    if not Path(file_path).is_file():
+      print("Specified file doesn't exist in macros folder: ", file_path)
+      return []
+  elif Path(file_arg).is_file(): # otherwise check it as file_path
+    file_path = file_arg
   else:
-    print("Invalid path to keymap file:", keymap_file)
-    return False
+      print("Invalid path to macro file: ", file_arg)
+      return []
   
-  return True
+  macro_commands = []
+
+  with open(file_path, "r") as file:
+    for line in file.readlines():
+      cmd = line.strip("\n")
+      if cmd == "":
+        continue
+      else:
+        macro_commands.append(cmd)
+
+  return macro_commands
+
+def send_notification(command_type, command, result):
+  notification = Notify()
+  notification.application_name = "Relaykeys"
+  notification.title = command_type + " response" 
+  if isinstance(result, list):
+    result = "\n" + "\n".join(result)
+  notification.message = command + " : " + result
+
+  
+  notification.send()
 
 def parse_commamd (cmd):
   """Parses a command provide from the command line.
@@ -132,24 +158,26 @@ def do_mousebutton (client, btn, behavior=None):
   else:
     logging.info("mousebutton ({}, {}) response: {}".format(btn, behavior, ret["result"]))
 
-def do_devicecommand(client, devcommand):
+def do_devicecommand(client, devcommand, notify=False):
   ret = client.ble_cmd(devcommand)
   if 'result' not in ret:
     logging.error("devicecommand ({}) response error: {}".format(devcommand, ret.get("error", "undefined")))
     raise CommandErrorResponse()
   else:
     logging.info("devicecommand ({}) response : {}".format(devcommand, ret["result"]))
+    if notify:
+      send_notification("device command", devcommand, ret["result"])
 
-def char_to_keyevent_params (char):
-  ret = nonchars_key_map.get(char, None)
-  if ret is not None:
-    return ret
-  if (char.isdigit()):
-    return (char,[])
-  if (char.upper() == char):
-    return (char.upper(),["LSHIFT"])
-  return (char.upper(),[])
-    
+def do_daemoncommand(client, command, notify=False):
+  ret = client.daemon(command)
+  if 'result' not in ret:
+    logging.error("daemoncommand ({}) response error: {}".format(command, ret.get("error", "undefined")))
+    raise CommandErrorResponse()
+  else:
+    logging.info("daemoncommand ({}) response : {}".format(command, ret["result"]))
+    if notify:
+      send_notification("daemon command", command, ret["result"])
+
 def do_main (args, config):
   url = config.get("url", None) if args.url == None else args.url
   host = config.get("host", None)
@@ -162,8 +190,15 @@ def do_main (args, config):
     if url is None:
       url = "http://127.0.0.1:5383/"
     client = RelayKeysClient(url=url)
+  
   delay = config.getint("delay", 0) if args.delay == 0 else args.delay
-  for cmd in args.commands:
+
+  commands_list = []
+  if args.macro != None:    
+    commands_list += parse_macro(args.macro)
+  commands_list += args.commands
+
+  for cmd in commands_list:
     name, data = parse_commamd(cmd)
     if name == "type":
       def type_char (char):
@@ -241,11 +276,20 @@ def do_main (args, config):
       do_mousebutton(client, btn, behavior)
       if delay > 0:
         sleep(delay/1000.0)
-    elif name == "ble_cmd":
+    elif name == "ble_cmd":      
       parts = data.split(",")
       #print(parts)
       command = parts[0]
-      do_devicecommand(client,command)
+      do_devicecommand(client,command,args.notify)
+    elif name == "daemon":
+      parts = data.split(",")      
+      command = parts[0]
+
+      do_daemoncommand(client,command,args.notify)
+    elif name == "delay":
+      logging.info("delay: {}ms".format(data))
+      delay_value = float(data)
+      sleep(delay_value/1000.0)
     else:
       raise ValueError("Unknown command: {}".format(cmd))
 

@@ -346,3 +346,9 @@ async def blehid_get_device_list(ser, devicecommand):
     logging.debug("response: {}".format(data))
 
     return data[1:]
+
+async def blehid_get_at_response(ser):
+    logging.debug('Sending AT command to dongle')
+    await _write_atcmd(ser, "AT")
+    
+    return await _read_response(ser)

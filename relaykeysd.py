@@ -57,7 +57,7 @@ UART_TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 from blehid import blehid_send_keyboardcode, blehid_init_serial, \
     blehid_send_movemouse, blehid_send_mousebutton, blehid_send_devicecommand, \
     blehid_send_switch_command, blehid_send_get_device_name, blehid_get_device_list, \
-    blehid_send_add_device, blehid_send_clear_device_list, blehid_send_remove_device
+    blehid_send_add_device, blehid_send_clear_device_list, blehid_send_remove_device, blehid_get_at_response
 
 import requests
 import json
@@ -75,6 +75,10 @@ devName = 'NONE'
 devList = []
 RETRY_TIMEOUT = 10
 QUEUE_TIMEOUT = 3
+
+ble_mode = False
+daemon_quit = False
+serial_loop_opened = False
 
 parser = argparse.ArgumentParser(
     description='Relay keys daemon, BLEHID controller.')
@@ -133,6 +137,10 @@ def rpc_server_worker(host, port, username, password, queue):
 
     @dispatcher.add_method
     def actions(args):
+        global serial_loop_opened
+        if not serial_loop_opened:
+            return "No connection with dongle"
+            
         try:
             global devName
             global devList
@@ -149,7 +157,7 @@ def rpc_server_worker(host, port, username, password, queue):
             respqueue = Queue(1)
             queue.put((respqueue, 'actions', actionlist), True)            
             try:
-                respqueue.get(True, 5) # here get used as waiting for commands execution
+                response = respqueue.get(True, 5) # here get used as waiting for commands execution
             except QueueEmpty:
                 return "TIMEOUT"
 
@@ -165,13 +173,17 @@ def rpc_server_worker(host, port, username, password, queue):
             if len(data):
                 return data
             else:
-                return "OK"
+                return response
 
         except:
             return "UNEXPECTED_INPUT"
 
     @dispatcher.add_method
     def mousebutton(args):
+        global serial_loop_opened
+        if not serial_loop_opened:
+            return "No connection with dongle"
+
         respqueue = Queue(1)
         queue.put((respqueue, "mousebutton") + tuple(args), True)
         try:
@@ -181,6 +193,10 @@ def rpc_server_worker(host, port, username, password, queue):
 
     @dispatcher.add_method
     def mousemove(args):
+        global serial_loop_opened
+        if not serial_loop_opened:
+            return "No connection with dongle"
+
         respqueue = Queue(1)
         queue.put((respqueue, "mousemove") + tuple(args), True)
         try:
@@ -190,6 +206,10 @@ def rpc_server_worker(host, port, username, password, queue):
 
     @dispatcher.add_method
     def keyevent(args):
+        global serial_loop_opened
+        if not serial_loop_opened:
+            return "No connection with dongle"
+
         key, modifiers, down = args
         respqueue = Queue(1)
         queue.put((respqueue, "keyevent", key, modifiers or [], down), True)
@@ -200,6 +220,10 @@ def rpc_server_worker(host, port, username, password, queue):
 
     @dispatcher.add_method
     def ble_cmd(args):
+        global serial_loop_opened
+        if not serial_loop_opened:
+            return "No connection with dongle"
+            
         devcommand = args[0]
         respqueue = Queue(1)
         queue.put((respqueue, "ble_cmd", devcommand), True)
@@ -214,6 +238,35 @@ def rpc_server_worker(host, port, username, password, queue):
             return devList
         else:
             return "OK"
+
+    @dispatcher.add_method
+    def daemon(args):
+        global ble_mode, serial_loop_opened
+
+        command = args[0]
+        if command == "get_mode":
+            if ble_mode:
+                return "BLE serial"
+            else:
+                return "Hardware serial"
+        elif command == "switch_mode":
+            ble_mode = not ble_mode
+            if serial_loop_opened:
+                queue.put((None, "break_loop"), True)
+
+            return "OK"
+        elif command == "dongle_status":
+            if serial_loop_opened:
+                respqueue = Queue(1)
+                queue.put((respqueue, "check_dongle"), True)
+                try:            
+                    response = respqueue.get(True, 5)         
+                    if response == "OK":
+                        return "Connected"
+                except QueueEmpty:
+                    pass                
+                            
+            return "No connection"
 
     @dispatcher.add_method
     def exit(args):
@@ -324,6 +377,8 @@ def find_device_path(noserial, seldev):
     return dev
 
 def do_main(args, config, interrupt=None):
+    global ble_mode, daemon_quit
+
     # actions queue
     queue = run_rpc_server(config.get("host", "127.0.0.1"),
                            config.getint("port", 5383),
@@ -338,77 +393,107 @@ def do_main(args, config, interrupt=None):
         return -1  # exit the process
     
     ble_mode = True if args.ble_mode else False
-    if not ble_mode: 
-        asyncio.run(hardware_serial_loop(queue, args, config, interrupt))
-    else:
-        try:
-            asyncio.run(ble_serial_loop(queue, args, config, interrupt))
-        except asyncio.CancelledError:
-            pass
+
+    while not daemon_quit:
+        if not ble_mode: 
+            asyncio.run(hardware_serial_loop(queue, args, config, interrupt))
+        else:
+            try:
+                asyncio.run(ble_serial_loop(queue, args, config, interrupt))
+            except asyncio.CancelledError:
+                pass
     
     
     logging.info("relaykeysd exit!")
     return 0
 
 async def hardware_serial_loop(queue, args, config, interrupt):
-    quit = False
-    while not quit:
-        try:
-            if interrupt is not None:
-                interrupt()
-            baud = args.baud if args.baud is not None else config.get(
-                "baud", DEFAULT_BAUD)
-            seldev = args.dev if args.dev is not None else config.get(
-                "dev", None)
-            noserial = True if args.noserial else config.getboolean(
-                "noserial", False)
-            devicepath = find_device_path(noserial, seldev)
-            if os.name == 'nt' and noserial:
-                SerialCls = DummySerial
-            else:
-                SerialCls = serial.Serial
-            with SerialCls(devicepath, baud, rtscts=0, timeout=2) as ser:
-                
-                logging.info("serial device opened: {}".format(devicepath))
-                #logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
-                await blehid_init_serial(ser)
-                # Six keys for USB keyboard HID report
-                # uint8_t keys[6] = {0,0,0,0,0,0}
-                keys = arr.array('B', [0, 0, 0, 0, 0, 0])
+    global daemon_quit, serial_loop_opened
 
-                #Get intial ble device List
-                await process_action(ser, keys, ['ble_cmd','devlist'])
-                #Get intial ble device name
-                await process_action(ser, keys, ['ble_cmd','devname'])
-                
-                try:
-                    while True:
-                        if interrupt is not None:
-                            interrupt()
-                        try:
-                            # with timeout
-                            cmd = queue.get(True, QUEUE_TIMEOUT)
-                            if cmd[1] == "exit":
-                               quit = True
-                               break 
-                            else:
-                                output = await process_action(ser, keys, cmd[1:])
-                                if cmd[0] is not None:
-                                    cmd[0].put(output)
-                                queue.task_done()
-                        except KeyboardInterrupt:
-                            raise SystemExit()
-                        except QueueEmpty:
-                            pass
-                except SystemExit:
-                    shutdown_server()
-                    quit = True
-        except serial.serialutil.SerialException:
-            logging.error(traceback.format_exc())
-            logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
-            sleep(RETRY_TIMEOUT)
+    try:
+        if interrupt is not None:
+            interrupt()
+        baud = args.baud if args.baud is not None else config.get(
+            "baud", DEFAULT_BAUD)
+        seldev = args.dev if args.dev is not None else config.get(
+            "dev", None)
+        noserial = True if args.noserial else config.getboolean(
+            "noserial", False)
+        devicepath = find_device_path(noserial, seldev)
+        if os.name == 'nt' and noserial:
+            SerialCls = DummySerial
+        else:
+            SerialCls = serial.Serial
+        with SerialCls(devicepath, baud, rtscts=0, timeout=2) as ser:
+            
+            logging.info("serial device opened: {}".format(devicepath))
+            serial_loop_opened = True
+
+            #logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
+            await blehid_init_serial(ser)
+            # Six keys for USB keyboard HID report
+            # uint8_t keys[6] = {0,0,0,0,0,0}
+            keys = arr.array('B', [0, 0, 0, 0, 0, 0])
+
+            #Get intial ble device List
+            await process_action(ser, keys, ['ble_cmd','devlist'])
+            #Get intial ble device name
+            await process_action(ser, keys, ['ble_cmd','devname'])
+            
+            try:
+                while True:
+                    if interrupt is not None:
+                        interrupt()
+                    try:
+                        # with timeout
+                        cmd = queue.get(True, QUEUE_TIMEOUT)
+                        if cmd[1] == "exit":
+                            daemon_quit = True
+                            break
+                        elif cmd[1] == "break_loop":
+                            logging.info('Breaking hardware serial loop')
+                            break
+####
+                        elif cmd[1] == "ble_cmd" and cmd[2] == "reconnect":
+                            try:
+                                logging.info('Trying to reopen serial port')
+                                ser.close()
+                                ser.open()           
+                                logging.info("serial device opened: {}".format(devicepath))
+                                logging.info('Trying to reinitialise')
+                                await blehid_init_serial(ser)
+                                logging.info('reinitialise complete')
+                                output="SUCCESS"
+                            except:
+                                logging.error(traceback.format_exc())
+                                logging.error('Unable to reconnect')
+                                output="FAIL"
+                            cmd[0].put(output)
+                            queue.task_done()
+####
+                        else:
+                            output = await process_action(ser, keys, cmd[1:])
+                            if cmd[0] is not None:
+                                cmd[0].put(output)
+                            queue.task_done()
+
+                    except KeyboardInterrupt:
+                        raise SystemExit()
+                    except QueueEmpty:
+                        pass
+            except SystemExit:
+                shutdown_server()
+                daemon_quit = True
+
+            serial_loop_opened = False
+    except serial.serialutil.SerialException:
+        serial_loop_opened = False
+        logging.error(traceback.format_exc())
+        logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
+        sleep(RETRY_TIMEOUT)
 
 async def ble_serial_loop(queue, args, config, interrupt):
+    global daemon_quit, serial_loop_opened
 
     def match_nus_uuid(device: BLEDevice, adv: AdvertisementData):
         print("services of scanned device: ", adv)
@@ -425,28 +510,36 @@ async def ble_serial_loop(queue, args, config, interrupt):
         for task in asyncio.all_tasks():
             task.cancel()   
         """
-    quit = False
-    while not quit:
-        if interrupt is not None:
-                interrupt()
-        device = await BleakScanner.find_device_by_filter(match_nus_uuid)
+    
+    if interrupt is not None:
+            interrupt()
+    device = await BleakScanner.find_device_by_filter(match_nus_uuid)
 
-        if device != None:
-            try:
-                async with BleakClient(device, disconnected_callback=handle_disconnect) as client:
-                    ser = BLESerialWrapper(client)
-                    await ser.init_receive()       
-                    
-                    keys = arr.array('B', [0, 0, 0, 0, 0, 0])
-                    
-                    print("Device connected.")
-                    try:
-                        while True:
-                            if interrupt is not None:
-                                interrupt()
-                            try:
-                                # with timeout
-                                cmd = queue.get(True, QUEUE_TIMEOUT)
+    if device != None:
+        try:
+            async with BleakClient(device, disconnected_callback=handle_disconnect) as client:
+                ser = BLESerialWrapper(client)
+                await ser.init_receive()       
+                
+                keys = arr.array('B', [0, 0, 0, 0, 0, 0])
+                
+                print("Device connected.")
+                serial_loop_opened = True
+
+                try:
+                    while True:
+                        if interrupt is not None:
+                            interrupt()
+                        try:
+                            # with timeout
+                            cmd = queue.get(True, QUEUE_TIMEOUT)
+                            if cmd[1] == "exit":
+                                daemon_quit = True
+                                break
+                            elif cmd[1] == "break_loop":
+                                logging.info('Breaking BLE serial loop')                                
+                                return
+                            else:
                                 output = await process_action(ser, keys, cmd[1:])
                                 if cmd[0] is not None:
                                     cmd[0].put(output)
@@ -456,21 +549,24 @@ async def ble_serial_loop(queue, args, config, interrupt):
                                 if not client.is_connected:
                                     print("client lost connection")
                                     raise BleakError
-                            except KeyboardInterrupt:
-                                raise SystemExit()
-                            except QueueEmpty:
-                                pass
-                    except SystemExit:
-                        shutdown_server()
-                        quit = True
-            except (asyncio.exceptions.TimeoutError, asyncio.exceptions.InvalidStateError, BleakError, OSError):
-                logging.error(traceback.format_exc())
-        else:
-            logging.error("Device not found")
-        
-        if not quit:
-            logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
-            sleep(RETRY_TIMEOUT)
+                        except KeyboardInterrupt:
+                            raise SystemExit()
+                        except QueueEmpty:
+                            pass
+                except SystemExit:
+                    shutdown_server()
+                    daemon_quit = True
+
+                serial_loop_opened = False
+        except (asyncio.exceptions.TimeoutError, asyncio.exceptions.InvalidStateError, BleakError, OSError):
+            serial_loop_opened = False
+            logging.error(traceback.format_exc())
+    else:
+        logging.error("Device not found")
+    
+    if not daemon_quit:
+        logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
+        sleep(RETRY_TIMEOUT)
 
 
 async def process_action(ser, keys, cmd):
@@ -528,7 +624,9 @@ async def process_action(ser, keys, cmd):
 
             elif cmd[1].split("=")[0] == "devremove":
                 await blehid_send_remove_device(ser, cmd[1])
-
+            
+        elif cmd[0] == "check_dongle":
+            return await blehid_get_at_response(ser)
 
         # response queue given by cmd
         return "SUCCESS"

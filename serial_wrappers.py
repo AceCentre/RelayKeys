@@ -9,6 +9,7 @@ class BLESerialWrapper(object):
     def __init__(self, ble_client):
         self.ble_client = ble_client
         self.receive_buff = b''
+        self.timeout_val = 3
     
     async def init_receive(self):   
         await self.ble_client.start_notify(BLESerialWrapper.UART_TX_CHAR_UUID, self.receive_data)
@@ -39,6 +40,7 @@ class BLESerialWrapper(object):
     async def readline(self):
         start = 0
         end = 0
+        start_time = time.time()
         #print("start readline")
         while True:
             if(end != len(self.receive_buff)):        
@@ -52,6 +54,10 @@ class BLESerialWrapper(object):
             else:
                 #print("reached end, waiting")
                 await asyncio.sleep(0.05)
+                # timeout check
+                if (time.time()-start_time) > self.timeout_val:
+                    return b''
+            
 
 class DummySerial (object):
     def __init__(self, devpath, baud, **kwargs):

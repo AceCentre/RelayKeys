@@ -1,10 +1,10 @@
 # ⚙️ Installation
 
-> The easiest way to get up-and-running is with the [Windows Installer](https://github.com/AceCentre/RelayKeys/releases/latest), which includes the RelayKeys-CLI, and the RelayKeys-QT software. Read on to see how to install and setup.
+> The easiest way to get up-and-running is with the [Windows Installer](https://github.com/AceCentre/RelayKeys/releases/latest), which includes the RelayKeys-CLI, and the RelayKeys-Desktop software. Read on to see how to install and setup.
 
 ## A quick reminder of how this works
 
-So RelayKeys consists of a hardware solution that talks Bluetooth HID to secondary devices - anything that can pair with bluetooth and understand a keyboard works, and some software on the 'server' device; i.e. the device sending the key/mouse movements. So for our installation we really focus on the 'server' since the client needs no additional hardware or software.
+So RelayKeys consists of a hardware solution that talks Bluetooth HID to secondary devices - anything that can pair with bluetooth and understand a keyboard works, and some software on the 'server' device; i.e. the device sending the key/mouse movements. So for our installation we really focus on the 'server' since the recieving device needs no additional hardware or software.
 
 ![RelayKeys Overview](img/overview.png)
 
@@ -23,7 +23,7 @@ and most importantly:
   * Right now: this is designed to work with the [Adafruit nrf52840 express](https://www.adafruit.com/product/4062) or [Adafruit nrf52840 Itsybitsy](https://www.adafruit.com/product/4481). Others will be added to the list as this is developed.
 
 {% hint style="info" %}
-If you have a RelayKeys stick provided by the AceCentre Carry on reading below. If you wish to by your own hardware [read this guide](../technical/supported-boards.html).
+If you have a RelayKeys stick provided by the AceCentre Carry on reading below. If you wish to by your own hardware that hasnt been prepared [read this guide](developers/supported-boards.md).
 {% endhint %}
 
 ## Download and Setup
@@ -47,14 +47,16 @@ If "Flashing". This means you have yet to pair the RelayKeys device with another
 
 You can do this in three different ways:
 
-* Send a command using the "`RelayKeys-QT.exe`" app and press "Add a device" in the toolbar  - or -&#x20;
-* Run "`relaykeys-cli.exe ble_cmd:devadd" - or -`&#x20;
-* Press the Button on the RelayKeys hardware.&#x20;
-* Next pair your device with RelayKeys.&#x20;
+* Send a command using the "`RelayKeys-QT.exe`" app and press "Add a device" in the toolbar - or -
+* Run "`relaykeys-cli.exe ble_cmd:devadd" - or -`
+* Press the Button on the RelayKeys hardware. It will now flash <mark style="background-color:yellow;">yellow</mark>&#x20;
+* Next pair your device with RelayKeys.
 
 ### Pair with a Windows Computer
 
-So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys" ![Pairing Windows](img/screenshots/windows-pairing.gif)
+So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys"
+
+&#x20;<img src="img/screenshots/windows-pairing.gif" alt="Pairing Windows" data-size="original">
 
 ### Pair with an iOS device
 
@@ -69,15 +71,15 @@ To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
 ## Wireless mode
 
 {% hint style="info" %}
-Note that this mode is useful on devices where you can't plug anything into your device. Its definitely a bit fiddly to setup and its a bit slower. i.e. This is for only those who are willing to experiment right now!&#x20;
+Note that this mode is useful on devices where you can't plug anything into your device. The setup can feel _strange -_ what we need to do is tell your relaykeys hardware the device to connect to.&#x20;
 {% endhint %}
 
-1. Plug in device and follow instructions [as above](installation.md#plug-in-your-relaykeys-stick-and-pair-with-a-computer-wired-mode)&#x20;
-2. Pair the main AAC/Host device with it. So pair the computer you have attached it to with RelayKeys hardware. This can feel a bit strange - you are connecting the hardware to the same machine you are on. See [here](installation.md#undefined-1) for how to put it into pairing mode.&#x20;
-3. Disconnect the relaykeys hardware.&#x20;
-4. Upload [this file ](../arduino/arduino\_nRF52840/arduino\_nRF52840.ino)to the RelayKeys hardware setting the `bool ble_mode = false;` to `bool ble_mode  = true;` (i.e. change [this line](https://github.com/AceCentre/RelayKeys/blob/ad625ca2f7ca612b3f496880516fc0e3bd8ff9af/arduino/arduino\_nRF52840/arduino\_nRF52840.ino#L76)) (You'll need to understand how to upload and configure an arduino board to do this! [This guide as a starter will help](https://support.arduino.cc/hc/en-us/articles/4733418441116-Upload-a-sketch-in-Arduino-IDE))&#x20;
-5. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.
-6. Run RelayKeysd with `--ble_mode`  See [here](developers/reference-1.md) for more details&#x20;
+1. Plug in device and follow instructions [as above](installation.md#plug-in-your-relaykeys-stick-and-pair-with-a-computer-wired-mode)
+2. Pair the main AAC/Host device with it. So pair the computer you have attached it to with RelayKeys hardware. This can feel a bit strange - you are connecting the hardware to the same machine you are on. See [here](installation.md#undefined-1) for how to put it into pairing mode.
+3. Disconnect the relaykeys hardware. In your bluetooth settings you actually need to click on the item and "Remove" device. (NB: If you cant do this it might be because you need to be an admin. The trick is open the Control Panel -> Devices & Printers -> Relaykeys -> Right click, Remove and you will be asked for an Admin password)
+4. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.&#x20;
+5. Double press the User switch It should now shine a nice <mark style="color:blue;">blue</mark> colour!&#x20;
+6. Run RelayKeysd with `--ble_mode` See [here](developers/relaykeys-daemon.md) for more details
 
 ## Checking it works
 
@@ -92,7 +94,7 @@ You can get going by using one of these example files that work with your AAC So
 * [The Grid 3](guides/grid3.md)
 * [MindExpress](guides/mindexpress.md)
 * [Tobii Communicator](guides/communicator.md)
-* [Tobii Dynavox Snap](guides/snap-corefirst.md)&#x20;
+* [Tobii Dynavox Snap](guides/snap-corefirst.md)
 
 When you are ready, [have a read of how to integrate the features you need](../guides/basic-principles.html).
 

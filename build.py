@@ -6,6 +6,7 @@ import glob
 import subprocess
 import errno
 import shutil
+from pathlib import Path
 
 
 def moveTree(sourceRoot, destRoot):
@@ -82,8 +83,12 @@ if os.name == 'posix':
 	for item in [r"dist/relaykeys-cli", r"dist/relaykeys-cli-win", r"dist/relaykeys-qt"]:
 		moveTree(item, r'dist/relaykeysd')
 
+# Logfile may not exist if its not been run 
+logfile = Path('logfile.txt')
+logfile.touch(exist_ok=True)
+
 # Copy some other stuff to Dist
-for item in ['relaykeys.cfg', 'logfile.txt', 'LICENSE', 'README.html', 'cli_keymaps']:
+for item in ['relaykeys.cfg', 'logfile.txt', 'LICENSE', 'README.html', 'cli_keymaps', 'macros']:
     if os.path.isdir(item):
         shutil.copytree(item, r"dist/relaykeysd/"+item, dirs_exist_ok=True)
     else:

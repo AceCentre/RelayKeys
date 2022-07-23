@@ -19,11 +19,11 @@ and the non-verbose, non-windowed version
 Where 'command' and 'data' are provided below.
 
 {% hint style="info" %}
-Remember to change your application accordingly We regularly use the verbose command line application 'relaykeys-cli' in this documentation. Often though you will want to use the 'relaykeys-cli-win' application that will run a little quicker and has no printed output
+Remember to change your application accordingly We regularly use the term for  command line application '_relaykeys-cli_'  in this documentation. Often though you will want to use the '**relaykeys-cli-win.exe**' application that will run a little quicker and has no printed output. Use this for your default call to relaykeys from other applications. If you want to see any errors use '_relaykeys-cli.exe_'
 {% endhint %}
 
 {% hint style="info" %}
-If you are developing with the code You must make sure the daemon code is running when you call the cli files. The daemon is the code that turns these commands into the correct AT syntax and access the com port
+If you are developing with the code You must make sure the server  is running when you call the cli files. The [server (aka Daemon)](relaykeys-daemon.md) is the code that turns these commands into the correct AT syntax and access the com port
 {% endhint %}
 
 ### Defining a Keymap -c
@@ -316,7 +316,23 @@ user activates Drag Stop button&#x20;
 
 `relaykeys-cli mousebutton:0`
 
+### Command: delay: nms
+
+Adds a delay. Particularly useful when writing a macro and you need to wait for something to happen on the client operating system.&#x20;
+
+`relaykeys-cli delay:1000`
+
+Puts in a a delay of 1 second.&#x20;
+
 ### Device Management Commands
+
+#### Optional extra flag --notfiy
+
+On the following commands you can provide a `--notify` flag. If so your Operating System will return a system notification. Useful if you dont have access to view the command line.&#x20;
+
+`relaykeys-cli.exe ble_cmd:devname`
+
+Returns the currently connected device
 
 `relaykeys-cli.exe ble_cmd:devlist`
 
@@ -337,3 +353,54 @@ Switch the current connected device to the next one in RelayKeys memory
 `relaykeys-cli.exe ble_cmd:devremove=DEVNAME`
 
 Remove just one named device from the memory.
+
+`relaykeys-cli.exe ble_cmd:reconnect`
+
+Tells the daemon/server to try and reconnect to the serial port.
+
+`relaykeys-cli.exe daemon:switch_mode`
+
+Tells the daemon/server to try and switch between wired
+
+`relaykeys-cli.exe daemon:get_mode`
+
+Returns current mode&#x20;
+
+`relaykeys-cli.exe daemon:dongle_status`
+
+Returns whether it is connected or not
+
+### Command: -f file.txt (Macro)
+
+Provide a macro file - where each line in a text file is a cli command.  For example **ios\_open\_notes.txt** found in the _macros_ directory of the installation folder (i.e at _C:\Program Files (x86)\Ace Centre\RelayKeys\maccros)_
+
+`relaykeys-cli.exe -f ios_open_notes.txt`
+
+or like this&#x20;
+
+`relaykeys-cli.exe -f Documents/open_ios_notes.txt`
+
+where it reads the file from a file path.. or..\
+\
+`relaykeys-cli.exe -f ./open_ios_notes.txt`&#x20;
+
+where it reads the file in folder where current exe is run from\
+
+
+where ios\_open\_notes.txt is:
+
+```
+keypress:H,LMETA
+keypress:SPACE,LMETA
+type:notes
+delay:500
+keypress:ENTER
+```
+
+{% hint style="info" %}
+Warning: There is no syntax checking of this document.&#x20;
+{% endhint %}
+
+{% hint style="info" %}
+Want to send a long string of mouse commands and want to record your movements for a script? Start by using [https://github.com/rmpr/atbswp](https://github.com/rmpr/atbswp) - You'll need to edit the file but its a handy starting point
+{% endhint %}
