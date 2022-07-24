@@ -31,7 +31,7 @@ parser.add_argument('--delay', dest='delay', type=int, default=0,
                     help='delay between each call, in miliseconds')
 parser.add_argument('--notify', dest='notify', action='store_const',
                     const=True, default=False, help='Send response as notification')
-parser.add_argument('--copy', dest='copy_return', action='store_const',
+parser.add_argument('--copy', dest='copyresults', action='store_const',
                     const=True, default=False, help='Send response to pasteboard')
 parser.add_argument('-f', dest='macro',
                     default=None, help='Path to macro file')
@@ -176,7 +176,7 @@ def do_devicecommand(client, devcommand, notify=False,copyresults=False):
     if notify:
       send_notification("device command", devcommand, ret["result"])
     if copyresults:
-      output_copy("daemon command", command, ret["result"])
+      copy_return("daemon command", command, ret["result"])
 
 def do_daemoncommand(client, command, notify=False,copyresults=False):
   ret = client.daemon(command)
@@ -188,7 +188,7 @@ def do_daemoncommand(client, command, notify=False,copyresults=False):
     if notify:
       send_notification("daemon command", command, ret["result"])
     if copyresults:
-      output_copy("daemon command", command, ret["result"])
+      copy_return("daemon command", command, ret["result"])
 
 def do_main (args, config):
   url = config.get("url", None) if args.url == None else args.url
