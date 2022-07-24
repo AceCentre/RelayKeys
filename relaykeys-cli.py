@@ -31,6 +31,8 @@ parser.add_argument('--delay', dest='delay', type=int, default=0,
                     help='delay between each call, in miliseconds')
 parser.add_argument('--notify', dest='notify', action='store_const',
                     const=True, default=False, help='Send response as notification')
+parser.add_argument('--copy', dest='copy_return', action='store_const',
+                    const=True, default=False, help='Send response to pasteboard')
 parser.add_argument('-f', dest='macro',
                     default=None, help='Path to macro file')
 parser.add_argument('commands', metavar='COMMAND', nargs='*',
@@ -71,6 +73,12 @@ def send_notification(command_type, command, result):
 
   
   notification.send()
+
+def copy_return(command_type, command, result):
+  if isinstance(result, list):
+    result = "\n" + "\n".join(result)
+  pyperclip.copy(result)
+
 
 def parse_commamd (cmd):
   """Parses a command provide from the command line.
@@ -158,7 +166,7 @@ def do_mousebutton (client, btn, behavior=None):
   else:
     logging.info("mousebutton ({}, {}) response: {}".format(btn, behavior, ret["result"]))
 
-def do_devicecommand(client, devcommand, notify=False):
+def do_devicecommand(client, devcommand, notify=False,copyresults=False):
   ret = client.ble_cmd(devcommand)
   if 'result' not in ret:
     logging.error("devicecommand ({}) response error: {}".format(devcommand, ret.get("error", "undefined")))
@@ -167,8 +175,10 @@ def do_devicecommand(client, devcommand, notify=False):
     logging.info("devicecommand ({}) response : {}".format(devcommand, ret["result"]))
     if notify:
       send_notification("device command", devcommand, ret["result"])
+    if copyresults:
+      output_copy("daemon command", command, ret["result"])
 
-def do_daemoncommand(client, command, notify=False):
+def do_daemoncommand(client, command, notify=False,copyresults=False):
   ret = client.daemon(command)
   if 'result' not in ret:
     logging.error("daemoncommand ({}) response error: {}".format(command, ret.get("error", "undefined")))
@@ -177,6 +187,8 @@ def do_daemoncommand(client, command, notify=False):
     logging.info("daemoncommand ({}) response : {}".format(command, ret["result"]))
     if notify:
       send_notification("daemon command", command, ret["result"])
+    if copyresults:
+      output_copy("daemon command", command, ret["result"])
 
 def do_main (args, config):
   url = config.get("url", None) if args.url == None else args.url
@@ -280,12 +292,12 @@ def do_main (args, config):
       parts = data.split(",")
       #print(parts)
       command = parts[0]
-      do_devicecommand(client,command,args.notify)
+      do_devicecommand(client,command,args.notify,args.copyresults)
     elif name == "daemon":
       parts = data.split(",")      
       command = parts[0]
 
-      do_daemoncommand(client,command,args.notify)
+      do_daemoncommand(client,command,args.notify,args.copyresults)
     elif name == "delay":
       logging.info("delay: {}ms".format(data))
       delay_value = float(data)
