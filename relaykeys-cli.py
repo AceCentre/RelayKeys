@@ -76,7 +76,7 @@ def send_notification(command_type, command, result):
 
 def copy_return(command_type, command, result):
   if isinstance(result, list):
-    result = "\n" + "\n".join(result)
+    result = ", " + ", ".join(result)
   pyperclip.copy(result)
 
 
