@@ -161,8 +161,6 @@ def rpc_server_worker(host, port, username, password, queue):
             except QueueEmpty:
                 return "TIMEOUT"
 
-            return response
-
         except:
             return "UNEXPECTED_INPUT"
 
