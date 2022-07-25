@@ -343,19 +343,6 @@ class KeyboardStatusWidget (QWidget):
             if i + 1 != len(unknown_keys):
                 self.addPlusLabel()
 
-class ImageButton(QAbstractButton):
-    def __init__(self, icon_filename, width, height, parent=None):
-        super(ImageButton, self).__init__(parent)
-        self.pixmap = QPixmap(icon_filename)
-        self.pixmap = self.pixmap.scaled(QSize(width, height))#, Qt.KeepAspectRatio)
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.drawPixmap(event.rect(), self.pixmap)
-
-    def sizeHint(self):
-        return self.pixmap.size()
-
 class DeviceEntryWidget(QFrame):
     def __init__(self, devname, deleteDeviceFunction):
         super(QFrame, self).__init__()
@@ -364,30 +351,22 @@ class DeviceEntryWidget(QFrame):
         self.device_name = devname
         self.deleteDeviceFunction = deleteDeviceFunction
 
-        self.deviceNameLabel = QLabel()        
-        self.deviceNameLabel.setText("<font size='5'>{}</font>".format(self.device_name))
-        #self.deviceName.setAlignment(Qt.AlignTop)
-
-        # custom class option
-        #self.deleteDeviceSwitch = ImageButton("resources/delete_icon.png", 35, 35)
+        deviceNameLabel = QLabel()        
+        deviceNameLabel.setText("<font size='5'>{}</font>".format(self.device_name))
 
         # push button option
-        self.deleteDeviceSwitch = QPushButton()
-        self.deleteDeviceSwitch.setIcon(QIcon("resources/delete_icon.png"))
-        self.deleteDeviceSwitch.setIconSize(QSize(35,35))
-        self.deleteDeviceSwitch.setFlat(True)
-        
-        self.deleteDeviceSwitch.clicked.connect(self.sendDeleteCommand)
-        self.deleteDeviceSwitch.setFocusPolicy(Qt.NoFocus)
+        deleteDeviceSwitch = QPushButton()
+        deleteDeviceSwitch.setIcon(QIcon("resources/delete_icon.png"))
+        deleteDeviceSwitch.setIconSize(QSize(35,35))
+        deleteDeviceSwitch.setFlat(True)        
+        deleteDeviceSwitch.clicked.connect(self.sendDeleteCommand)
+        deleteDeviceSwitch.setFocusPolicy(Qt.NoFocus)
 
-        deviceEntryLayout.addWidget(self.deviceNameLabel)
+        deviceEntryLayout.addWidget(deviceNameLabel)
         deviceEntryLayout.addStretch()
-        deviceEntryLayout.addWidget(self.deleteDeviceSwitch)
-        
-        
+        deviceEntryLayout.addWidget(deleteDeviceSwitch)
     
     def sendDeleteCommand(self):
-        print("delete", self.device_name) #temp
         self.deleteDeviceFunction(self.device_name)
 
 class DeviceListWidget(QFrame):
@@ -420,13 +399,14 @@ class DeviceListWidget(QFrame):
         self.deviceWidgetsList = []
 
 class Window (QMainWindow):
-    showErrorMessageSignal = pyqtSignal(str)
-    addDeviceSignal = pyqtSignal(str, types.MethodType)
+    showErrorMessageSignal = pyqtSignal(str)    
     addDeviceListSignal = pyqtSignal(str)
     clearDeviceListSignal = pyqtSignal()
-    addSeparatorSignal = pyqtSignal()
+    switchDeviceSignal = pyqtSignal()
     toggleRecordSignal = pyqtSignal()
-    refreshDaemonSignal = pyqtSignal()
+    setDongleLabelSignal = pyqtSignal(str)
+    setDaemonLabelSignal = pyqtSignal(str)
+    updateDeviceLabelSignal = pyqtSignal(str)
 
     def __init__(self, args, config):
         self.devList = []
@@ -454,6 +434,9 @@ class Window (QMainWindow):
         self._curBleDeviceName = '---'
         self._macroBuffer = []
         self._recordMacroStatus = False
+
+        self.daemon_mode = ""
+        self.dongle_status = ""
 
         url = clientconfig.get("url", None) if args.url == None else args.url
         host = clientconfig.get("host", None)
@@ -489,128 +472,80 @@ class Window (QMainWindow):
         # self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
         # dock layout for switching tabs
-        dockLayout = QVBoxLayout()
-        self.capturePageSwtich = QPushButton()
-        self.capturePageSwtich.setMinimumSize(QSize(100,100)) # set min size manually
-        #self.capturePageSwtich.setFont(QFont("Times", 10))
-        self.capturePageSwtich.setText('Capture')
-        self.capturePageSwtich.clicked.connect(self.setCaptureTab)
+        dockWidget = QWidget()
+        dockLayout = QVBoxLayout(dockWidget)
+        dockLayout.setContentsMargins(0, 0, 0, 0)
+        dockWidget.setStyleSheet("QPushButton {min-width: 100px; min-height: 100px;}")
 
-        self.macroPageSwtich = QPushButton()
-        self.macroPageSwtich.setMinimumSize(QSize(100,100)) # set min size manually
-        self.macroPageSwtich.setText('Macro')
-        self.macroPageSwtich.clicked.connect(self.setMacroTab)
+        capturePageSwtich = QPushButton()
+        capturePageSwtich.setText('Capture')
+        capturePageSwtich.clicked.connect(lambda: self.switchTab(0))
+        capturePageSwtich.setFocusPolicy(Qt.NoFocus)
+        
+        macroPageSwtich = QPushButton()
+        macroPageSwtich.setText('Macro')
+        macroPageSwtich.clicked.connect(lambda: self.switchTab(1))        
+        macroPageSwtich.setFocusPolicy(Qt.NoFocus)
+        
+        connectionPageSwtich = QPushButton()
+        connectionPageSwtich.setText('Connection')
+        connectionPageSwtich.clicked.connect(lambda: self.switchTab(2))        
+        connectionPageSwtich.setFocusPolicy(Qt.NoFocus)
+        
+        devicePageSwtich = QPushButton()
+        devicePageSwtich.setText('Devices')
+        devicePageSwtich.clicked.connect(lambda: self.switchTab(3))        
+        devicePageSwtich.setFocusPolicy(Qt.NoFocus)
 
-        self.devicePageSwtich = QPushButton()
-        self.devicePageSwtich.setMinimumSize(QSize(100,100)) # set min size manually
-        self.devicePageSwtich.setText('Devices')
-        self.devicePageSwtich.clicked.connect(self.setDevicesTab)
-
-        self.connectionPageSwtich = QPushButton()
-        self.connectionPageSwtich.setMinimumSize(QSize(100,100)) # set min size manually
-        self.connectionPageSwtich.setText('Connection')
-
-        dockLayout.addWidget(self.capturePageSwtich)
-        dockLayout.addWidget(self.macroPageSwtich)
-        dockLayout.addWidget(self.devicePageSwtich)
-        dockLayout.addWidget(self.connectionPageSwtich)
+        dockLayout.addWidget(capturePageSwtich)
+        dockLayout.addWidget(macroPageSwtich)
+        dockLayout.addWidget(connectionPageSwtich)
+        dockLayout.addWidget(devicePageSwtich)
         dockLayout.addStretch()        
 
         # Capture tab
-        captureTab = QWidget()
-        mainLayout_temp = QVBoxLayout(captureTab)
+        captureTab = QWidget()        
+        captureTabLayout = QVBoxLayout(captureTab)
 
+        captureTab.setStyleSheet("QPushButton {min-width: 250px; min-height: 50px;}")
+
+        self.deviceNameCaptureTab = QLabel()
         # mouse and keyboard controls layout
         inputControlBar = QGridLayout()
         
         # keyboard section        
         self.keyboardControlLabel = QLabel()
         
-        self.keyboardToggleButton = QPushButton()
-        self.keyboardToggleButton.setMinimumSize(QSize(250,50)) # set min size manually
-        self.keyboardToggleButton.setText('Toggle: {}'.format(self.getShortcutText(
+        keyboardToggleButton = QPushButton()        
+        keyboardToggleButton.setText('Toggle: {}'.format(self.getShortcutText(
             self._keyboard_toggle_key, self._keyboard_toggle_modifiers)))
-        self.keyboardToggleButton.setToolTip('Keyboard disable toggle')
-        self.keyboardToggleButton.clicked.connect(self.didClickKeyboardToggle)
-        self.keyboardToggleButton.setFocusPolicy(Qt.NoFocus)       
+        keyboardToggleButton.setToolTip('Keyboard disable toggle')
+        keyboardToggleButton.clicked.connect(self.didClickKeyboardToggle)
+        keyboardToggleButton.setFocusPolicy(Qt.NoFocus)       
 
         # mouse section
         self.mouseControlLabel = QLabel()
 
-        self.mouseToggleButton = QPushButton()
-        self.mouseToggleButton.setMinimumSize(QSize(250,50)) # set min size manually
-        self.mouseToggleButton.setText('Toggle: {}'.format(
+        mouseToggleButton = QPushButton()
+        mouseToggleButton.setText('Toggle: {}'.format(
             self.getShortcutText(self._mouse_toggle_key, self._mouse_toggle_modifiers)))
-        self.mouseToggleButton.setToolTip('Mouse disable toggle')        
-        self.mouseToggleButton.clicked.connect(self.didClickMouseToggle)
-        self.mouseToggleButton.setFocusPolicy(Qt.NoFocus)
+        mouseToggleButton.setToolTip('Mouse disable toggle')        
+        mouseToggleButton.clicked.connect(self.didClickMouseToggle)
+        mouseToggleButton.setFocusPolicy(Qt.NoFocus)
 
         self.updateTogglesStatus()
 
         inputControlBar.addWidget(self.keyboardControlLabel, 0, 0)
         inputControlBar.addWidget(self.mouseControlLabel, 0, 1)
-        inputControlBar.addWidget(self.keyboardToggleButton, 1, 0)        
-        inputControlBar.addWidget(self.mouseToggleButton, 1, 1)
-
-        # device controls section
-        bleControlBar = QGridLayout()
-
-        self.bleDeviceRead = QLabel()        
-        self.updateDeviceNameLabel(self._curBleDeviceName)
-        self.bleDeviceRead.setAlignment(Qt.AlignBottom)
-
+        inputControlBar.addWidget(keyboardToggleButton, 1, 0)        
+        inputControlBar.addWidget(mouseToggleButton, 1, 1)
         
-        self.bleConnectionSwitch = QPushButton()
-        self.bleConnectionSwitch.setMinimumSize(QSize(250,50)) # set min size manually
-        self.bleConnectionSwitch.setText('Switch device')
-        self.bleConnectionSwitch.setToolTip('Swicth ble device connection')
-        self.bleConnectionSwitch.clicked.connect(self.sendBleToggleCommand)
-        self.bleConnectionSwitch.setFocusPolicy(Qt.NoFocus)
-        
-        
-        self.refreshDeviceSwtich = QPushButton()
-        self.refreshDeviceSwtich.setMinimumSize(QSize(250,50)) # set min size manually
-        self.refreshDeviceSwtich.setText('Refresh device')
-        self.refreshDeviceSwtich.setToolTip('Refresh device name')
-        self.refreshDeviceSwtich.clicked.connect(self.readBleDeviceName)
-        self.refreshDeviceSwtich.setFocusPolicy(Qt.NoFocus)
-        bleControlBar.addWidget(self.bleDeviceRead, 0, 0, 1, 2)
-        bleControlBar.addWidget(self.bleConnectionSwitch, 1, 0)
-        bleControlBar.addWidget(self.refreshDeviceSwtich, 1, 1)
-
-        # daemon controls section
-        daemonControlBar = QGridLayout()
-
-        self.daemonStatusLabel = QLabel()
-        self.dongleStatusLabel = QLabel()
-
-        daemonControlBar.addWidget(self.daemonStatusLabel, 0, 0)
-        daemonControlBar.addWidget(self.dongleStatusLabel, 0, 1)
-
-        self.daemonModeSwitch = QPushButton()
-        self.daemonModeSwitch.setMinimumSize(QSize(250,50)) # set min size manually
-        self.daemonModeSwitch.setText('Switch mode')
-        self.daemonModeSwitch.setToolTip('Switch daemon mode')
-        self.daemonModeSwitch.clicked.connect(self.switchDaemonMode)
-        self.daemonModeSwitch.setFocusPolicy(Qt.NoFocus)
-        daemonControlBar.addWidget(self.daemonModeSwitch, 1, 0)        
-
-        self.DaemonStatusTimer = QTimer()
-        self.DaemonStatusTimer.setSingleShot(True)
-        self.DaemonStatusTimer.timeout.connect(self.refreshDaemonstatus)
-        self.DaemonStatusTimer.setInterval(5000)
-
-        self.refreshDaemonSignal.connect(self.refreshDaemonstatus)
-        self.refreshDaemonstatus()
-
-        
-        mainLayout_temp.addLayout(bleControlBar)
-        mainLayout_temp.addLayout(daemonControlBar)
-        mainLayout_temp.addLayout(inputControlBar)        
+        captureTabLayout.addWidget(self.deviceNameCaptureTab)
+        captureTabLayout.addLayout(inputControlBar)        
         
 
         self.keyboardStatusWidget = KeyboardStatusWidget()
-        mainLayout_temp.addWidget(self.keyboardStatusWidget)
+        captureTabLayout.addWidget(self.keyboardStatusWidget)
 
         try:
             self._show_last_n_chars = int(
@@ -631,32 +566,30 @@ class Window (QMainWindow):
             fontsize = 10
             label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
                           .format(text="", fontsize=fontsize))
-            mainLayout_temp.addWidget(label)             
+            captureTabLayout.addWidget(label)             
 
         # macro controls tab
         macroTab = QWidget()
-        macroControlBar = QVBoxLayout(macroTab)
+        macroTabLayout = QVBoxLayout(macroTab)
+        macroTab.setStyleSheet("QPushButton {min-width: 250px; min-height: 50px;}")
         
         self.macroRecordSwitch = QPushButton()
-        self.macroRecordSwitch.setMinimumSize(QSize(250,50)) # set min size manually
         self.macroRecordSwitch.setText('Start recording macro')
         self.macroRecordSwitch.setToolTip('Start recording new macro')
         self.macroRecordSwitch.clicked.connect(self.toggleMacroRecord)
         self.macroRecordSwitch.setFocusPolicy(Qt.NoFocus)
         
-        self.replayMacroSwitch = QPushButton()
-        self.replayMacroSwitch.setMinimumSize(QSize(250,50)) # set min size manually
-        self.replayMacroSwitch.setText('Replay last macro')
-        self.replayMacroSwitch.setToolTip('Replay last macro')
-        self.replayMacroSwitch.clicked.connect(self.replayLastMacro)
-        self.replayMacroSwitch.setFocusPolicy(Qt.NoFocus)
+        replayMacroSwitch = QPushButton()
+        replayMacroSwitch.setText('Replay last macro')
+        replayMacroSwitch.setToolTip('Replay last macro')
+        replayMacroSwitch.clicked.connect(self.replayLastMacro)
+        replayMacroSwitch.setFocusPolicy(Qt.NoFocus)
         
-        self.executeMacroSwitch = QPushButton()
-        self.executeMacroSwitch.setMinimumSize(QSize(250,50)) # set min size manually
-        self.executeMacroSwitch.setText('Run macro file')
-        self.executeMacroSwitch.setToolTip('Run macro file')
-        self.executeMacroSwitch.clicked.connect(self.loadMacroFile)
-        self.executeMacroSwitch.setFocusPolicy(Qt.NoFocus)
+        executeMacroSwitch = QPushButton()
+        executeMacroSwitch.setText('Run macro file')
+        executeMacroSwitch.setToolTip('Run macro file')
+        executeMacroSwitch.clicked.connect(self.loadMacroFile)
+        executeMacroSwitch.setFocusPolicy(Qt.NoFocus)
                 
         self.macroStatusLabel = QLabel()
         self.macroStatusLabel.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
@@ -664,14 +597,74 @@ class Window (QMainWindow):
 
         self.toggleRecordSignal.connect(self.toggleMacroRecord)
 
-        macroControlBar.addWidget(self.macroRecordSwitch)
-        macroControlBar.addWidget(self.replayMacroSwitch)
-        macroControlBar.addWidget(self.executeMacroSwitch)
-        macroControlBar.addWidget(self.macroStatusLabel)
+        macroTabLayout.addWidget(self.macroRecordSwitch)
+        macroTabLayout.addWidget(replayMacroSwitch)
+        macroTabLayout.addWidget(executeMacroSwitch)
+        macroTabLayout.addWidget(self.macroStatusLabel)
+
+        #connection tab
+        connectionTab = QWidget()
+        connectionTabLayout = QVBoxLayout(connectionTab)
+
+        connectionTab.setStyleSheet("QPushButton {min-width: 250px; min-height: 50px;}")
+
+        # device controls section
+        bleControlBar = QGridLayout()
+
+        self.deviceNameConnTab = QLabel()   
+        
+        self.updateDeviceLabelSignal.connect(self.updateDeviceNameLabel)
+        self.updateDeviceNameLabel(self._curBleDeviceName)
+        self.deviceNameConnTab.setAlignment(Qt.AlignBottom)
+
+        
+        bleConnectionSwitch = QPushButton()
+        bleConnectionSwitch.setText('Switch device')
+        bleConnectionSwitch.setToolTip('Swicth ble device connection')
+        bleConnectionSwitch.clicked.connect(self.sendBleToggleCommand)
+        bleConnectionSwitch.setFocusPolicy(Qt.NoFocus)
+
+        self.switchDeviceSignal.connect(self.sendBleToggleCommand)        
+       
+        bleControlBar.addWidget(self.deviceNameConnTab, 0, 0, 1, 2)
+        bleControlBar.addWidget(bleConnectionSwitch, 1, 0)
+
+        # daemon controls section
+        daemonControlBar = QGridLayout()
+
+        self.daemonStatusLabel = QLabel()
+        self.dongleStatusLabel = QLabel()
+
+        self.setDaemonLabelSignal.connect(self.daemonStatusLabel.setText)
+        self.setDongleLabelSignal.connect(self.dongleStatusLabel.setText)
+        
+
+        daemonControlBar.addWidget(self.daemonStatusLabel, 0, 0)
+        daemonControlBar.addWidget(self.dongleStatusLabel, 0, 1)
+
+        daemonModeSwitch = QPushButton()
+        daemonModeSwitch.setText('Switch mode')
+        daemonModeSwitch.setToolTip('Switch daemon mode')
+        daemonModeSwitch.clicked.connect(self.switchDaemonMode)
+        daemonModeSwitch.setFocusPolicy(Qt.NoFocus)
+        daemonControlBar.addWidget(daemonModeSwitch, 1, 0)        
+
+        self.updateStatusTimer = QTimer()
+        self.updateStatusTimer.timeout.connect(self.updateStatusCallback)
+        self.updateStatusTimer.setInterval(5000)
+        self.updateStatusTimer.start()
+
+        self.updateStatusCallback()
+      
+        connectionTabLayout.addLayout(bleControlBar)
+        connectionTabLayout.addLayout(daemonControlBar)
+        connectionTabLayout.addStretch()
 
         # devices tab
         devicesTab = QWidget()
         devicesTabLayout = QHBoxLayout(devicesTab)
+
+        devicesTab.setStyleSheet("QPushButton {min-width: 100px; min-height: 50px;}")
 
         # device list custom widget
         self.deviceList = DeviceListWidget(self.removeDeviceCommand)
@@ -680,8 +673,7 @@ class Window (QMainWindow):
 
         scrollAreaContainer = QScrollArea()
         scrollAreaContainer.setFrameStyle(QFrame.WinPanel | QFrame.Sunken)
-        scrollAreaContainer.setLineWidth(3)
-        #scrollAreaContainer.setStyleSheet("QScrollArea {background-color: white}")
+        scrollAreaContainer.setLineWidth(3)        
         scrollAreaContainer.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scrollAreaContainer.setWidget(self.deviceList)
         scrollAreaContainer.setWidgetResizable(True)
@@ -689,30 +681,27 @@ class Window (QMainWindow):
         # device controls Bar
         deviceControlsBar = QVBoxLayout()
 
-        self.addDeviceSwitch = QPushButton()
-        self.addDeviceSwitch.setMinimumSize(QSize(100,50)) # set min size manually
-        self.addDeviceSwitch.setText('Add device')
-        self.addDeviceSwitch.setToolTip('Add new device to list')
-        self.addDeviceSwitch.clicked.connect(self.addDeviceButtonClicked)
-        self.addDeviceSwitch.setFocusPolicy(Qt.NoFocus)
+        addDeviceSwitch = QPushButton()
+        addDeviceSwitch.setText('Add device')
+        addDeviceSwitch.setToolTip('Add new device to list')
+        addDeviceSwitch.clicked.connect(self.addDeviceButtonClicked)
+        addDeviceSwitch.setFocusPolicy(Qt.NoFocus)
 
-        self.refreshListSwitch = QPushButton()
-        self.refreshListSwitch.setMinimumSize(QSize(100,50)) # set min size manually
-        self.refreshListSwitch.setText('Refresh list')
-        self.refreshListSwitch.setToolTip('Refresh devices list')
-        self.refreshListSwitch.clicked.connect(self.refreshDeviceListButtonClicked)
-        self.refreshListSwitch.setFocusPolicy(Qt.NoFocus)
+        refreshListSwitch = QPushButton()
+        refreshListSwitch.setText('Refresh list')
+        refreshListSwitch.setToolTip('Refresh devices list')
+        refreshListSwitch.clicked.connect(self.refreshDeviceListButtonClicked)
+        refreshListSwitch.setFocusPolicy(Qt.NoFocus)
 
-        self.resetListSwitch = QPushButton()
-        self.resetListSwitch.setMinimumSize(QSize(100,50)) # set min size manually
-        self.resetListSwitch.setText('Reset device list')
-        self.resetListSwitch.setToolTip('Remove all devices from list')
-        self.resetListSwitch.clicked.connect(self.resetDeviceListButtonClicked)
-        self.resetListSwitch.setFocusPolicy(Qt.NoFocus)
+        resetListSwitch = QPushButton()
+        resetListSwitch.setText('Reset device list')
+        resetListSwitch.setToolTip('Remove all devices from list')
+        resetListSwitch.clicked.connect(self.resetDeviceListButtonClicked)
+        resetListSwitch.setFocusPolicy(Qt.NoFocus)
         
-        deviceControlsBar.addWidget(self.addDeviceSwitch)
-        deviceControlsBar.addWidget(self.refreshListSwitch)
-        deviceControlsBar.addWidget(self.resetListSwitch)
+        deviceControlsBar.addWidget(addDeviceSwitch)
+        deviceControlsBar.addWidget(refreshListSwitch)
+        deviceControlsBar.addWidget(resetListSwitch)
         deviceControlsBar.addStretch()
 
         devicesTabLayout.addWidget(scrollAreaContainer)
@@ -722,11 +711,12 @@ class Window (QMainWindow):
         self.tabLayout = QStackedLayout()
         self.tabLayout.addWidget(captureTab)
         self.tabLayout.addWidget(macroTab)
+        self.tabLayout.addWidget(connectionTab)
         self.tabLayout.addWidget(devicesTab)
 
         mainWidget = QWidget(self)        
         mainLayout = QHBoxLayout(mainWidget)
-        mainLayout.addLayout(dockLayout)
+        mainLayout.addWidget(dockWidget)
         mainLayout.addLayout(self.tabLayout)  
 
         self.setCentralWidget(mainWidget)
@@ -736,46 +726,17 @@ class Window (QMainWindow):
         self.setWindowTitle("Relay Keys Display")
         self.resize(625, 435)
 
-        # New Menu
-        self.userMenu = self.menuBar()
-
-        # Device Menu
-        self.deviceMenu = QMenu("&Devices", self)
-        
-        self.actionAddNewDevice = QAction("Add BLE Device", self)
-        self.actionAddNewDevice.triggered.connect(self.addDeviceButtonClicked)
-
-        self.deviceMenu.addAction(self.actionAddNewDevice)
-
-        self.removeDeviceMenu = QMenu("&Remove BLE Device", self)
-
-        self.addDeviceSignal.connect(self.removeDeviceMenu.addAction)
-        self.addSeparatorSignal.connect(self.removeDeviceMenu.addSeparator)
-        
-        self.actionResetDevices = QAction("Reset BLE Device List", self)
-        self.actionResetDevices.triggered.connect(self.resetDeviceListButtonClicked)
-        self.removeDeviceMenu.addAction(self.actionResetDevices)   
-        
-        self.removeDeviceMenu.addSeparator()
-
-        self.deviceMenu.addMenu(self.removeDeviceMenu)
-
-        self.actionRefreshDevices = QAction("Refresh Device List", self)
-        self.actionRefreshDevices.triggered.connect(self.refreshDeviceListButtonClicked)
-        self.deviceMenu.addAction(self.actionRefreshDevices)
-
-        self.userMenu.addMenu(self.deviceMenu)
-
         # Help Menu
-        self.helpMenu = self.userMenu.addMenu("&Help") 
+        userMenu = self.menuBar()        
+        helpMenu = userMenu.addMenu("&Help") 
 
-        self.helpMenuGitHubDoc = QAction("Git Hub Docs", self)
-        self.helpMenuGitHubDoc.triggered.connect(self.openGitHubUrl)
-        self.helpMenu.addAction(self.helpMenuGitHubDoc)
+        helpMenuGitHubDoc = QAction("Git Hub Docs", self)
+        helpMenuGitHubDoc.triggered.connect(self.openGitHubUrl)
+        helpMenu.addAction(helpMenuGitHubDoc)
 
-        self.helpMenuAceCentre = QAction("Ace Centre", self)
-        self.helpMenuAceCentre.triggered.connect(self.openAceCentreUrl)
-        self.helpMenu.addAction(self.helpMenuAceCentre)
+        helpMenuAceCentre = QAction("Ace Centre", self)
+        helpMenuAceCentre.triggered.connect(self.openAceCentreUrl)
+        helpMenu.addAction(helpMenuAceCentre)
         
         self.send_action('ble_cmd', 'devname')
         self.send_action('ble_cmd', 'devlist')
@@ -784,16 +745,8 @@ class Window (QMainWindow):
         pass
 
     @pyqtSlot()
-    def setCaptureTab(self):
-        self.tabLayout.setCurrentIndex(0)
-
-    @pyqtSlot()
-    def setMacroTab(self):
-        self.tabLayout.setCurrentIndex(1)
-    
-    @pyqtSlot()
-    def setDevicesTab(self):
-        self.tabLayout.setCurrentIndex(2)
+    def switchTab(self, tab_index):
+        self.tabLayout.setCurrentIndex(tab_index)
 
     @pyqtSlot()
     def readBleDeviceName(self):
@@ -883,21 +836,13 @@ class Window (QMainWindow):
     @pyqtSlot()
     def switchDaemonMode(self):
         self.client_send_action("daemon", "switch_mode")
-        self.refreshDaemonstatus()
+        self.updateStatusCallback()
 
     @pyqtSlot()
-    def refreshDaemonstatus(self):
-        print("refresh daemon status") # temp
-        daemon_mode = self.client_send_action("daemon", "get_mode")
-        dongle_status = self.client_send_action("daemon", "dongle_status")
-        
-        self.daemonStatusLabel.setText("<font size='5' style='font-weight:bold;'>Daemon: </font><font size='5'>{0}.</font>".format(daemon_mode))
-        self.dongleStatusLabel.setText("<font size='5' style='font-weight:bold;'>Dongle: </font><font size='5'>{0}.</font>".format(dongle_status))
-        
-        if dongle_status != "Connected":
-            if daemon_mode == "Hardware serial":
-                daemon_mode = self.client_send_action("ble_cmd", "reconnect")
-            self.DaemonStatusTimer.start()
+    def updateStatusCallback(self):        
+        self.send_action("daemon", "get_mode")
+        self.send_action("daemon", "dongle_status")
+        self.send_action('ble_cmd', 'devname')
 
     def getShortcutText(self, key, modifiers):
         return " + ".join((key, ) + tuple(modifiers))
@@ -906,7 +851,8 @@ class Window (QMainWindow):
         self.macroStatusLabel.setText("<font size='5' style='font-weight:bold;'>Macro status: </font><font size='5'>{}</font>".format(text))
 
     def updateDeviceNameLabel(self, text):
-        self.bleDeviceRead.setText("<font size='5' style='font-weight:bold;'>Cur Device: </font><font size='5'>{}</font>".format(text))
+        self.deviceNameCaptureTab.setText("<font size='5' style='font-weight:bold;'>Cur Device: </font><font size='5'>{}</font>".format(text))
+        self.deviceNameConnTab.setText("<font size='5' style='font-weight:bold;'>Cur Device: </font><font size='5'>{}</font>".format(text))
 
     #Menu Functions
 
@@ -919,11 +865,6 @@ class Window (QMainWindow):
         url = QUrl('https://acecentre.org.uk/')
         if not QDesktopServices.openUrl(url):
             QMessageBox.warning(self, 'Open Url', 'Could not open url')
-    
-    def clearRemoveDeviceMenu(self):
-        self.removeDeviceMenu.clear()
-        self.addDeviceSignal.emit("Reset BLE Device List", self.resetDeviceListButtonClicked)
-        self.addSeparatorSignal.emit()
         
     def resetDeviceListButtonClicked(self):
         self.send_action('ble_cmd', 'devreset')
@@ -1127,53 +1068,71 @@ class Window (QMainWindow):
 
     def client_send_actions(self, actions):
         try:
-            ret = self.client.actions(actions)
+            filtred_actions = []
+
+            for action in actions:
+                if action[0] == "ble_cmd":
+                    ble_cmd_ret = self.client_send_action("ble_cmd", action[1])
+                    if ble_cmd_ret == False or  ble_cmd_ret == "FAIL" or ble_cmd_ret == "TIMEOUT" or ble_cmd_ret == "No connection with dongle":
+                        continue        
+
+                    if action[1] == "devname":
+                        self._curBleDeviceName = ble_cmd_ret
+                        self.updateDeviceLabelSignal.emit(self._curBleDeviceName)
+                    elif action[1] == "devlist":
+                        self.clearDeviceListSignal.emit()
+                        self.devList = []                                                        
+                        for device in ble_cmd_ret:
+                            if 'Device found in list - ' not in device \
+                                and 'Disconnected - Device already present in list' not in device \
+                                and 'ERROR:' not in device \
+                                and 'OK' not in device \
+                                and 'SUCCESS' not in device:
+                                self.addDeviceListSignal.emit(device)
+                                self.devList.append(device)
+                    elif action[1] == "devreset":
+                            self.clearDeviceListSignal.emit()
+                            self.devList = []                    
+                    elif 'devremove' in action[1]:                        
+                        self.send_action('ble_cmd', 'devlist')
+                        self.send_action('ble_cmd', 'devname')
+                    
+
+                elif action[0] == "daemon":                    
+                    daemon_ret = self.client_send_action("daemon", action[1])
+                    if daemon_ret == False or daemon_ret == "FAIL" or daemon_ret == "TIMEOUT" or daemon_ret == "No connection with dongle":
+                        continue                    
+                    
+                    if action[1] == "get_mode":
+                        self.daemon_mode = daemon_ret
+                        self.setDaemonLabelSignal.emit("<font size='5' style='font-weight:bold;'>Daemon: </font><font size='5'>{0}.</font>".format(self.daemon_mode))                        
+                    elif action[1] == "dongle_status":
+                        self.dongle_status = daemon_ret                        
+                        self.setDongleLabelSignal.emit("<font size='5' style='font-weight:bold;'>Dongle: </font><font size='5'>{0}.</font>".format(self.dongle_status))                        
+                        if self.dongle_status != "Connected":
+                            self._curBleDeviceName = "NONE"
+                            self.updateDeviceLabelSignal.emit(self._curBleDeviceName)
+                            
+                            if self.daemon_mode == "Hardware serial":
+                                self.client_send_action("ble_cmd", "reconnect")
+            
+                else:
+                    filtred_actions.append(action)
+
+            if len(filtred_actions) == 0:
+                return True
+                            
+            ret = self.client.actions(filtred_actions)
             if 'result' not in ret:
                 logging.error("actions {} response error: {}".format(
                     ", ".join(map(str, actions)), ret.get("error", "undefined")))
                 self.showErrorMessageSignal.emit("Failed to send the message!")
             else:
                 if ret["result"] == "FAIL" or ret["result"] == "TIMEOUT" or ret["result"] == "No connection with dongle":
-                    self.refreshDaemonSignal.emit()
-                    return False
-                result = 0
-
-                for action in actions:
-                
-                    if action[0] == 'ble_cmd':
-                        if action[1] == 'devname':
-                            self._curBleDeviceName = ret['result'][result]
-                            self.updateDeviceNameLabel(self._curBleDeviceName)
-                
-                        if action[1] == 'devlist':
-                            
-                            self.clearRemoveDeviceMenu()
-                            self.clearDeviceListSignal.emit()
-                            self.devList = []
-                                                            
-                            for device in ret['result'][result]:
-                                if 'Device found in list - ' not in device \
-                                    and 'Disconnected - Device already present in list' not in device \
-                                    and 'ERROR:' not in device \
-                                    and 'OK' not in device \
-                                    and 'SUCCESS' not in device:
-                                    self.addDeviceSignal.emit(device, self.removeDeviceButtonClicked)
-                                    self.addDeviceListSignal.emit(device)
-                                    self.devList.append(device)
-                                    
-                        if action[1] == 'devreset':
-                            self.clearRemoveDeviceMenu()
-                            self.clearDeviceListSignal.emit()
-                            self.devList = []
-
-                        if 'devremove' in action[1]:
-                            self.send_action('ble_cmd', 'devlist')
-                            self.send_action('ble_cmd', 'devname')
-
-                    result = result + 1
+                    return False               
 
                 logging.info("actions {} response: {}".format(
-                    ", ".join(map(str, actions)), ret["result"]))
+                    ", ".join(map(str, filtred_actions)), ret["result"]))
                 return True
         except:
             logging.error("actions {} raise: {}".format(
@@ -1249,10 +1208,13 @@ class Window (QMainWindow):
         elif key_ev not in self._unknown_keys:
             self._unknown_keys.append(key_ev)
 
-        # check for SHIFT+ESC combination that toggles macro recording
+        # check shortcuts combinations
         if len(self._keys) != 0 and len(self._modifiers) != 0:
-            if self._keys[0] == "ESCAPE" and self._modifiers[0] == "LSHIFT":                
+            if self._modifiers[0] == "LSHIFT" and self._keys[0] == "ESCAPE":                
                 self.toggleRecordSignal.emit()
+                return
+            if self._modifiers[0] == "LALT" and self._keys[0] == "N":                
+                self.switchDeviceSignal.emit()
                 return
         
         ret = self._keyboardToggleCheck(key)
