@@ -273,6 +273,13 @@ Straight left:
 
 `relaykeys-cli.exe mousemove:-10,0`
 
+{% hint style="info" %}
+Want a way of repeating a mousemove for a while?\
+Run the application called **mouserepeat.exe** which uou will find in the RelayKeys install folder. Run it with `mouserepeat.exe -x 10 -y 10` - where that is your mouse direction to move it in. It will then repeat that until you quit the application. To do this run a powershell script:\
+\
+`Stop-Process -Name "mouserepeat"`
+{% endhint %}
+
 ### Command: mousebutton:Button,Behaviour
 
 Sends the Mouse button press. Mouse buttons available:
