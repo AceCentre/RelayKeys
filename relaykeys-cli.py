@@ -176,7 +176,7 @@ def do_devicecommand(client, devcommand, notify=False,copyresults=False):
     if notify:
       send_notification("device command", devcommand, ret["result"])
     if copyresults:
-      copy_return("daemon command", command, ret["result"])
+      copy_return("daemon command", devcommand, ret["result"])
 
 def do_daemoncommand(client, command, notify=False,copyresults=False):
   ret = client.daemon(command)
