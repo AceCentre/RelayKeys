@@ -25,7 +25,7 @@ def moveTree(sourceRoot, destRoot):
                 ok = False
                 continue
             srcFile = os.path.join(path, file)
-            #print "rename", srcFile, destFile
+            # print "rename", srcFile, destFile
             os.rename(srcFile, destFile)
     for path, dirs, files in os.walk(sourceRoot, False):
         if len(files) == 0 and len(dirs) == 0:
@@ -46,13 +46,13 @@ for script, exename, console in [
     ('relaykeys-cli.py', 'relaykeys-cli', True),
     ('relaykeys-cli.py', 'relaykeys-cli-win', False),
         ('relaykeys-qt.py', 'relaykeys-qt', False)]:
-  with open("relaykeys.spec.ini", "rb") as inf:
-    data = str(inf.read(), "utf8").format(COL_NAME=exename,
-                                          CONSOLE="True" if console else "False",
-                                          SCRIPT=script,
-                                          EXE_NAME=exename)
-    with open("{}.spec".format(exename), "w") as wf:
-      wf.write(data)
+    with open("relaykeys.spec.ini", "rb") as inf:
+        data = str(inf.read(), "utf8").format(COL_NAME=exename,
+                                              CONSOLE="True" if console else "False",
+                                              SCRIPT=script,
+                                              EXE_NAME=exename)
+        with open("{}.spec".format(exename), "w") as wf:
+            wf.write(data)
 
 # first clear out the dist folder..
 #os.system("rd /s /q dist")
@@ -62,9 +62,12 @@ for script, exename, console in [
 for spec in ['relaykeysd.spec', 'relaykeys-cli.spec', 'relaykeys-cli-win.spec', 'relaykeys-qt.spec']:
     subprocess.run(["pyinstaller", '-y', spec])
 
+# remaining files that dont fit the standard spec
 if os.name == 'nt':
     subprocess.run(["pyinstaller", '-y', 'relaykeysd-service.spec'])
     subprocess.run(["pyinstaller", '-y', 'relaykeysd-service-stop.spec'])
+    subprocess.call(["pyinstaller", '-y',  '--windowed', '--onefile', '--distpath',
+                    'dist/relaykeysd/', '-i', 'resources/logo.ico', './resources/mouserepeat.py'])
 
 # Create a PDF of the readme - and in future any other docs..
 # NB: I realise the next lines are insane. I'm in a hurry
@@ -72,18 +75,18 @@ for doc in ['README.md']:
     os.system("python -m markdown "+doc + "> README.html")
 
 # Copy all the exe's into one dir - we will use the relaykeysd directory for this
-#for item in ["blehid.pyd",r".\dist\relaykeysd-service\relaykeysd-service.exe",r".\dist\relaykeys-cli\relaykeys-cli.exe",r".\dist\relaykeys-cli-win\relaykeys-cli-win.exe",r".\dist\relaykeys-qt\relaykeys-qt.exe"]:
+# for item in ["blehid.pyd",r".\dist\relaykeysd-service\relaykeysd-service.exe",r".\dist\relaykeys-cli\relaykeys-cli.exe",r".\dist\relaykeys-cli-win\relaykeys-cli-win.exe",r".\dist\relaykeys-qt\relaykeys-qt.exe"]:
 #    os.system("copy " + item + r' dist\relaykeysd ')
 
 # Merge all directories
 if os.name == 'nt':
-	for item in [r"dist\relaykeysd-service", r"dist\relaykeysd-service-stop", r"dist\relaykeys-cli", r"dist\relaykeys-cli-win", r"dist\relaykeys-qt"]:
-		moveTree(item, r'dist\relaykeysd')
+    for item in [r"dist\relaykeysd-service", r"dist\relaykeysd-service-stop", r"dist\relaykeys-cli", r"dist\relaykeys-cli-win", r"dist\relaykeys-qt"]:
+        moveTree(item, r'dist\relaykeysd')
 if os.name == 'posix':
-	for item in [r"dist/relaykeys-cli", r"dist/relaykeys-cli-win", r"dist/relaykeys-qt"]:
-		moveTree(item, r'dist/relaykeysd')
+    for item in [r"dist/relaykeys-cli", r"dist/relaykeys-cli-win", r"dist/relaykeys-qt"]:
+        moveTree(item, r'dist/relaykeysd')
 
-# Logfile may not exist if its not been run 
+# Logfile may not exist if its not been run
 logfile = Path('logfile.txt')
 logfile.touch(exist_ok=True)
 
