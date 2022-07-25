@@ -157,23 +157,9 @@ def rpc_server_worker(host, port, username, password, queue):
             respqueue = Queue(1)
             queue.put((respqueue, 'actions', actionlist), True)            
             try:
-                response = respqueue.get(True, 5) # here get used as waiting for commands execution
+                return respqueue.get(True, 5)
             except QueueEmpty:
                 return "TIMEOUT"
-
-            for action in actionlist:
-                if action[0] == 'ble_cmd':
-                                    
-                    if action[1] == 'devname':
-                        data.append(devName)
-                
-                    if action[1] == 'devlist':
-                        data.append(devList)
-
-            if len(data):
-                return data
-            else:
-                return response
 
         except:
             return "UNEXPECTED_INPUT"
@@ -228,16 +214,9 @@ def rpc_server_worker(host, port, username, password, queue):
         respqueue = Queue(1)
         queue.put((respqueue, "ble_cmd", devcommand), True)
         try:            
-            respqueue.get(True, 5)  # here get used as waiting for commands execution           
+            return respqueue.get(True, 5)
         except QueueEmpty:
-            return "TIMEOUT"
-        
-        if devcommand == 'devname':
-            return devName
-        elif devcommand == 'devlist':
-            return devList
-        else:
-            return "OK"
+            return "TIMEOUT"            
 
     @dispatcher.add_method
     def daemon(args):
@@ -602,25 +581,21 @@ async def process_action(ser, keys, cmd):
             await blehid_send_mousebutton(ser, btn, behavior)
 
         elif cmd[0] == 'ble_cmd':
-            global devName
-            global devList
 
             if cmd[1] == "switch":
                 await blehid_send_switch_command(ser, cmd[1])
 
             elif cmd[1] == "devname":
-                devName = await blehid_send_get_device_name(ser, cmd[1])
+                return await blehid_send_get_device_name(ser, cmd[1])
 
             elif cmd[1] == "devlist":
-                devList = await blehid_get_device_list(ser, cmd[1])
+                return await blehid_get_device_list(ser, cmd[1])
 
             elif cmd[1] == "devadd":
                 await blehid_send_add_device(ser, cmd[1])
 
             elif cmd[1] == "devreset":
                 await blehid_send_clear_device_list(ser, cmd[1])
-                devList = []
-                devName = ""
 
             elif cmd[1].split("=")[0] == "devremove":
                 await blehid_send_remove_device(ser, cmd[1])

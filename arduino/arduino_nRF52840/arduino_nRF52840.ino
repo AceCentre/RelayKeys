@@ -38,7 +38,7 @@
   #define USER_SW 4
 
   #include <Adafruit_DotStar.h>
-  Adafruit_DotStar statusLED(1, 8, 6, DOTSTAR_BRG);
+  Adafruit_DotStar statusLED(1, 8, 6, DOTSTAR_BGR);
 #elif defined(_VARIANT_FEATHER52840_)
 //Adafruit feather nrf52840
     #define USER_SW 7
@@ -90,11 +90,11 @@ void set_keyboard_led(uint8_t led_bitmap);
 
 void updateStatusLED() {
   if(flag_addDevProsStarted) {
-    statusLED.setPixelColor(0, 128, 128, 0);  // set yellow color
+    statusLED.setPixelColor(0, 16, 16, 0);  // set yellow color
   }else if(ble_mode) {
-    statusLED.setPixelColor(0, 0, 0, 128);    // set blue color
+    statusLED.setPixelColor(0, 0, 0, 16);    // set blue color
   } else {
-    statusLED.setPixelColor(0, 0, 128, 0);    // set green color
+    statusLED.setPixelColor(0, 0, 16, 0);    // set green color
   }
 
   statusLED.show();
