@@ -333,9 +333,9 @@ Puts in a a delay of 1 second.&#x20;
 
 ### Device Management Commands
 
-#### Optional extra flag --notfiy
+#### Optional extra flags --notfiy --copy
 
-On the following commands you can provide a `--notify` flag. If so your Operating System will return a system notification. Useful if you dont have access to view the command line.&#x20;
+On the following commands you can provide a `--notify` flag. If so your Operating System will return a system notification. Useful if you dont have access to view the command line. Or if you wish provide a `--copy` flag. This will return the results to your pasteboard for you to paste the data back. **Be careful with this. It will overwrite any copy/paste functions you may already have.**
 
 `relaykeys-cli.exe ble_cmd:devname`
 
