@@ -1,6 +1,6 @@
 # Architecture of RelayKeys
 
-![RelayKeys Sketch](../.gitbook/assets/untitled\_page.png)
+![RelayKeys Sketch](<../.gitbook/assets/untitled\_page (1).png>)
 
 RelayKeys is a mixture of a Open Hardware board that communicates in Bluetooth LE and acts as a BLE HID device (i.e. a keyboard/mouse)  which can  emulate **all** keyboard keys and their modifiers as well as mouse movements. (4). This is controlled by a serial connection from a device - either wired (i.e. as a USB dongle) or wireless (i.e. as a BLE Serial device). \
 \

@@ -2,6 +2,8 @@
 
 * [Welcome to the RelayKeys Docs!](README.md)
 * [⚙️ Installation](installation.md)
+* [🖥 Using RelayKeys](using-relaykeys/README.md)
+  * [Command Line Usage](using-relaykeys/relaykeys-cli.md)
 * [❓ Troubleshooting](troubleshooting.md)
 * [💬 Guides for use with AAC](guides/README.md)
   * [Tobii Communicator 5](guides/communicator.md)
@@ -12,7 +14,6 @@
   * [Architecture of RelayKeys](developers/architecture.md)
   * [Supported Electronics Boards](developers/supported-boards.md)
   * [Config File details](developers/relaykeys-cfg.md)
-  * [Command Line Usage](developers/relaykeys-cli.md)
   * [Server (Daemon) reference](developers/relaykeys-daemon.md)
   * [Serial API](developers/relaykeys-serial.md)
   * [Building a binary](developers/building-a-binary.md)

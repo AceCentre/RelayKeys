@@ -23,7 +23,7 @@ Remember to change your application accordingly We regularly use the term for  c
 {% endhint %}
 
 {% hint style="info" %}
-If you are developing with the code You must make sure the server  is running when you call the cli files. The [server (aka Daemon)](relaykeys-daemon.md) is the code that turns these commands into the correct AT syntax and access the com port
+If you are developing with the code You must make sure the server  is running when you call the cli files. The [server (aka Daemon)](../developers/relaykeys-daemon.md) is the code that turns these commands into the correct AT syntax and access the com port
 {% endhint %}
 
 ### Defining a Keymap -c
@@ -32,11 +32,11 @@ Keymap files are located in [**cli\_keymap**](https://github.com/AceCentre/Relay
 
 By default the **us\_keymap.json** is loaded.\
 \
-To run relaykeys-cli with other keymap either change the cfg setting [or use the -c flag](relaykeys-cfg.md) on the cli application. E.g.
+To run relaykeys-cli with other keymap either change the cfg setting [or use the -c flag](../developers/relaykeys-cfg.md) on the cli application. E.g.
 
 `relaykeys-cli.exe -c .\relaykeys-example.cfg type:@`
 
-See more info on the format [here](relaykeys-cfg.md#introduction)
+See more info on the format [here](../developers/relaykeys-cfg.md#introduction)
 
 ### Command: paste
 
@@ -409,5 +409,5 @@ Warning: There is no syntax checking of this document.&#x20;
 {% endhint %}
 
 {% hint style="info" %}
-Want to send a long string of mouse commands and want to record your movements for a script? Start by using [https://github.com/rmpr/atbswp](https://github.com/rmpr/atbswp) - You'll need to edit the file but its a handy starting point
+Want to send a long string of mouse commands and want to record your movements for a script? Use the RelayKeys-QT app and use the record macro function!
 {% endhint %}

@@ -29,9 +29,9 @@ keymap_file = us_keymap.json
 
 Feel free to change any of the settings but **Be careful that you make the username/password the same** - otherwise the CLI programme can't talk to the service.
 
-Note the keymap file. This is found in the sub directory **cli\_keymaps**. You can have multiple keymaps in here if you wish and switch between them using the[ cli using -c ](relaykeys-cli.md#defining-a-keymap-c)
+Note the keymap file. This is found in the sub directory **cli\_keymaps**. You can have multiple keymaps in here if you wish and switch between them using the[ cli using -c](../using-relaykeys/relaykeys-cli.md#defining-a-keymap-c)
 
-Each file is a json file (tip - using [jsonlint](https://jsonlint.com) to check its formatted ok) looks something like the below where the string is sent dependent on the characters sent. eg. on a UK keyboard **!  is sent by presing shift and 1.**&#x20;
+Each file is a json file (tip - using [jsonlint](https://jsonlint.com) to check its formatted ok) looks something like the below where the string is sent dependent on the characters sent. eg. on a UK keyboard **! is sent by presing shift and 1.**
 
 ```
 {

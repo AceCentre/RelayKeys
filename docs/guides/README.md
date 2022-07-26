@@ -1,7 +1,7 @@
 # 💬 Guides for use with AAC
 
 {% hint style="info" %}
-This is for end-users. If you are a developer please consider communicating with RelayKeys over the [serial](../developers/relaykeys-serial.md) or [cli API.](../developers/relaykeys-cli.md)
+This is for end-users. If you are a developer please consider communicating with RelayKeys over the [serial](../developers/relaykeys-serial.md) or [cli API.](../using-relaykeys/relaykeys-cli.md)
 {% endhint %}
 
 {% hint style="info" %}
@@ -13,11 +13,11 @@ Most AAC software have a way of connecting to an external application. Some call
 Take a look at the guides for your software.
 
 The key application you want to access is the `relaykeys-cli-win.exe` found in `C:\Program Files (x86)\Ace Centre\RelayKeys`\
-`\` For a full list of commands you can send see [here](../developers/relaykeys-cli.md).
+`\` For a full list of commands you can send see [here](../using-relaykeys/relaykeys-cli.md).
 
 ### A tip on notifications
 
-If you pass the _--notify_ flag to the cli application you will get notifications about the devices you are connected to and the status of the device. See [here](../developers/relaykeys-cli.md#optional-extra-flag-notfiy) for more information&#x20;
+If you pass the _--notify_ flag to the cli application you will get notifications about the devices you are connected to and the status of the device. See [here](../using-relaykeys/relaykeys-cli.md#optional-extra-flag-notfiy) for more information&#x20;
 
 There is no documented way for third parties integrating their software into commercial AAC software for example integrated notifications. So we have to make use of the operating system notification system. The difficulty on Windows is that by default full screen apps do not see notifications. So to make this work we recommend three alterations to your notifications.&#x20;
 
