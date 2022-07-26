@@ -432,29 +432,13 @@ async def hardware_serial_loop(queue, args, config, interrupt):
                         elif cmd[1] == "break_loop":
                             logging.info('Breaking hardware serial loop')
                             break
-####
-                        elif cmd[1] == "ble_cmd" and cmd[2] == "reconnect":
-                            try:
-                                logging.info('Trying to reopen serial port')
-                                ser.close()
-                                ser.open()           
-                                logging.info("serial device opened: {}".format(devicepath))
-                                logging.info('Trying to reinitialise')
-                                await blehid_init_serial(ser)
-                                logging.info('reinitialise complete')
-                                output="SUCCESS"
-                            except:
-                                logging.error(traceback.format_exc())
-                                logging.error('Unable to reconnect')
-                                output="FAIL"
-                            cmd[0].put(output)
-                            queue.task_done()
-####
                         else:
                             output = await process_action(ser, keys, cmd[1:])
                             if cmd[0] is not None:
                                 cmd[0].put(output)
                             queue.task_done()
+                            if output == "FAIL":
+                                break
 
                     except KeyboardInterrupt:
                         raise SystemExit()
