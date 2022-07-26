@@ -439,12 +439,9 @@ async def hardware_serial_loop(queue, args, config, interrupt):
                             queue.task_done()
                             if output == "FAIL":
                                 break
-
-                    except KeyboardInterrupt:
-                        raise SystemExit()
                     except QueueEmpty:
                         pass
-            except SystemExit:
+            except (SystemExit, KeyboardInterrupt):
                 shutdown_server()
                 daemon_quit = True
 
@@ -512,11 +509,9 @@ async def ble_serial_loop(queue, args, config, interrupt):
                                 if not client.is_connected:
                                     print("client lost connection")
                                     raise BleakError
-                        except KeyboardInterrupt:
-                            raise SystemExit()
                         except QueueEmpty:
                             pass
-                except SystemExit:
+                except (SystemExit, KeyboardInterrupt):
                     shutdown_server()
                     daemon_quit = True
 
