@@ -9,7 +9,12 @@ RequestExecutionLevel admin ;Require admin rights on NT6+ (When UAC is turned on
 SetCompressor LZMA
 ;SetCompress Off
 ; CompanyName.ProductName.SubProduct.VersionInformation
-!define MyApp_AppUserModelId "AceCentre.RelayKeys.Desktop.001"
+;!define MyApp_AppUserModelId "AceCentre.RelayKeys.Desktop.001"
+; New header file for toast
+ShowInstDetails show
+!include LogicLib.nsh
+!include build-shortcut-properties.nsh
+
 
 Var NormalDestDir
 Var PortableDestDir
@@ -141,9 +146,18 @@ Section
     ;create start-menu items
       CreateDirectory "$SMPROGRAMS\Ace Centre\RelayKeys"
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk" "$INSTDIR\relaykeys-qt.exe" "" "$INSTDIR\relaykeys-qt.exe" 0
-      WinShell::SetLnkAUMI "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk" "${MyApp_AppUserModelId}"
-      CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk" "$INSTDIR\relaykeys-cli-win.exe" "" "$INSTDIR\relaykeys-cli-win.exe" 0
-      WinShell::SetLnkAUMI "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-cli-win.lnk" "AceCentre.RelayKeys.CLI.001"
+      CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-cli-win.lnk" "$INSTDIR\relaykeys-cli-win.exe" "" "$INSTDIR\relaykeys-cli-win.exe" 0
+      !insertmacro ShortcutSetToastProperties "$SMPROGRAMS\RelayKeys-cli-win.lnk" "{AF3720CE-2345-4051-A892-F1BE83B3BC74}" "AceCentre.RelayKeys.CLI.001" 
+      pop $0
+      ${If} $0 <> 0
+        MessageBox MB_ICONEXCLAMATION "Shortcut-Attributes to enable Toast Messages couldn't be set"
+        SetErrors
+        Abort
+      ${EndIf}
+      DetailPrint Returncode=$0
+      ;SetRegView 64 ;If the Toast-Application is 64 Bit
+      WriteRegStr HKLM "SOFTWARE\Classes\CLSID\{AF3720CE-2345-4051-A892-F1BE83B3BC74}\LocalServer32" "" "$INSTDIR\relaykeys-cli-win.exe" ; Add the needed Registry Key (https://docs.microsoft.com/en-us/windows/win32/com/localserver32)
+
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-Config.lnk" "$INSTDIR\relaykeys.cfg" "" "$INSTDIR\relaykeys.cfg" 0
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Help.lnk" "$INSTDIR\README.html" "" "$INSTDIR\README.html" 0
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
@@ -171,6 +185,7 @@ SectionEnd
 
 Section Uninstall
     DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${UNINSTKEY}"
+    DeleteRegKey HKLM "SOFTWARE\Classes\CLSID\{AF3720CE-2345-4051-A892-F1BE83B3BC74}\LocalServer32" 
     SimpleSC::StopService "RelayKeysDaemon" 10 30
     SimpleSC::RemoveService "RelayKeysDaemon"
     Delete "$INSTDIR\uninstall.exe"
@@ -181,9 +196,5 @@ Section Uninstall
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Restart-RelayKeys.lnk"
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Restart-Config.lnk"
     Delete "$DESKTOP\RelayKeys-QT.lnk"
-    WinShell::UninstAppUserModelId "${MyApp_AppUserModelId}"
-    WinShell::UninstShortcut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk"
-    WinShell::UninstAppUserModelId "AceCentre.RelayKeys.CLI.001"
-    WinShell::UninstShortcut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-cli-win.lnk"
     RMDir /r "$INSTDIR"
 SectionEnd
