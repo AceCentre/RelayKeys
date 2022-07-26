@@ -147,7 +147,7 @@ Section
       CreateDirectory "$SMPROGRAMS\Ace Centre\RelayKeys"
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys.lnk" "$INSTDIR\relaykeys-qt.exe" "" "$INSTDIR\relaykeys-qt.exe" 0
       CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-cli-win.lnk" "$INSTDIR\relaykeys-cli-win.exe" "" "$INSTDIR\relaykeys-cli-win.exe" 0
-      !insertmacro ShortcutSetToastProperties "$SMPROGRAMS\RelayKeys-cli-win.lnk" "{AF3720CE-2345-4051-A892-F1BE83B3BC74}" "AceCentre.RelayKeys.CLI.001" 
+      !insertmacro ShortcutSetToastProperties "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys-cli-win.lnk" "{AF3720CE-2345-4051-A892-F1BE83B3BC74}" "AceCentre.RelayKeys.CLI.001" 
       pop $0
       ${If} $0 <> 0
         MessageBox MB_ICONEXCLAMATION "Shortcut-Attributes to enable Toast Messages couldn't be set"
