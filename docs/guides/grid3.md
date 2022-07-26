@@ -3,7 +3,7 @@
 [The Grid 3](https://thinksmartbox.com/product/grid-3) is a commonly used piece of software for AAC. Follow the steps below to add commands to your gridset
 
 {% hint style="info" %}
-Gridset quick start Want a headstart? Download the Gridset here. It has all the commands you should need. Just copy/paste and adapt&#x20;
+Gridset quick start Want a headstart? Download the Gridset [here](../../resources/aac-software/RelayKeysDemo\_Grid3.gridset). It has all the commands you should need. Just copy/paste and adapt&#x20;
 {% endhint %}
 
 ## Simple keystrokes
