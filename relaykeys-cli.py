@@ -66,11 +66,31 @@ def parse_macro(file_arg):
 def send_notification(command_type, command, result):
   notification = Notify()
   notification.application_name = "Relaykeys"
-  notification.title = command_type + " response" 
-  if isinstance(result, list):
-    result = "\n" + "\n".join(result)
-  notification.message = command + " : " + result
-
+  notification.title = ""
+  notification.icon = str(Path(__file__).resolve().parent / "resources" / "logo.png")
+  
+  if result == "TIMEOUT" or  result == "FAIL" or  result == "No connection with dongle":
+    notification.message = "Sending {} failed. Check dongle connection status".format(command_type)
+  else:
+    if command == "devname":
+      notification.message = "Connected to {}.".format(result)
+    elif command == "devlist":
+      notification.message = "Device list:\n" + "\n".join(result)
+    elif command == "devadd":
+      notification.message = "Adding new device. Connect your device with Relaykeys dongle."
+    elif command == "devreset":
+      notification.message = "Device list is cleared."
+    elif command == "switch":
+      notification.message = "Switching to next device."
+    elif "devremove" in command:
+      removed_device = command.split("=")[1]
+      notification.message = "{} was removed from device list.".format(removed_device)
+    elif command == "get_mode":
+      notification.message = "Daemon running in {} mode.".format(result)
+    elif command == "switch_mode":
+      notification.message = "Switching daemon mode."
+    elif command == "dongle_status":
+      notification.message = "Dongle status: {}.".format(result)
   
   notification.send()
 

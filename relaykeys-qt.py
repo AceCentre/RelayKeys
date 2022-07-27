@@ -1112,9 +1112,6 @@ class Window (QMainWindow):
                         if self.dongle_status != "Connected":
                             self._curBleDeviceName = "NONE"
                             self.updateDeviceLabelSignal.emit(self._curBleDeviceName)
-                            
-                            if self.daemon_mode == "Hardware serial":
-                                self.client_send_action("ble_cmd", "reconnect")
             
                 else:
                     filtred_actions.append(action)
