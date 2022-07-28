@@ -97,6 +97,10 @@ for item in ['relaykeys.cfg', 'logfile.txt', 'LICENSE', 'README.html', 'cli_keym
     else:
         shutil.copy(item, r"dist/relaykeysd")
 
+# Bit messy this.. but cant figure out a neater way. Logo needs to go to resources dir for notifications
+os.mkdir(r"dist/relaykeysd/resources")
+shutil.copy(r"resources/logo.png", r"dist/relaykeysd/resources")	
+
 # Run the nsis
 if os.name == 'nt':
     subprocess.run(
