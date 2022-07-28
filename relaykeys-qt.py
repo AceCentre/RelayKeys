@@ -481,26 +481,27 @@ class Window (QMainWindow):
         capturePageSwtich.setText('Capture')
         capturePageSwtich.clicked.connect(lambda: self.switchTab(0))
         capturePageSwtich.setFocusPolicy(Qt.NoFocus)
+
+        devicePageSwtich = QPushButton()
+        devicePageSwtich.setText('Devices')
+        devicePageSwtich.clicked.connect(lambda: self.switchTab(1))        
+        devicePageSwtich.setFocusPolicy(Qt.NoFocus)
         
         macroPageSwtich = QPushButton()
         macroPageSwtich.setText('Macro')
-        macroPageSwtich.clicked.connect(lambda: self.switchTab(1))        
+        macroPageSwtich.clicked.connect(lambda: self.switchTab(2))        
         macroPageSwtich.setFocusPolicy(Qt.NoFocus)
         
         connectionPageSwtich = QPushButton()
         connectionPageSwtich.setText('Connection')
-        connectionPageSwtich.clicked.connect(lambda: self.switchTab(2))        
-        connectionPageSwtich.setFocusPolicy(Qt.NoFocus)
-        
-        devicePageSwtich = QPushButton()
-        devicePageSwtich.setText('Devices')
-        devicePageSwtich.clicked.connect(lambda: self.switchTab(3))        
-        devicePageSwtich.setFocusPolicy(Qt.NoFocus)
+        connectionPageSwtich.clicked.connect(lambda: self.switchTab(3))        
+        connectionPageSwtich.setFocusPolicy(Qt.NoFocus)        
+
 
         dockLayout.addWidget(capturePageSwtich)
-        dockLayout.addWidget(macroPageSwtich)
-        dockLayout.addWidget(connectionPageSwtich)
         dockLayout.addWidget(devicePageSwtich)
+        dockLayout.addWidget(macroPageSwtich)
+        dockLayout.addWidget(connectionPageSwtich)        
         dockLayout.addStretch()        
 
         # Capture tab
@@ -606,28 +607,7 @@ class Window (QMainWindow):
         connectionTab = QWidget()
         connectionTabLayout = QVBoxLayout(connectionTab)
 
-        connectionTab.setStyleSheet("QPushButton {min-width: 250px; min-height: 50px;}")
-
-        # device controls section
-        bleControlBar = QGridLayout()
-
-        self.deviceNameConnTab = QLabel()   
-        
-        self.updateDeviceLabelSignal.connect(self.updateDeviceNameLabel)
-        self.updateDeviceNameLabel(self._curBleDeviceName)
-        self.deviceNameConnTab.setAlignment(Qt.AlignBottom)
-
-        
-        bleConnectionSwitch = QPushButton()
-        bleConnectionSwitch.setText('Switch device')
-        bleConnectionSwitch.setToolTip('Swicth ble device connection')
-        bleConnectionSwitch.clicked.connect(self.sendBleToggleCommand)
-        bleConnectionSwitch.setFocusPolicy(Qt.NoFocus)
-
-        self.switchDeviceSignal.connect(self.sendBleToggleCommand)        
-       
-        bleControlBar.addWidget(self.deviceNameConnTab, 0, 0, 1, 2)
-        bleControlBar.addWidget(bleConnectionSwitch, 1, 0)
+        connectionTab.setStyleSheet("QPushButton {min-width: 250px; min-height: 50px;}")        
 
         # daemon controls section
         daemonControlBar = QGridLayout()
@@ -656,15 +636,37 @@ class Window (QMainWindow):
 
         self.updateStatusCallback()
       
-        connectionTabLayout.addLayout(bleControlBar)
         connectionTabLayout.addLayout(daemonControlBar)
         connectionTabLayout.addStretch()
 
         # devices tab
         devicesTab = QWidget()
-        devicesTabLayout = QHBoxLayout(devicesTab)
+        devicesTabLayout = QVBoxLayout(devicesTab)
 
-        devicesTab.setStyleSheet("QPushButton {min-width: 100px; min-height: 50px;}")
+        devicesTab.setStyleSheet("QPushButton {min-width: 100px; min-height: 50px;}")        
+
+        # Current device controls section
+        bleControlBar = QGridLayout()
+
+        self.deviceNameConnTab = QLabel()   
+        
+        self.updateDeviceLabelSignal.connect(self.updateDeviceNameLabel)
+        self.updateDeviceNameLabel(self._curBleDeviceName)
+        self.deviceNameConnTab.setAlignment(Qt.AlignBottom)
+
+        
+        bleConnectionSwitch = QPushButton()
+        bleConnectionSwitch.setText('Switch device')
+        bleConnectionSwitch.setToolTip('Swicth ble device connection')
+        bleConnectionSwitch.clicked.connect(self.sendBleToggleCommand)
+        bleConnectionSwitch.setFocusPolicy(Qt.NoFocus)
+
+        self.switchDeviceSignal.connect(self.sendBleToggleCommand)        
+       
+        bleControlBar.addWidget(self.deviceNameConnTab, 0, 0, 1, 2)
+        bleControlBar.addWidget(bleConnectionSwitch, 1, 0)
+
+        deviceListLayout = QHBoxLayout()
 
         # device list custom widget
         self.deviceList = DeviceListWidget(self.removeDeviceCommand)
@@ -678,8 +680,8 @@ class Window (QMainWindow):
         scrollAreaContainer.setWidget(self.deviceList)
         scrollAreaContainer.setWidgetResizable(True)
 
-        # device controls Bar
-        deviceControlsBar = QVBoxLayout()
+        # device list controls Bar
+        deviceListControlsBar = QVBoxLayout()
 
         addDeviceSwitch = QPushButton()
         addDeviceSwitch.setText('Add device')
@@ -699,20 +701,23 @@ class Window (QMainWindow):
         resetListSwitch.clicked.connect(self.resetDeviceListButtonClicked)
         resetListSwitch.setFocusPolicy(Qt.NoFocus)
         
-        deviceControlsBar.addWidget(addDeviceSwitch)
-        deviceControlsBar.addWidget(refreshListSwitch)
-        deviceControlsBar.addWidget(resetListSwitch)
-        deviceControlsBar.addStretch()
+        deviceListControlsBar.addWidget(addDeviceSwitch)
+        deviceListControlsBar.addWidget(refreshListSwitch)
+        deviceListControlsBar.addWidget(resetListSwitch)
+        deviceListControlsBar.addStretch()
 
-        devicesTabLayout.addWidget(scrollAreaContainer)
-        devicesTabLayout.addLayout(deviceControlsBar)
+        deviceListLayout.addWidget(scrollAreaContainer)
+        deviceListLayout.addLayout(deviceListControlsBar)
+
+        devicesTabLayout.addLayout(bleControlBar)
+        devicesTabLayout.addLayout(deviceListLayout)
 
         # layout for displaying tabs
         self.tabLayout = QStackedLayout()
         self.tabLayout.addWidget(captureTab)
-        self.tabLayout.addWidget(macroTab)
-        self.tabLayout.addWidget(connectionTab)
         self.tabLayout.addWidget(devicesTab)
+        self.tabLayout.addWidget(macroTab)
+        self.tabLayout.addWidget(connectionTab)       
 
         mainWidget = QWidget(self)        
         mainLayout = QHBoxLayout(mainWidget)

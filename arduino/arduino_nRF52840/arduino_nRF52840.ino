@@ -1040,8 +1040,8 @@ void bleConnectCallback(uint16_t conn_handle)
   connection = Bluefruit.Connection(conn_handle);
   connection->getPeerName(central_name, sizeof(central_name));
   
-  // when unpaired iPhone connects wait in while until it will pair and give its full device name
-  while(!strcmp((char *)central_name, "iPhone")){
+  // when unpaired iPhone/iPad connects wait in while until it will pair and give its full device name
+  while(!strcmp((char *)central_name, "iPhone") || !strcmp((char *)central_name, "iPad")){
     if(connection->connected() && timeout_counter > 0) {
       delay(1000);
       connection->getPeerName(central_name, sizeof(central_name));
