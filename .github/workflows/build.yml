@@ -14,12 +14,6 @@ jobs:
         Invoke-Webrequest -Uri 'https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip' -OutFile ss.zip
         Expand-Archive ss.zip -DestinationPath .\ss
         move ss\SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\"      
-    - name: Install WinShell Plugin
-      run:  |
-        Invoke-Webrequest -Uri 'https://nsis.sourceforge.io/mediawiki/images/5/54/WinShell.zip' -OutFile ws.zip
-        Expand-Archive ws.zip -DestinationPath .\ws
-        move ws\Plugins\x86-unicode\WinShell.dll  "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\" 
-        move ws\Plugins\x86-ansi\WinShell.dll  "C:\Program Files (x86)\NSIS\Plugins\x86-ansi\" 
     - uses: actions/checkout@v2
     - name: Install Python
       run:  |
@@ -41,4 +35,3 @@ jobs:
       with:
         name: 'Windows Release'
         path: 'RelayKeys setup.exe'
-        retention-days: 
