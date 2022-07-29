@@ -10,7 +10,7 @@
   * [Smartbox Grid 3](guides/grid3.md)
   * [Jabbla MindExpress](guides/mindexpress.md)
   * [Tobii Dynavox - Snap](guides/snap-corefirst.md)
-* [Developer Information](developers/README.md)
+* [👩💻 Developer Information](developers/README.md)
   * [Architecture of RelayKeys](developers/architecture.md)
   * [Supported Electronics Boards](developers/supported-boards.md)
   * [Config File details](developers/relaykeys-cfg.md)

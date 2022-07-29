@@ -30,7 +30,7 @@ If you have a RelayKeys stick provided by the AceCentre Carry on reading below. 
 
 Download the installer from [here](https://github.com/AceCentre/RelayKeys/releases/latest). When downloaded 'Run' the program
 
-Step-through the install procedure. Select 'Normal install' and let the RelayKeys setup software do its thing to install the software in the correct place (By default: `C:\Program Files (x86)\Ace Centre`).
+Step-through the install procedure. Select 'Normal install' and let the RelayKeys setup software do its thing to install the software in the correct place (By default: `C:\Program Files (x86)\Ace Centre\RelayKeys`).
 
 {% hint style="info" %}
 If you use 'Portable' or change the location of the software: Make a note of where you have stored the programme as you will need this when linking it with your software
@@ -47,16 +47,16 @@ If "Flashing". This means you have yet to pair the RelayKeys device with another
 
 You can do this in three different ways:
 
-* Send a command using the "`RelayKeys-QT.exe`" app and press "Add a device" in the toolbar - or -
+* Send a command using the "`relaykeys-QT.exe`" app and press "Add a device" in the toolbar - or -
 * Run "`relaykeys-cli.exe ble_cmd:devadd" - or -`
-* Press the Button on the RelayKeys hardware. It will now flash <mark style="background-color:yellow;">yellow</mark>&#x20;
+* Press the Button on the RelayKeys hardware. It will now flash <mark style="background-color:yellow;">yellow</mark>
 * Next pair your device with RelayKeys.
 
 ### Pair with a Windows Computer
 
 So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys"
 
-&#x20;<img src=".gitbook/assets/windows-pairing.gif" alt="Pairing Windows" data-size="original">
+![Pairing Windows](.gitbook/assets/windows-pairing.gif)
 
 ### Pair with an iOS device
 
@@ -71,14 +71,14 @@ To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
 ## Wireless mode
 
 {% hint style="info" %}
-Note that this mode is useful on devices where you can't plug anything into your device. The setup can feel _strange -_ what we need to do is tell your relaykeys hardware the device to connect to.&#x20;
+Note that this mode is useful on devices where you can't plug anything into your device. The setup can feel _strange -_ what we need to do is tell your relaykeys hardware the device to connect to.
 {% endhint %}
 
 1. Plug in device and follow instructions [as above](installation.md#plug-in-your-relaykeys-stick-and-pair-with-a-computer-wired-mode)
 2. Pair the main AAC/Host device with it. So pair the computer you have attached it to with RelayKeys hardware. This can feel a bit strange - you are connecting the hardware to the same machine you are on. See [here](installation.md#undefined-1) for how to put it into pairing mode.
 3. Disconnect the relaykeys hardware. In your bluetooth settings you actually need to click on the item and "Remove" device. (NB: If you cant do this it might be because you need to be an admin. The trick is open the Control Panel -> Devices & Printers -> Relaykeys -> Right click, Remove and you will be asked for an Admin password)
-4. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.&#x20;
-5. Double press the User switch It should now shine a nice <mark style="color:blue;">blue</mark> colour!&#x20;
+4. Plug relaykeys into a power source - away from the computer. Your RelayKeys may have a battery or you might need to plug into a wall USB power source.
+5. Double press the User switch It should now shine a nice <mark style="color:blue;">blue</mark> colour!
 6. Run RelayKeysd with `--ble_mode` See [here](developers/relaykeys-daemon.md) for more details
 
 ## Checking it works
