@@ -275,13 +275,14 @@ void setup()
 
   Bluefruit.begin(max_prph_connection, 0);
   Bluefruit.setTxPower(4); // Check bluefruit.h for supported values
-  Bluefruit.setName(BLE_NAME);
+  //..Setting this means it isnt seen by TobiiDynavox i13+ devices. https://github.com/AceCentre/RelayKeys/issues/125
+  //Bluefruit.setName(BLE_NAME);
   Bluefruit.Periph.setConnectCallback(bleConnectCallback);
   Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
 
   // Configure and Start Device Information Service
   bledis.setManufacturer("Ace Centre");
-  bledis.setModel("RelayKeysv1");
+  bledis.setModel(BLE_NAME);
   bledis.begin();
 
   // Configure and Start BLE Uart Service
