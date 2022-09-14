@@ -458,7 +458,7 @@ async def ble_serial_loop(queue, args, config, interrupt):
     def match_nus_uuid(device: BLEDevice, adv: AdvertisementData):
         print("services of scanned device: ", adv)
 
-        if adv.local_name == "RelayKeys":  #UART_SERVICE_UUID.lower() in adv.service_uuids:
+        if adv.local_name == "AceRK":  #UART_SERVICE_UUID.lower() in adv.service_uuids:
             return True
         return False
     
