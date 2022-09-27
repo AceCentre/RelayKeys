@@ -26,7 +26,7 @@
 
 //#define DEBUG // uncomment this line to see additional prints in Serial monitor
 
-#define BLE_NAME "RelayKeys"
+#define BLE_NAME "AceRK"
 #define ADD_NEW_DEV_PROCESS_TIMEOUT 30000 // in millseconds
 #define SWAP_CONN_PROCESS_TIMEOUT 30000   // in millseconds
 
@@ -276,7 +276,7 @@ void setup()
   Bluefruit.begin(max_prph_connection, 0);
   Bluefruit.setTxPower(4); // Check bluefruit.h for supported values
   //..Setting this means it isnt seen by TobiiDynavox i13+ devices. https://github.com/AceCentre/RelayKeys/issues/125
-  //Bluefruit.setName(BLE_NAME);
+  Bluefruit.setName(BLE_NAME);
   Bluefruit.Periph.setConnectCallback(bleConnectCallback);
   Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
 
