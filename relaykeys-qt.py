@@ -840,6 +840,9 @@ class Window (QMainWindow):
 
     @pyqtSlot()
     def switchDaemonMode(self):
+        if self.dongle_status == "Connected":
+            self.client_send_action("ble_cmd", "switch_mode")
+        
         self.client_send_action("daemon", "switch_mode")
         self.updateStatusCallback()
 

@@ -57,7 +57,8 @@ UART_TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 from blehid import blehid_send_keyboardcode, blehid_init_serial, \
     blehid_send_movemouse, blehid_send_mousebutton, blehid_send_devicecommand, \
     blehid_send_switch_command, blehid_send_get_device_name, blehid_get_device_list, \
-    blehid_send_add_device, blehid_send_clear_device_list, blehid_send_remove_device, blehid_get_at_response
+    blehid_send_add_device, blehid_send_clear_device_list, blehid_send_remove_device, \
+    blehid_get_at_response, blehid_get_mode, blehid_switch_mode
 
 import requests
 import json
@@ -578,7 +579,13 @@ async def process_action(ser, keys, cmd):
 
             elif cmd[1].split("=")[0] == "devremove":
                 await blehid_send_remove_device(ser, cmd[1])
-            
+
+            elif cmd[1] == "get_mode":
+                return await blehid_get_mode(ser)
+
+            elif cmd[1] == "switch_mode":
+                await blehid_switch_mode(ser)
+
         elif cmd[0] == "check_dongle":
             return await blehid_get_at_response(ser)
 
