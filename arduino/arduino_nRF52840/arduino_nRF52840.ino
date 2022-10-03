@@ -24,7 +24,7 @@
  * with a BF LE UART Friend. Lots of this code is from an Adafruit example.
  */
 
-#define DEBUG // uncomment this line to see additional prints in Serial monitor
+//#define DEBUG // uncomment this line to see additional prints in Serial monitor
 
 #define BLE_NAME "AceRK"
 #define ADD_NEW_DEV_PROCESS_TIMEOUT 30000 // in millseconds
@@ -41,7 +41,7 @@
   Adafruit_DotStar statusLED(1, 8, 6, DOTSTAR_BGR);
 #elif defined(_VARIANT_FEATHER52840_)
 //Adafruit feather nrf52840
-    #define USER_SW A4 // temp, my nano 33 ble setup
+    #define USER_SW 7
 
     #include <Adafruit_NeoPixel.h>
     Adafruit_NeoPixel statusLED = Adafruit_NeoPixel(1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
