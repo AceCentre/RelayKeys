@@ -352,3 +352,13 @@ async def blehid_get_at_response(ser):
     await _write_atcmd(ser, "AT")
     
     return await _read_response(ser)
+
+async def blehid_get_mode(ser):
+    logging.debug('Get dongle mode')
+    await _write_atcmd(ser, "AT+GETMODE")
+
+    return await _read_response(ser)
+
+async def blehid_switch_mode(ser):
+    logging.debug('Switch dongle mode')
+    await _write_atcmd(ser, "AT+SWITCHMODE")

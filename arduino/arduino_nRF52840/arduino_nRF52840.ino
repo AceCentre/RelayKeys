@@ -222,11 +222,21 @@ void load_mode_file(){
   }
 }
 
-void change_mode() {
+void get_mode(char* myLine) {
+  if(ble_mode) {
+    at_response("BLE\n");  
+  } else {
+    at_response("Serial\n");
+  }
+}
+
+void change_mode(char* myLine) {
   #ifdef DEBUG
     Serial.print("Changing operating mode");
   #endif
-
+  
+  at_response("OK\n");
+  
   ble_mode = !ble_mode;
 
   file.open(MODE_FILENAME, FILE_O_WRITE);
@@ -855,7 +865,9 @@ const command_action_t commands[] = {
     {"at+switchconn", switchBleConnection},
     {"at+printdevlist", printBleDevList},
     {"at+blemaxdevlistsize", setBleMaxDevListSize},
-    {"at+resetdevlist", deleteDevList}
+    {"at+resetdevlist", deleteDevList},
+    {"at+switchmode", change_mode},
+    {"at+getmode", get_mode},
 };
 
 void update_connections(uint16_t conn_handle){
@@ -967,7 +979,7 @@ void loop()
     if(detect_click() == 1){      
       addNewBleDevice("");
     } else {
-      change_mode();
+      change_mode("");
     }
   }
 
