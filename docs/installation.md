@@ -54,17 +54,18 @@ You can do this in three different ways:
 
 ### Pair with a Windows Computer
 
-So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "RelayKeys"
+So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "AceRK"
 
 ![Pairing Windows](.gitbook/assets/windows-pairing.gif)
 
 ### Pair with an iOS device
 
-To connect to an iPad/iPhone, go to Settings, Bluetooth and add "Bluefruit52" or "RelayKeys" ![Pairing iPad](.gitbook/assets/ipad-pairing.gif)
+To connect to an iPad/iPhone, go to Settings, Bluetooth and add "Bluefruit52" or "AceRK" or "RelayKeys"\
+![Pairing iPad](.gitbook/assets/ipad-pairing.gif)
 
 ### Pair with a Mac
 
-To connect to a mac, Open up "System Preferences", Bluetooth and add "RelayKeys"
+To connect to a mac, Open up "System Preferences", Bluetooth and add "AceRK"
 
 ![Pairing Mac](.gitbook/assets/mac-pairing.gif)
 

@@ -19,11 +19,11 @@ and the non-verbose, non-windowed version
 Where 'command' and 'data' are provided below.
 
 {% hint style="info" %}
-Remember to change your application accordingly We regularly use the term for  command line application '_relaykeys-cli_'  in this documentation. Often though you will want to use the '**relaykeys-cli-win.exe**' application that will run a little quicker and has no printed output. Use this for your default call to relaykeys from other applications. If you want to see any errors use '_relaykeys-cli.exe_'
+Remember to change your application accordingly We regularly use the term for command line application '_relaykeys-cli_' in this documentation. Often though you will want to use the '**relaykeys-cli-win.exe**' application that will run a little quicker and has no printed output. Use this for your default call to relaykeys from other applications. If you want to see any errors use '_relaykeys-cli.exe_'
 {% endhint %}
 
 {% hint style="info" %}
-If you are developing with the code You must make sure the server  is running when you call the cli files. The [server (aka Daemon)](../developers/relaykeys-daemon.md) is the code that turns these commands into the correct AT syntax and access the com port
+If you are developing with the code You must make sure the server is running when you call the cli files. The [server (aka Daemon)](../developers/relaykeys-daemon.md) is the code that turns these commands into the correct AT syntax and access the com port
 {% endhint %}
 
 ### Defining a Keymap -c
@@ -226,7 +226,7 @@ So all the other keys are defined below. We will try and explain what these are 
 * RETURN
 * SEPARATOR
 * OUT 0xA0
-* OPER 0xA1&#x20;
+* OPER 0xA1
 
 </details>
 
@@ -307,29 +307,29 @@ Send a right click:
 
 **What about dragging?**
 
-Activate Drag Start button&#x20;
+Activate Drag Start button
 
-`relaykeys-cli mousebutton:L,press`&#x20;
+`relaykeys-cli mousebutton:L,press`
 
-User moves mouse&#x20;
+User moves mouse
 
-`relaykeys-cli mousemove:x,y`&#x20;
+`relaykeys-cli mousemove:x,y`
 
-User moves mouse some more&#x20;
+User moves mouse some more
 
-`relaykeys-cli mousemove:x,y`&#x20;
+`relaykeys-cli mousemove:x,y`
 
-user activates Drag Stop button&#x20;
+user activates Drag Stop button
 
 `relaykeys-cli mousebutton:0`
 
 ### Command: delay: nms
 
-Adds a delay. Particularly useful when writing a macro and you need to wait for something to happen on the client operating system.&#x20;
+Adds a delay. Particularly useful when writing a macro and you need to wait for something to happen on the client operating system.
 
 `relaykeys-cli delay:1000`
 
-Puts in a a delay of 1 second.&#x20;
+Puts in a a delay of 1 second.
 
 ### Device Management Commands
 
@@ -371,28 +371,35 @@ Tells the daemon/server to try and switch between wired
 
 `relaykeys-cli.exe daemon:get_mode`
 
-Returns current mode&#x20;
+Returns current mode
 
 `relaykeys-cli.exe daemon:dongle_status`
 
 Returns whether it is connected or not
 
+`relaykeys-cli.exe ble_cmd:get_mode`&#x20;
+
+Gets the current mode - wired or wireless
+
+`relaykeys-cli.exe ble_cmd:switch_mode`
+
+Switches mode from Wired -> Wireless and Wireless-> Wired.
+
 ### Command: -f file.txt (Macro)
 
-Provide a macro file - where each line in a text file is a cli command.  For example **ios\_open\_notes.txt** found in the _macros_ directory of the installation folder (i.e at _C:\Program Files (x86)\Ace Centre\RelayKeys\maccros)_
+Provide a macro file - where each line in a text file is a cli command. For example **ios\_open\_notes.txt** found in the _macros_ directory of the installation folder (i.e at _C:\Program Files (x86)\Ace Centre\RelayKeys\maccros)_
 
 `relaykeys-cli.exe -f ios_open_notes.txt`
 
-or like this&#x20;
+or like this
 
 `relaykeys-cli.exe -f Documents/open_ios_notes.txt`
 
 where it reads the file from a file path.. or..\
 \
-`relaykeys-cli.exe -f ./open_ios_notes.txt`&#x20;
+`relaykeys-cli.exe -f ./open_ios_notes.txt`
 
-where it reads the file in folder where current exe is run from\
-
+where it reads the file in folder where current exe is run from\\
 
 where ios\_open\_notes.txt is:
 
@@ -405,7 +412,7 @@ keypress:ENTER
 ```
 
 {% hint style="info" %}
-Warning: There is no syntax checking of this document.&#x20;
+Warning: There is no syntax checking of this document.
 {% endhint %}
 
 {% hint style="info" %}

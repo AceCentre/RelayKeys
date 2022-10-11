@@ -114,3 +114,15 @@ This AT command will return a list of device names.
 #### AT+BLEMAXDEVLISTSIZE=NUMBER
 
 This AT command will change the maximum number of BLE devices possible in the cached list. The number should be greater than 0 and less then 15
+
+#### AT+GETMODE
+
+Gets the current mode - either wired or wireless.&#x20;
+
+#### AT+SWITCHMODE
+
+Switches the current mode from wired to wireless. Or Wireless to wired.&#x20;
+
+{% hint style="info" %}
+Note if the device **IS NOT** connected to RelayKeys wirelessly then it will stop responding. You will have to switch connection a different technique. See [here](../installation.md#wireless-mode) for more details
+{% endhint %}
