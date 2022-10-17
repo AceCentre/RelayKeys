@@ -88,6 +88,12 @@ Will press the right arrow, left shit and left control (would select the next wo
 * Right Shift : `RSHIFT`
 * (Right) Meta/Windows Key/Mac Key/Command Key: `RMETA`
 
+We also have a limited number of **consumer keys - namely volume related (if you need others do** [**let us know**](https://github.com/AceCentre/RelayKeys/issues/26)**)**
+
+* Volume Up: `VOLUP`
+* Volume Down: `VOLDOWN`
+* Mute: `MUTE`
+
 So all the other keys are defined below. We will try and explain what these are when its ambiguous
 
 <details>
