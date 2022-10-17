@@ -593,7 +593,27 @@ void sendBLEKeyboardCode(char *myLine)
     keys[i] = strtoul(p, NULL, 16);
     p = strtok(NULL, "-");
   }
-  ret = blehid.keyboardReport(target_ble_conn, keys[0], &keys[2]);
+  switch(keys[2]) {
+    // MUTE
+    case 0x7F:
+      ret = blehid.consumerKeyPress(target_ble_conn, 0xE2);
+      blehid.consumerKeyRelease(target_ble_conn);
+      break;
+    // VOLUME UP
+    case 0x80:
+      ret = blehid.consumerKeyPress(target_ble_conn, 0xE9);
+      blehid.consumerKeyRelease(target_ble_conn);
+      break;
+    // VOLUME DOWN
+    case 0x81:
+      ret = blehid.consumerKeyPress(target_ble_conn, 0xEA);
+      blehid.consumerKeyRelease(target_ble_conn);
+      break;
+    // Regular keycodes
+    default:
+      ret = blehid.keyboardReport(target_ble_conn, keys[0], &keys[2]);
+  }
+  
   if ((int)ret != 1)
   {
     snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
