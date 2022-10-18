@@ -237,7 +237,11 @@ So all the other keys are defined below. We will try and explain what these are 
 </details>
 
 {% hint style="info" %}
-Tip: If you are sending to iOS or a Mac - remember that they use the Command (LMETA) key - often where windows uses the CTRL key read [here](https://support.apple.com/en-us/HT201236) for more examples
+If you are sending to iOS or a Mac - remember that they use the Command (LMETA) key - often where windows uses the CTRL key read [here](https://support.apple.com/en-us/HT201236) for more examples
+{% endhint %}
+
+{% hint style="info" %}
+If you are wanting to send two keys with a modifier - send the key - then modifier. E.g. `keypress:C,LCTRL` - not the other way round
 {% endhint %}
 
 ### Command: keyevent:KEY,MODIFIER,Up/Down
