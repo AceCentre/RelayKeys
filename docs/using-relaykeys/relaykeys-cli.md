@@ -236,6 +236,10 @@ So all the other keys are defined below. We will try and explain what these are 
 
 </details>
 
+{% hint style="info" %}
+Tip: If you are sending to iOS or a Mac - remember that they use the Command (LMETA) key - often where windows uses the CTRL key read [here](https://support.apple.com/en-us/HT201236) for more examples
+{% endhint %}
+
 ### Command: keyevent:KEY,MODIFIER,Up/Down
 
 Emulates holding or releasing one key with a modifer. For example:
