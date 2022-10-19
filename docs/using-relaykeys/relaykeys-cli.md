@@ -88,6 +88,14 @@ Will press the right arrow, left shit and left control (would select the next wo
 * Right Shift : `RSHIFT`
 * (Right) Meta/Windows Key/Mac Key/Command Key: `RMETA`
 
+{% hint style="info" %}
+If you are wanting to send two keys with a modifier - send the **key** - **then** **modifier**. E.g. `keypress:C,LCTRL` - not the other way round!&#x20;
+{% endhint %}
+
+{% hint style="warning" %}
+If you are sending to iOS or a Mac - remember that they use the Command (LMETA) key - often where windows uses the CTRL key read [here](https://support.apple.com/en-us/HT201236) for more examples
+{% endhint %}
+
 We also have a limited number of **consumer keys - namely volume related (if you need others do** [**let us know**](https://github.com/AceCentre/RelayKeys/issues/26)**)**
 
 * Volume Up: `VOLUP`
@@ -235,14 +243,6 @@ So all the other keys are defined below. We will try and explain what these are 
 * OPER 0xA1
 
 </details>
-
-{% hint style="info" %}
-If you are sending to iOS or a Mac - remember that they use the Command (LMETA) key - often where windows uses the CTRL key read [here](https://support.apple.com/en-us/HT201236) for more examples
-{% endhint %}
-
-{% hint style="info" %}
-If you are wanting to send two keys with a modifier - send the key - then modifier. E.g. `keypress:C,LCTRL` - not the other way round
-{% endhint %}
 
 ### Command: keyevent:KEY,MODIFIER,Up/Down
 
