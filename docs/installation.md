@@ -103,4 +103,4 @@ When you are ready, [have a read of how to integrate the features you need](../g
 
 👍 You've successfully installed and setup RelayKeys! Now you may want to use the CLI or QT program. Read on to find out how these work.
 
-😞 Got a problem? Dang! See our [troubleshooting](../getting-started/contributing.md) guide.
+😞 Got a problem? Dang! See our [troubleshooting](troubleshooting.md) guide.
