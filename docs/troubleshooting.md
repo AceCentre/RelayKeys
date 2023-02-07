@@ -14,8 +14,12 @@ Try and go through these steps:
 
 1. **Is your relaykeys stick properly attached?** Make sure the blue light is showing. If not you may have a loose connection somewhere.&#x20;
 2. **Is it paired and connected?** - you will know this if the blue light is steady (_not_ flashing) on the relaykeys stick
-3. **check your COM port**. Lastly it may be that the software cannot find the RelayKeys stick in its list of COM ports. [Read this guide](developers/relaykeys-cfg.md#dev-defining-your-port-of-the-relaykeys-hardware) to manually configure and **fix** your COM port.
-4. **Check your casing and spacing**. If you are using the command line applications be careful - the application is case sensitive. it should be _type:_ and not _Type:_ for example
+3. **check your COM port**. Lastly, it may be that the software cannot find the RelayKeys stick in its list of COM ports. [Read this guide](developers/relaykeys-cfg.md#dev-defining-your-port-of-the-relaykeys-hardware) to configure and fix your COM port manually.
+4. **Check your casing and spacing**. If you are using the command line applications, be careful - the application is case-sensitive. It should be _type:_ and not _Type:_ for example
+
+### It was working all fine but now its not!
+
+Is it paired and been shown to be connected with the receiving device? If so - and its still not sending text you may need to remove the Bluetooth AceRK device and then pair the AceRK again. To do this open RelayKeys-QT app on the sending device - click on "Add device" and then pair on the receiving device.&#x20;
 
 ### So I send LSHIFT,2 and I was expecting " but I get a @ - What gives?
 
