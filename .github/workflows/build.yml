@@ -22,8 +22,8 @@ jobs:
         python build.py
     - name: Dump cert
       if: github.repository == 'acecentre/relaykeys'
-      run: |
-        [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String(${{ secrets.CERTP12B64 }})) > win-cert.p12
+      run:  |
+        [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String( ${{ secrets.CERTP12B64 }} )) > win-cert.p12
     - name: Sign Windows Binary
       if: github.repository == 'acecentre/relaykeys'
       run:  |
