@@ -351,6 +351,9 @@ def find_device_path(noserial, seldev):
                 elif (p.vid == nrfVID and p.pid.upper() in nrfPIDs):
                     logging.debug('serial desc:' + str(p))
                     dev = p.device                 
+                elif(nrfVID in hwid.upper())
+                    logging.debug('serial desc:' + str(p))
+                    dev = p.device 
                 else:
                     logging.error('Found VID not PID. HWID str: '+p.hwid)
 
