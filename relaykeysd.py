@@ -71,7 +71,7 @@ import json
 DEFAULT_BAUD = 115200
 # BAUD = 9600
 nrfVID = '239A'
-nrfPID = '8029'
+nrfPIDs = ['8029','810B', '8051']
 devName = 'NONE'
 devList = []
 RETRY_TIMEOUT = 10
@@ -342,18 +342,18 @@ def find_device_path(noserial, seldev):
             # NB: Could be p.device with a suitable name we are looking for. Noticed some variation around this
         if seldev is None:
             for p in serial.tools.list_ports.comports():
-                if "CP2104" in p.description:
+                if ("CP2104" in p.description):
                     logging.debug('serial desc:' + str(p))
                     dev = p.device
-                    break
-                elif "nRF52" in p.description:
+                elif ("nRF52" in p.description):
                     logging.debug('serial desc:' + str(p))
                     dev = p.device
-                    break
-                elif nrfVID and nrfPID in p.hwid:
+                elif (p.vid == nrfVID and p.pid.upper() in nrfPIDs):
                     logging.debug('serial desc:' + str(p))
-                    dev = p.device
-                    break
+                    dev = p.device                 
+                else:
+                    logging.error('Found VID not PID. HWID str: '+p.hwid)
+
     return dev
 
 def do_main(args, config, interrupt=None):
