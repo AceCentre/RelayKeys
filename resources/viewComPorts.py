@@ -13,8 +13,8 @@ for p in serial.tools.list_ports.comports():
         print('Found CP2104')
     elif ("nRF52" in p.description):
         print('Found nrf52')
-	elif (p.vid == nrfVID and p.pid.upper() in nrfPIDs):
-		print('Found device with VID:', nrfVID, 'and PID:', p.pid)
+    elif (p.vid == nrfVID and p.pid.upper() in nrfPIDs):
+        print('Found device with VID:', nrfVID, 'and PID:', p.pid)
     elif (nrfVID in p.hwid.upper()):
         print('Found nrfVID in hwid')
     
