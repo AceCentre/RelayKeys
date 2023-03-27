@@ -36,21 +36,25 @@
 #if defined(_VARIANT_ITSY52840_)
 //Adafruit itsybitsy 
   #define USER_SW 4
-
   #include <Adafruit_DotStar.h>
   Adafruit_DotStar statusLED(1, 8, 6, DOTSTAR_BGR);
 #elif defined(_VARIANT_FEATHER52840_)
 //Adafruit feather nrf52840
     #define USER_SW 7
-
     #include <Adafruit_NeoPixel.h>
     Adafruit_NeoPixel statusLED = Adafruit_NeoPixel(1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
+#elif defined(_VARIANT_MDBT50Q_RX_)
+// https://www.adafruit.com/product/5199 = Warning that variant name coukd be wrong. Im guessing
+    #define USER_SW PIN_BUTTON1
+    #include <TimedBlink.h>
+    TimedBlink monitor(LED_BLUE);
 #else
-  #ifdef DEBUG
-    Serial.print("Unsupported hardware. Possibly not critical unless you want to initiate BLE mode with a button");
-  #endif
-  // lazy - but going to pretend its a itsybitsy. Its the one with a wierd board name. 
-  #define USER_SW 4
+	#define UNKNOWN_BOARD
+	// lazy - but going to pretend its a itsybitsy. Its the one with a wierd board name. 
+	#define USER_SW 4
+	// Default definition for statusLED
+	#include <Adafruit_NeoPixel.h>
+	Adafruit_NeoPixel statusLED = Adafruit_NeoPixel(1, 8, NEO_GRB + NEO_KHZ800);
 #endif
 
 
@@ -89,16 +93,24 @@ uint16_t response_ble_conn = 0;
 void set_keyboard_led(uint8_t led_bitmap);
 
 void updateStatusLED() {
-  if(flag_addDevProsStarted) {
-    statusLED.setPixelColor(0, 16, 16, 0);  // set yellow color
-  }else if(ble_mode) {
-    statusLED.setPixelColor(0, 0, 0, 16);    // set blue color
-  } else {
-    statusLED.setPixelColor(0, 0, 16, 0);    // set green color
-  }
-
-  statusLED.show();
-  
+  #if defined(_VARIANT_MDBT50Q_RX_)
+    if(flag_addDevProsStarted) {
+      monitor.blink(150,50); // LED on for 150 ms and off for 50 ms.
+    } else if(ble_mode) {
+      monitor.blink(300,50); // LED on for 150 ms and off for 50 ms.
+    } else {
+      digitalWrite(LED_BLUE,HIGH); // On
+    }
+  #else
+    if(flag_addDevProsStarted) {
+      statusLED.setPixelColor(0, 16, 16, 0);  // set yellow color
+    } else if(ble_mode) {
+      statusLED.setPixelColor(0, 0, 0, 16);    // set blue color
+    } else {
+      statusLED.setPixelColor(0, 0, 16, 0);    // set green color
+    }
+    statusLED.show();
+  #endif
 }
 
 uint8_t detect_click() {
@@ -263,6 +275,9 @@ void change_mode(char* myLine) {
 void setup()
 {
   Serial.begin(115200);
+  #if defined(UNKNOWN_BOARD) && defined(DEBUG)
+  	Serial.print("Unsupported hardware. Possibly not critical unless you want to initiate BLE mode with a button");
+  #endif
   //while ( !Serial && millis() < 2000) delay(10);   // for nrf52840 with native usb
 
   // Initialize Internal File System
@@ -271,10 +286,13 @@ void setup()
   load_mode_file();
 
   pinMode(USER_SW, INPUT_PULLUP);
-  
-  statusLED.begin();
-  updateStatusLED();
-  
+
+  #ifdef _VARIANT_MDBT50Q_RX_
+    monitor.blink(800,10); // LED on for 150 ms and off for 50 ms.
+  #else
+    statusLED.begin();
+    updateStatusLED();
+  #endif
   if(ble_mode) {
     max_prph_connection = 2;    
   } else {
