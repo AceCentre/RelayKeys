@@ -3,7 +3,7 @@
 [Communicator 5](https://www.tobiidynavox.com/pages/communicator-5-ap) is a AAC software for Tobii Dynavox communication aids . Follow the steps below to add commands to your pageset
 
 {% hint style="info" %}
-Pageset quick start. Want a headstart? Download the Pageset [here](../../resources/aac-software/RelayKeysDemo\_Communicator5\_Pageset.vse). It has all the commands you should need. Just import, add the pageset to your Home Page and adapt
+Pageset quick start. Want a headstart? Download the Pageset [here](../../resources/aac-software/RelayKeys6x11.cddx). It has all the commands you should need. Just import, add the pageset to your Home Page and adapt
 
 <img src="../.gitbook/assets/communicator5_pageset.png" alt="" data-size="original">
 {% endhint %}
