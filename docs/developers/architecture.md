@@ -1,14 +1,14 @@
 # Architecture of RelayKeys
 
-![RelayKeys Sketch](<../.gitbook/assets/untitled\_page (1).png>)
+![RelayKeys Sketch](../.gitbook/assets/untitled\_page.png)
 
-RelayKeys is a mixture of a Open Hardware board that communicates in Bluetooth LE and acts as a BLE HID device (i.e. a keyboard/mouse)  which can  emulate **all** keyboard keys and their modifiers as well as mouse movements. (4). This is controlled by a serial connection from a device - either wired (i.e. as a USB dongle) or wireless (i.e. as a BLE Serial device). \
+RelayKeys is a mixture of a Open Hardware board that communicates in Bluetooth LE and acts as a BLE HID device (i.e. a keyboard/mouse) which can emulate **all** keyboard keys and their modifiers as well as mouse movements. (4). This is controlled by a serial connection from a device - either wired (i.e. as a USB dongle) or wireless (i.e. as a BLE Serial device).\
 \
-&#x20;We have developed RPC server (2) for a desktop computer which simplifies software connecting to the serial bus and allows us to create a simpler way of sending commands to the device than AT commands. This is done either directly via the RPC Server (_Daemon_) or via a **Command Line Interface** (_CLI_).  ****  As a demonstration we also have a small graphical interface application (_RK-Desktop_ also referred to as the Relaykeys-_QT application_) (1).&#x20;
+We have developed RPC server (2) for a desktop computer which simplifies software connecting to the serial bus and allows us to create a simpler way of sending commands to the device than AT commands. This is done either directly via the RPC Server (_Daemon_) or via a **Command Line Interface** (_CLI_). \*\*\*\* As a demonstration we also have a small graphical interface application (_RK-Desktop_ also referred to as the Relaykeys-_QT application_) (1).
 
-If you make software and want to benefit from the features of RelayKeys you can either write commands to the RPC server (2), or via our CLI (1)  or if you wish direct to the serial interface (6). This can be wired serial or wireless if you put the device into wireless mode (5). Even if you wish to ignore our hardware we do ask Assistive Technology developers to consider copying the command structure at either one of these levels to allow for open development.&#x20;
+If you make software and want to benefit from the features of RelayKeys you can either write commands to the RPC server (2), or via our CLI (1) or if you wish direct to the serial interface (6). This can be wired serial or wireless if you put the device into wireless mode (5). Even if you wish to ignore our hardware we do ask Assistive Technology developers to consider copying the command structure at either one of these levels to allow for open development.
 
-The Arduino based board is currently a **Adafruit nrf52840 express or Adafruit nrf52840 itsybitsy**. &#x20;
+The Arduino based board is currently a **Adafruit nrf52840 express or Adafruit nrf52840 itsybitsy**.
 
 ## Anatomy of the files
 

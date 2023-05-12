@@ -1,5 +1,5 @@
 ---
-cover: .gitbook/assets/jessimage (1).jpeg
+cover: .gitbook/assets/jessimage.jpeg
 coverY: 0
 ---
 
@@ -37,7 +37,7 @@ For the [AceCentre](http://acecentre.org.uk/) we want people with disabilities w
 
 ## The RelayKeys Ecosystem
 
-There are several components of the RelayKeys ecosystem, below is a brief overview. Remember that the software below works on one computer (a _**server computer**_ - often the AAC device) and the computers/tablets/mobile phones it connects to are _**receiving devices**_.&#x20;
+There are several components of the RelayKeys ecosystem, below is a brief overview. Remember that the software below works on one computer (a _**server computer**_ - often the AAC device) and the computers/tablets/mobile phones it connects to are _**receiving devices**_.
 
 ### RelayKeys-Serial API (_aka_ _RK-Serial_)
 
