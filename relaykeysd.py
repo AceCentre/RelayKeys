@@ -331,16 +331,19 @@ def find_device_path(noserial, seldev):
         elif (os.name == 'nt'):
             dev = 'COM7' if seldev is None else seldev
     else:
-        # Default names
-        if (os.name == 'posix'):
-            dev = '/dev/ttyUSB0' if seldev is None else seldev
-        else:
-            dev = 'COM6' if seldev is None else seldev
-            # Look for Adafruit CP2104 break out board or Feather nRF52. Use the first
-            # one found. Default is /dev/ttyUSB0 Or COM6 (Windows)
-            # tty for Bluetooth device with baud
-            # NB: Could be p.device with a suitable name we are looking for. Noticed some variation around this
-        if seldev is None:
+        if seldev != None:
+            logging.debug("port from config: " + seldev)
+            for p in serial.tools.list_ports.comports():
+                if seldev == p.device:
+                    dev = seldev
+                    logging.debug("specified port present")
+                    break
+            
+            if dev == None:
+                logging.debug("specified port wasn't found")
+
+        if dev == None:
+            logging.debug("Starting automatic search of port")
             for p in serial.tools.list_ports.comports():
                 if ("CP2104" in p.description):
                     logging.debug('serial desc:' + str(p))
@@ -354,8 +357,6 @@ def find_device_path(noserial, seldev):
                 elif(nrfVID in p.hwid.upper()):
                     logging.debug('serial desc:' + str(p))
                     dev = p.device 
-                else:
-                    logging.error('Found VID not PID. HWID str: '+p.hwid)
 
     return dev
 
@@ -403,6 +404,8 @@ async def hardware_serial_loop(queue, args, config, interrupt):
         noserial = True if args.noserial else config.getboolean(
             "noserial", False)
         devicepath = find_device_path(noserial, seldev)
+        if devicepath == None:
+            raise serial.serialutil.SerialException("No port found")        
         if os.name == 'nt' and noserial:
             SerialCls = DummySerial
         else:
