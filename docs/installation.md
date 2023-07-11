@@ -21,6 +21,7 @@ and most importantly:
 
 * **A supported piece of RelayKeys-ready hardware**
   * Right now: this is designed to work with the [Adafruit nrf52840 express](https://www.adafruit.com/product/4062), [Adafruit nrf52840 Itsybitsy](https://www.adafruit.com/product/4481) or  [Raytac nrf52840 dongle](https://www.adafruit.com/product/5199) Others will be added to the list as this is developed.
+  * **Note**: if you wish to use a dongle to receive - instead of relying on a device's internal Bluetooth and pairing etc - you will need a second board.
 
 {% hint style="info" %}
 If you have a RelayKeys stick provided by AceCentre, Carry on reading below. If you wish to buy your hardware that hasn't been prepared, [read this guide](developers/supported-boards.md).
@@ -30,10 +31,10 @@ If you have a RelayKeys stick provided by AceCentre, Carry on reading below. If 
 
 Download the installer from [here](https://github.com/AceCentre/RelayKeys/releases/latest). When downloaded 'Run' the program
 
-Step through the install procedure. Select 'Normal install' and let the RelayKeys setup software do its thing to install the software in the correct place (By default: `C:\Program Files (x86)\Ace Centre\RelayKeys`).
+Step through the installation procedure. Select 'Normal install' and let the RelayKeys setup software do its thing to install the software in the correct place (By default: `C:\Program Files (x86)\Ace Centre\RelayKeys`).
 
 {% hint style="info" %}
-If you use 'Portable' or change the location of the software: Make a note of where you have stored the programme as you will need this when linking it with your software
+If you use 'Portable' or change the location of the software: Make a note of where you have stored the programme, as you will need this when linking it with your software
 {% endhint %}
 
 ## Plug-in Your RelayKeys stick & pair with a computer (Wired mode)
