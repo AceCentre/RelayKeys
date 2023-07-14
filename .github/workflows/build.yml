@@ -20,15 +20,15 @@ jobs:
         pip install -r requirements.txt 
         pip install -r requirements-build.txt
         python build.py
-    - name: Dump cert
-      if: github.repository == 'acecentre/relaykeys'
-      run:  |
-        [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String( "${{ secrets.CERTP12B64 }}" )) > win-cert.p12
-        Get-Content -Tail 2 win-cert.p12
-    - name: Sign Windows Binary
-      if: github.repository == 'acecentre/relaykeys'
-      run:  |
-        & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe' sign /a /td sha256 /fd sha256 /v /f "win-cert.p12" /p "${{ secrets.CERTPASSWORD }}" /v "RelayKeys setup.exe"
+    #- name: Dump cert
+    #  if: github.repository == 'acecentre/relaykeys'
+    #  run:  |
+    #    [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String( "${{ secrets.CERTP12B64 }}" )) > win-cert.p12
+    #    Get-Content -Tail 2 win-cert.p12
+    #- name: Sign Windows Binary
+    #  if: github.repository == 'acecentre/relaykeys'
+    #  run:  |
+    #    & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe' sign /a /td sha256 /fd sha256 /v /f "win-cert.p12" /p "${{ secrets.CERTPASSWORD }}" /v "RelayKeys setup.exe"
     - name: Upload exe
       uses: actions/upload-artifact@v3
       with:

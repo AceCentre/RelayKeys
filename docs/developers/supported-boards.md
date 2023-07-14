@@ -1,23 +1,27 @@
 # Supported Electronics Boards
 
-HID (Human Interface Device) is supported by a wide range of Arduino boards. Often these are to emulate simple keypress' but to do more complex things like send one or modififer keys with a key - or to emulate holding a key down for a set period of time is either impossible or difficult to implement. Adafruit have developed the firmware on their Bluefruit nrf\* range of boards to emulate HID keyboards well using their AT Commands.
+A wide range of Arduino boards supports HID (Human Interface Device). Often these are to emulate simple keypress' but to do more complex things like send one or modififer keys with a key - or to emulate holding a key down for a set period of time is either impossible or difficult to implement. Adafruit have developed the firmware on their Bluefruit nrf\* range of boards to emulate HID keyboards well using their AT Commands.
 
-Currently RelayKeys is designed to work with the [Adafruit Feather nRF52840 Express](https://www.adafruit.com/product/4062) (Buy in the [UK from Pimoroni](https://shop.pimoroni.com/products/adafruit-feather-nrf52840-express)) or with the [Adafruit itsybitsy nrf52840 ](https://www.adafruit.com/product/4481)or with lesser support for the [The Adafruit - Bluefruit LE Friend - nRF51822 - v3.0](https://www.adafruit.com/product/2267) (Buy in the [UK from Pimoroni](https://shop.pimoroni.com/products/adafruit-bluefruit-le-friend-ble-4-0-nrf51822-v1-0#description)). _Although Note: We really arent supporting the LE Friend much - we do hear it works but dragons beware!_ See below for details on configuring these:
+Currently RelayKeys is designed to work with the [Adafruit Feather nRF52840 Express](https://www.adafruit.com/product/4062) (Buy in the [UK from Pimoroni](https://shop.pimoroni.com/products/adafruit-feather-nrf52840-express)) or with the [Adafruit itsybitsy nrf52840 ](https://www.adafruit.com/product/4481)or with lesser support for the [The Adafruit - Bluefruit LE Friend - nRF51822 - v3.0](https://www.adafruit.com/product/2267) (Buy in the [UK from Pimoroni](https://shop.pimoroni.com/products/adafruit-bluefruit-le-friend-ble-4-0-nrf51822-v1-0#description)). _Although Note: We really arent supporting the LE Friend much - we do hear it works but dragons beware!_ See below for details on configuring these.
+
+{% hint style="info" %}
+If you are using a receiver dongle - follow the same guidance below but you will also need to copy over the firmware file for the dongle. Same procedure - different file name
+{% endhint %}
 
 ## Setup for Adafruit Feather nRF52840 Express
 
-Either use the drag and drop UF2 method or more steps involved - Arduino uploading method. \
+Either use the drag and drop UF2 method or more steps involved - Arduino uploading method.\
 \
 For the UF2 method
 
-* Download the UF2 file for the feather _nrf52840_ express _board in the_ [_current release_](http://github.com/acecentre/relaykeys/releases/latest)__
-* Double click that reset button. You will then get a USB drive on your computer. Drag and drop the UF2 file to the root of that drive. &#x20;
+* Download the UF2 file for the feather _nrf52840_ express _board in the_ [_current release_](http://github.com/acecentre/relaykeys/releases/latest)\_\_
+* Double click that reset button. You will then get a USB drive on your computer. Drag and drop the UF2 file to the root of that drive.
 * It **SHOULD** disconnect from your Computer if successful and the light should change colour to Green
 * More details see the steps [here](https://learn.adafruit.com/adafruit-metro-m0-express/uf2-bootloader-details#entering-bootloader-mode-2929745)
 
 ![](../.gitbook/assets/uf2drag-drop.gif)
 
-Or the Arduino uploading method.&#x20;
+Or the Arduino uploading method.
 
 * Check the setup of your [Arduino IDE](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/arduino-bsp-setup) (remember we're using the nRF52840 board!)
 * Upload the [sketch](../../arduino/arduino\_nRF52840/arduino\_nRF52840.ino) to your feather.
@@ -26,34 +30,34 @@ Or the Arduino uploading method.&#x20;
 
 ## Setup for Raytac dongle
 
-Either use the drag and drop UF2 method or more steps involved - Arduino uploading method. \
+Either use the drag and drop UF2 method or more steps involved - Arduino uploading method.\
 \
 For the UF2 method
 
-* Download the UF2 file for the raytac dongle in the_ [_current release_](http://github.com/acecentre/relaykeys/releases/latest)__
-* Press and hold thr  reset button as you plug it into the computer. You will then get a USB drive on your computer. Drag and drop the UF2 file to the root of that drive. &#x20;
+* Download the UF2 file for the raytac dongle in the\_ [_current release_](http://github.com/acecentre/relaykeys/releases/latest)\_\_
+* Press and hold thr reset button as you plug it into the computer. You will then get a USB drive on your computer. Drag and drop the UF2 file to the root of that drive.
 
 ![](../.gitbook/assets/uf2drag-drop.gif)
 
-Or the Arduino uploading method.&#x20;
+Or the Arduino uploading method.
 
 * Check the setup of your [Arduino IDE](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/arduino-bsp-setup) (remember we're using the nRF52840 board!)
 * Upload the [sketch](../../arduino/arduino\_nRF52840/arduino\_nRF52840.ino) to your feather.
 * Run the server side code
 * Done!
 
-## Setup for Adafruit itsybitsy nRF52840&#x20;
+## Setup for Adafruit itsybitsy nRF52840
 
-Either use the drag and drop UF2 method or more steps involved - Arduino uploading method. \
+Either use the drag and drop UF2 method or more steps involved - Arduino uploading method.\
 \
 For the UF2 method
 
 * Download the UF2 file for the itsybitsy _board in the current release_
-* Double click that reset button. You will then get a USB drive on your computer. Drag and drop the UF2 file to the root of that drive. &#x20;
+* Double click that reset button. You will then get a USB drive on your computer. Drag and drop the UF2 file to the root of that drive.
 * It SHOULD disconnect from your pC if successful – but as I say the loghts should change colour to Green
 * More details see the steps [here](https://learn.adafruit.com/adafruit-metro-m0-express/uf2-bootloader-details#entering-bootloader-mode-2929745)
 
-Or the Arduino uploading method.&#x20;
+Or the Arduino uploading method.
 
 * Check the setup of your [Arduino IDE](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/arduino-bsp-setup) (remember we're using the nRF52840 board!)
 * Upload the [sketch](../../arduino/arduino\_nRF52840/arduino\_nRF52840.ino) to your feather.
@@ -63,7 +67,7 @@ Or the Arduino uploading method.&#x20;
 ## Setup for Bluefruit LE Friend
 
 {% hint style="info" %}
-Although it _should_ work - and we promise you it _did_ work - something has broken functionality working with the LE friend. So we aren't **officially** supporting this right now&#x20;
+Although it _should_ work - and we promise you it _did_ work - something has broken functionality working with the LE friend. So we aren't **officially** supporting this right now
 {% endhint %}
 
 * [Install the CP2104 Driver](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers)
