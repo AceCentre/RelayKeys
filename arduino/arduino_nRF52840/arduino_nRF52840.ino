@@ -76,6 +76,7 @@ volatile uint8_t switchBleConnCurrIndex = 0;
 using namespace Adafruit_LittleFS_Namespace;
 #define FILENAME "/devNameList.txt"
 #define MODE_FILENAME "/config.txt"
+#define TMP_FILENAME "/tmp.txt"
 
 File file(InternalFS);
 
@@ -272,6 +273,63 @@ void change_mode(char* myLine) {
   NVIC_SystemReset();  
 }
 
+void save_tmp_file() {
+  file.open(TMP_FILENAME, FILE_O_WRITE);
+  if(file) {
+    file.seek(0);
+    file.write((const uint8_t *)&flag_bleSwapConnProsStarted, 1);
+    file.write((const uint8_t *)&switchBleConnStartIndex, 1);
+    file.write((const uint8_t *)&switchBleConnCurrIndex, 1);
+    file.close();
+
+    #ifdef DEBUG
+      Serial.println("Temp parameters saved");
+      Serial.print("Previous connection index");
+      Serial.println(switchBleConnStartIndex);
+      Serial.print("Previous connection name");
+      Serial.println( bleDeviceNameList[switchBleConnStartIndex - 1]);
+      Serial.print("Target connection index");
+      Serial.println(switchBleConnCurrIndex);
+      Serial.print("Target connection name");
+      Serial.println( bleDeviceNameList[switchBleConnCurrIndex - 1]); 
+    #endif
+  } else {
+    #ifdef DEBUG
+    Serial.print(MODE_FILENAME " Write Failed");
+    #endif
+  }
+}
+
+void load_tmp_file() {
+  file.open(TMP_FILENAME, FILE_O_READ);
+  // file existed
+  if (file)
+  {
+    file.read((void *)&flag_bleSwapConnProsStarted, 1);
+    file.read((void *)&switchBleConnStartIndex, 1);  
+    file.read((void *)&switchBleConnCurrIndex, 1);  
+    file.close();
+
+    #ifdef DEBUG
+      Serial.println("Temp parameters loaded");
+      Serial.print("Previous connection index");
+      Serial.println(switchBleConnStartIndex);
+      Serial.print("Previous connection name");
+      Serial.println( bleDeviceNameList[switchBleConnStartIndex - 1]);
+      Serial.print("Target connection index");
+      Serial.println(switchBleConnCurrIndex);
+      Serial.print("Target connection name");
+      Serial.println( bleDeviceNameList[switchBleConnCurrIndex - 1]); 
+    #endif
+
+    InternalFS.remove(TMP_FILENAME);
+  } else {
+    #ifdef DEBUG
+    Serial.println(TMP_FILENAME " Read Failed");
+    #endif
+  }
+}
+
 void setup()
 {
   Serial.begin(115200);
@@ -284,6 +342,8 @@ void setup()
   InternalFS.begin();
 
   load_mode_file();
+  
+  load_tmp_file();
 
   pinMode(USER_SW, INPUT_PULLUP);
 
@@ -835,11 +895,7 @@ void switchBleConnection(char *myLine)
           at_response("ERROR: No other device present in list\n");
           break;
         }
-        else
-        {
-          connection->disconnect();
-        }
-
+        
         if (switchBleConnStartIndex >= bleDeviceNameListIndex)
         {
           switchBleConnCurrIndex = 1;
@@ -854,6 +910,9 @@ void switchBleConnection(char *myLine)
         
         snprintf(buff, sizeof(buff), "Trying to connect with -  %s\n", bleDeviceNameList[switchBleConnCurrIndex - 1]);
         at_response(buff);
+
+        connection->disconnect();
+        
         break;
       }
     }
@@ -1226,6 +1285,17 @@ void disconnect_callback(uint16_t conn_handle, uint8_t reason)
 
   //Serial.println();
   //Serial.print("Disconnected, reason = 0x"); Serial.println(reason, HEX);
+
+  if(blehid.isBootMode()) {
+    save_tmp_file();
+    
+    #ifdef DEBUG
+    Serial.println("Resetting hid mode");
+    delay(1000);
+    #endif
+    
+    NVIC_SystemReset(); 
+  }
 
   connection_count--;
   // Keep advertising if not reaching max

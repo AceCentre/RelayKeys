@@ -1,7 +1,7 @@
 #include <bluefruit.h>
 #include "Adafruit_TinyUSB.h"
 
-//#define DEBUG // enables serial prints of received data, disables usb hid actions
+#define DEBUG // enables serial prints of received data, disables usb hid actions
 
 // onboard buttons and status led defines
 #if defined(_VARIANT_ITSY52840_)
@@ -142,7 +142,7 @@ void scan_callback(ble_gap_evt_adv_report_t* report)
       Bluefruit.Central.connect(report);
     }
   } else {
-    Serial.println("Name not available");  
+    Serial.println("Name not available");
   }
   Serial.println();
   
