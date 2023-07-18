@@ -142,7 +142,7 @@ void scan_callback(ble_gap_evt_adv_report_t* report)
       Bluefruit.Central.connect(report);
     }
   } else {
-    Serial.println("Name not available");  
+    Serial.println("Name not available");
   }
   Serial.println();
   
