@@ -1207,64 +1207,70 @@ void bleConnectCallback(uint16_t conn_handle)
   }
   else
   {
-    i = 0;
-
-    for (i = 0; i < maxBleDevListSize; i++)
-    {
-      if (!strcmp((char *)central_name, (char *)bleDeviceNameList[i]))
+    if(bleDeviceNameListIndex == 0 && !strcmp((char *)central_name, "AceRK receiver")) {
+      // Adding receiver dongle automatically since dev list is empty
+      strcpy(bleDeviceNameList[bleDeviceNameListIndex++], central_name);
+      flag_saveListToFile = true;
+    } else{
+      i = 0;
+  
+      for (i = 0; i < maxBleDevListSize; i++)
       {
-        #ifdef DEBUG
-        Serial.println("Device found in list - " + String(central_name));
-        #endif
-        
-        if (flag_addDevProsStarted)
-        {
-          connection->disconnect();
-
-          #ifdef DEBUG
-          Serial.print("Disconnected - Device already present in list");
-          Serial.println(central_name);
-          #endif
-        }
-        else
-        {
-        }
-        break;
-      }
-    }
-
-    if (i >= maxBleDevListSize)
-    {
-      if (flag_addDevProsStarted)
-      {
-        flag_addDevProsStarted = 0;
-        updateStatusLED();
-        if (bleDeviceNameListIndex > maxBleDevListSize)
-        {
-          connection->disconnect();
-
-          #ifdef DEBUG
-          Serial.println("ERROR: Device list is full");
-          #endif
-        }
-        else
+        if (!strcmp((char *)central_name, (char *)bleDeviceNameList[i]))
         {
           #ifdef DEBUG
-          Serial.println("SUCCESS");
-          Serial.println(String(central_name) + " Connected and Name added into list");
+          Serial.println("Device found in list - " + String(central_name));
           #endif
           
-          strcpy(bleDeviceNameList[bleDeviceNameListIndex++], central_name);
-          flag_saveListToFile = true;
+          if (flag_addDevProsStarted)
+          {
+            connection->disconnect();
+  
+            #ifdef DEBUG
+            Serial.print("Disconnected - Device already present in list");
+            Serial.println(central_name);
+            #endif
+          }
+          else
+          {
+          }
+          break;
         }
       }
-      else
+  
+      if (i >= maxBleDevListSize)
       {
-        connection->disconnect();
-
-        #ifdef DEBUG
-        Serial.println(String(central_name) + " Disconnected - Not present in the list");
-        #endif
+        if (flag_addDevProsStarted)
+        {
+          flag_addDevProsStarted = 0;
+          updateStatusLED();
+          if (bleDeviceNameListIndex > maxBleDevListSize)
+          {
+            connection->disconnect();
+  
+            #ifdef DEBUG
+            Serial.println("ERROR: Device list is full");
+            #endif
+          }
+          else
+          {
+            #ifdef DEBUG
+            Serial.println("SUCCESS");
+            Serial.println(String(central_name) + " Connected and Name added into list");
+            #endif
+            
+            strcpy(bleDeviceNameList[bleDeviceNameListIndex++], central_name);
+            flag_saveListToFile = true;
+          }
+        }
+        else
+        {
+          connection->disconnect();
+  
+          #ifdef DEBUG
+          Serial.println(String(central_name) + " Disconnected - Not present in the list");
+          #endif
+        }
       }
     }
   }
