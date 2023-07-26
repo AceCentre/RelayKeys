@@ -8,7 +8,7 @@ def load_keymap_file(config):
   
   keymap_file = Path(__file__).resolve().parent / "cli_keymaps" / config.get("keymap_file", "us_keymap.json")
   if keymap_file.exists() and keymap_file.is_file():
-    with open(keymap_file, "r") as f:
+    with open(keymap_file, "r", encoding="utf-8") as f:
       try:
         nonchars_key_map = json.loads(f.read()) 
       except Exception as e:
