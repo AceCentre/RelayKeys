@@ -2,7 +2,7 @@
 
 ### Serial Commands
 
-So if you want to communicate directly with the serial device - instead of via the  server you can. So to do this you would need to write your own software to open the serial connection and use the correct commands to _talk_ to the hardware.&#x20;
+So if you want to communicate directly with the serial device - instead of via the  server you can. So to do this, you would need to write your software to open the serial connection and use the correct commands to _talk_ to the hardware.&#x20;
 
 ### Connection - Baud rate, nr/vid settings
 
@@ -124,5 +124,5 @@ Gets the current mode - either wired or wireless.&#x20;
 Switches the current mode from wired to wireless. Or Wireless to wired.&#x20;
 
 {% hint style="info" %}
-Note if the device **IS NOT** connected to RelayKeys wirelessly then it will stop responding. You will have to switch connection a different technique. See [here](../installation.md#wireless-mode) for more details
+Note if the device **IS NOT** connected to RelayKeys wirelessly then it will stop responding. You will have to switch connection a different technique. See [here](../installation/#wireless-mode) for more details
 {% endhint %}
