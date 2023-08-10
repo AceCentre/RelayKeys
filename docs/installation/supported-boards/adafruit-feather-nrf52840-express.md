@@ -1,7 +1,5 @@
 # Adafruit Feather nRF52840 Express
 
-## Setup for Adafruit Feather nRF52840 Express
-
 Either use the drag and drop UF2 method or more steps involved - Arduino uploading method.\
 \
 For the UF2 method
