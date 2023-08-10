@@ -2,7 +2,7 @@
 
 ### Serial Commands
 
-So if you want to communicate directly with the serial device - instead of via the  server you can. So to do this you would need to write your own software to open the serial connection and use the correct commands to _talk_ to the hardware.&#x20;
+So if you want to communicate directly with the serial device - instead of via the  server you can. So to do this, you would need to write your software to open the serial connection and use the correct commands to _talk_ to the hardware.&#x20;
 
 ### Connection - Baud rate, nr/vid settings
 
