@@ -4,7 +4,7 @@
 * [⚙️ Installation](installation/README.md)
   * [Setting up a board for RelayKeys](installation/supported-boards/README.md)
     * [Adafruit Feather nRF52840 Express](installation/supported-boards/adafruit-feather-nrf52840-express.md)
-    * [Raytac dongle](installation/supported-boards/raytac-dongle.md)
+    * [Raytac dongle - nRF52840 USB Key with TinyUF2 Bootloader MDBT50Q-RX](installation/supported-boards/raytac-dongle-nrf52840-usb-key-with-tinyuf2-bootloader-mdbt50q-rx.md)
     * [Adafruit Itsybitsy nRF52840](installation/supported-boards/adafruit-itsybitsy-nrf52840.md)
     * [Bluefruit LE Friend](installation/supported-boards/bluefruit-le-friend.md)
   * [Download and Setup (Software)](installation/download-and-setup-software.md)
