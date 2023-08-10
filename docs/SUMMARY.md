@@ -10,6 +10,7 @@
   * [Download and Setup (Software)](installation/download-and-setup-software.md)
   * [Connecting with RelayKeys](installation/connecting-with-relaykeys/README.md)
     * [Wired Mode](installation/connecting-with-relaykeys/wired-mode.md)
+    * [Wired + Recieving Dongle](installation/connecting-with-relaykeys/wired-+-recieving-dongle.md)
     * [Wireless Mode](installation/connecting-with-relaykeys/wireless-mode.md)
   * [Checking it works](installation/checking-it-works.md)
 * [🖥 Using RelayKeys](using-relaykeys/README.md)

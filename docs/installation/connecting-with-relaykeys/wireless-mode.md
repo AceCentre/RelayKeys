@@ -1,5 +1,11 @@
 # Wireless Mode
 
+
+
+{% hint style="warning" %}
+Warning: This mode definitley is slightly more laggy and can be fiddly to setup.&#x20;
+{% endhint %}
+
 Note that this mode is useful on devices where you can't plug anything into your device. The setup can feel _strange -_ what we need to do is tell your relaykeys hardware the device to connect to.
 
 1. Plug in device and follow instructions [as above](wireless-mode.md#plug-in-your-relaykeys-stick-and-pair-with-a-computer-wired-mode)
