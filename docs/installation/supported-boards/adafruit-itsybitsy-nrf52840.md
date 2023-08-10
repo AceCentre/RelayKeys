@@ -1,5 +1,7 @@
 # Adafruit itsybitsy nRF52840
 
+![](<../../.gitbook/assets/image (3).png>)
+
 Either use the drag and drop UF2 method or more steps involved - Arduino uploading method.\
 \
 For the UF2 method

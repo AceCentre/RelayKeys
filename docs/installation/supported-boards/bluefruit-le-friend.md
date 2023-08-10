@@ -5,7 +5,7 @@ Although it _should_ work - and we promise you it _did_ work - something has bro
 {% endhint %}
 
 * [Install the CP2104 Driver](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers)
-* Update it to 0.8.1. Easiest way to do this is to connect to using the Bluefruit app - it will auto update it if required.
+* Update it to 0.8.1. Easiest way to do this is to connect to using the Bluefruit app - it will auto-update it if required.
 * Plug it in
 * Set the switch on the device to CMD mode
 * Open up a serial terminal and connect to the device (See [here](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/terminal-settings#terraterm-windows-5-2) for exact settings for your Operating System)

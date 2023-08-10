@@ -1,5 +1,7 @@
 # Adafruit Feather nRF52840 Express
 
+![](<../../.gitbook/assets/image (2).png>)
+
 Either use the drag and drop UF2 method or more steps involved - Arduino uploading method.\
 \
 For the UF2 method
