@@ -1,5 +1,7 @@
 # Bluefruit LE Friend
 
+![](<../../.gitbook/assets/image (4).png>)
+
 {% hint style="info" %}
 Although it _should_ work - and we promise you it _did_ work - something has broken functionality working with the LE friend. So we aren't **officially** supporting this right now
 {% endhint %}
