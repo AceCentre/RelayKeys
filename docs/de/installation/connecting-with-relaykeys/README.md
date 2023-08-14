@@ -1,9 +1,9 @@
-# Connecting with RelayKeys
+# Verbinden mit RelayKeys
 
-There are 3 broad configurations for RelayKeys
+Es gibt 3 allgemeine Konfigurationen für RelayKeys Verkabelter Modus.&#x20;
 
-* Wired Mode. This is where one Bluetooth dongle is in the Sending device&#x20;
-* Wireless Mode. This is where a Bluetooth dongle plugged into a power outlet or a battery sits away from the Sending device. This might be useful for devices where you cannot plug anything into the sending device
-* Wired + Receiving Dongle. A receiving dongle sits in the receiving device. This is useful where "pairing" is unreliable on the recieving device or there is no Bluetooth stack on the receiving computer.&#x20;
+* Hier befindet sich ein Bluetooth-Dongle im sendenden Gerät&#x20;
+* Drahtloser Modus. Hier befindet sich ein Bluetooth-Dongle, der in eine Steckdose oder eine Batterie eingesteckt ist, nicht in der Nähe des sendenden Geräts. Dies kann für Geräte nützlich sein, bei denen Sie nichts an das sendende Gerät anschließen können.&#x20;
+* Verkabelt + Empfangs-Dongle. Ein Empfangs-Dongle befindet sich im Empfangsgerät. Dies ist nützlich, wenn das "Pairing" auf dem empfangenden Gerät unzuverlässig ist oder auf dem empfangenden Computer kein Bluetooth-Stack vorhanden ist.&#x20;
 
-You need to decide what is best for you.&#x20;
+Sie müssen entscheiden, was für Sie das Beste ist.
