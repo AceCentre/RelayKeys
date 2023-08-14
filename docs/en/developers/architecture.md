@@ -44,4 +44,4 @@ _Prerequisites_
 
 You should, if everything is working as expected, see it type on the second device. If not have a look at the log files.
 
-One problem may be that the daemon cant find the COM port. You can fix this by fixing the com port you found in step 2 and putting it in the config file. e.g. add `dev=COM6` if the com port is 6. More information can be found [here](../../developers/relaykeys-cfg.html#dev-defining-your-port-of-the-relaykeys-hardware)
+One problem may be that the daemon cant find the COM port. You can fix this by fixing the com port you found in step 2 and putting it in the config file. e.g. add `dev=COM6` if the com port is 6. More information can be found [here](../../../developers/relaykeys-cfg.html#dev-defining-your-port-of-the-relaykeys-hardware)

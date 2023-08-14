@@ -8,7 +8,7 @@ This is for end-users. If you are a developer please consider communicating with
 Right now we are focused on Windows AAC Software. For iOS or Android, a developer needs to support relaykeys for it to work.
 {% endhint %}
 
-Most AAC software has a way of connecting to an external application. Some call this "Run Programme or something similar. As long as RelayKeys is installed and the correct hardware is connected you can then call the installed command line application - with [the correct syntax](../../../technical/reference.html).
+Most AAC software has a way of connecting to an external application. Some call this "Run Programme or something similar. As long as RelayKeys is installed and the correct hardware is connected you can then call the installed command line application - with [the correct syntax](../../../../technical/reference.html).
 
 Take a look at the guides for your software.
 

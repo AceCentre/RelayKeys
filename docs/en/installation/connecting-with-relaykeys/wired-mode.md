@@ -20,17 +20,17 @@ You can do this in three different ways:
 
 So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "AceRK"
 
-![Pairing Windows](../../img/screenshots/windows-pairing.gif)
+![Pairing Windows](../../.gitbook/assets/windows-pairing.gif)
 
 ### Pair with an iOS device
 
 To connect to an iPad/iPhone, go to Settings, Bluetooth and add "Bluefruit52" or "AceRK" or "RelayKeys"\
-![Pairing iPad](../../img/screenshots/ipad-pairing.gif)
+![Pairing iPad](../../.gitbook/assets/ipad-pairing.gif)
 
 ### Pair with a Mac
 
 To connect to a mac, Open up "System Preferences", Bluetooth and add "AceRK"
 
-![Pairing Mac](../../img/screenshots/mac-pairing.gif)
+![Pairing Mac](../../.gitbook/assets/mac-pairing.gif)
 
 ##

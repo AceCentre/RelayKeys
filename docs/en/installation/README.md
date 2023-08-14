@@ -8,7 +8,7 @@
 
 So RelayKeys consists of a hardware solution that talks Bluetooth HID to secondary devices - anything that can pair with bluetooth and understand a keyboard works, and some software on the 'server' device; i.e. the device sending the key/mouse movements. So for our installation we really focus on the 'server' since the recieving device needs no additional hardware or software.
 
-![RelayKeys Overview](../img/overview.png)
+![RelayKeys Overview](<../.gitbook/assets/overview (1).png>)
 
 ## Requirements
 

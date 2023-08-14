@@ -13,7 +13,7 @@ You can get going by using one of these example files that work with your AAC So
 * [Tobii Communicator](../using-relaykeys/guides/communicator.md)
 * [Tobii Dynavox Snap](../using-relaykeys/guides/snap-corefirst.md)
 
-When you are ready, [have a read of how to integrate the features you need](../../guides/basic-principles.html).
+When you are ready, [have a read of how to integrate the features you need](../../../guides/basic-principles.html).
 
 ***
 

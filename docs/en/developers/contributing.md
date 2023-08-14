@@ -1,4 +1,4 @@
-# 👩‍💻 Contributing
+# Contributing
 
 > Our small team truly appreciates every contribution made by our community: user stories, feature requests, bug reports, and especially pull requests!. If you have _any_ questions please reach out to our Core team at [AceCentre](https://acecentre.org.uk).
 
@@ -14,7 +14,7 @@ This is the home to the project. Please fork and make changes on this project go
 
 * **arduino/** contains sketches to make the board work. A massive thanks to Adafruit as the nrf52840 is _their_ board with _their_ firmware and this code is largley _their_ example code. We have added mouse functionality
 * **docs/** The folder containing the docs (these docs that you are reading!). Its all made with gitbook&#x20;
-* **resources/** a dumping ground of resources/tools that may be useful in development. Of Note is [demoSerial.py](../../resources/demoSerial.py) - a way of programming this without the board to hand on Linux/Mac. Also see [viewComPorts.py](../../resources/viewComPorts.py) to debug your COM Ports
+* **resources/** a dumping ground of resources/tools that may be useful in development. Of Note is [demoSerial.py](../../../resources/demoSerial.py) - a way of programming this without the board to hand on Linux/Mac. Also see [viewComPorts.py](../../../resources/viewComPorts.py) to debug your COM Ports
 * blehid.py - this is the module used in relaykeysclient and relaykeysd. If you want to view things like keycode conversion and the like - see here.
 * buildinstaller.py - this is a script that "builds" the pyinstaller binaries - and the NSIS setup.exe.
 * relaykeys-cli.py - the CLI programme

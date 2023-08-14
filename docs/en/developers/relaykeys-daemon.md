@@ -16,7 +16,7 @@ e.g.
 
 `python relaykeysd.py --noserial --dev=COM7`
 
-For more info see [here](../../developers/relaykeys-cfg.html#dev-defining-your-port-of-the-relaykeys-hardware)
+For more info see [here](../../../developers/relaykeys-cfg.html#dev-defining-your-port-of-the-relaykeys-hardware)
 
 ## --debug
 

@@ -1,4 +1,4 @@
-# Adafruit itsybitsy nRF52840
+# Adafruit Itsybitsy nRF52840
 
 ![](<../../.gitbook/assets/image (3).png>)
 
@@ -14,6 +14,6 @@ For the UF2 method
 Or the Arduino uploading method.
 
 * Check the setup of your [Arduino IDE](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/arduino-bsp-setup) (remember we're using the nRF52840 board!)
-* Upload the [sketch](../../../arduino/arduino\_nRF52840/arduino\_nRF52840.ino) to your feather.
+* Upload the [sketch](../../../../arduino/arduino\_nRF52840/arduino\_nRF52840.ino) to your feather.
 * Run the server side code
 * Done!

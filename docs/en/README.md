@@ -1,6 +1,6 @@
 ---
 description: Overview of the project and its components
-cover: .gitbook/assets/jessimage.jpeg
+cover: .gitbook/assets/jessimage (1).jpeg
 coverY: 0
 ---
 
