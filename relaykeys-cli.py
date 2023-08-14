@@ -258,6 +258,7 @@ def do_main (args, config):
           else:
             type_char("\\")
         type_char(char)
+      do_keyevent(client, None, [], False)
     elif name == "paste":
       data = pyperclip.paste()
       for char in data:
@@ -269,6 +270,7 @@ def do_main (args, config):
           do_keyevent(client, key, mods, False)
           if delay > 0:
             sleep(delay/1000.0)
+      do_keyevent(client, None, [], False)
     elif name == "keyevent":
       parts = data.split(",")
       if len(parts) < 2:
