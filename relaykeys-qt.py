@@ -743,6 +743,8 @@ class Window (QMainWindow):
         helpMenuAceCentre.triggered.connect(self.openAceCentreUrl)
         helpMenu.addAction(helpMenuAceCentre)
         
+        self.send_action('ble_cmd', 'keyboard_release')
+
         self.send_action('ble_cmd', 'devname')
         self.send_action('ble_cmd', 'devlist')
 
@@ -1018,9 +1020,13 @@ class Window (QMainWindow):
     """
 
     def closeEvent(self, event):
-        self._client_queue.put(("EXIT",))
         self._keyboard_listener.stop()
         self._mouse_listener.stop()
+        sleep(0.2)
+        self.send_action('ble_cmd', 'keyboard_release')
+        sleep(0.2)
+        self._client_queue.put(("EXIT",))
+        
 
     def initHooks(self):
         self._keyboard_listener = keyboard.Listener(on_press=self.onKeyboardDown, on_release=self.onKeyboardUp)
@@ -1185,6 +1191,7 @@ class Window (QMainWindow):
 
     def _keyboardToggleCheck(self, key):
         if self.checkShortcutTrigger(key, self._modifiers, self._keyboard_toggle_key, self._keyboard_toggle_modifiers):
+            self.send_action('ble_cmd', 'keyboard_release')
             self._keyboard_disabled = not self._keyboard_disabled
             self.keyboardStatusWidget.updateStatusSignal.emit([], [], [])
             self.updateTogglesStatus()
@@ -1240,10 +1247,10 @@ class Window (QMainWindow):
                         self._last_n_chars.pop(0)
                     self._last_n_chars.append(chr)
                     self.updateShowLastChars()
-            self.send_action('keyevent', key, self._modifiers, True)            
+            self.send_action('keyevent', key, [], True)            
         elif mod is not None:
             # set the modifiers
-            self.send_action('keyevent', None, self._modifiers, False)            
+            self.send_action('keyevent', None, [mod], True)
 
     def onKeyboardUp(self, key_ev):
         key = None
@@ -1267,10 +1274,10 @@ class Window (QMainWindow):
             return
         self.updateKeyboardState()
         if key is not None:
-            self.send_action('keyevent', key, self._modifiers, False)            
+            self.send_action('keyevent', key, [], False)            
         elif mod is not None:
             # set the modifiers
-            self.send_action('keyevent', None, self._modifiers, False)        
+            self.send_action('keyevent', None, [mod], False)        
 
     def mouse_on_move(self, x, y):        
         if not self._mouse_disabled:
@@ -1418,6 +1425,8 @@ class Window (QMainWindow):
                 continue
 
             sleep(0.05)
+        
+        self.send_action('ble_cmd', 'keyboard_release')
 
 
 

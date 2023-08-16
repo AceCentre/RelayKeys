@@ -417,9 +417,8 @@ async def hardware_serial_loop(queue, args, config, interrupt):
 
             #logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
             await blehid_init_serial(ser)
-            # Six keys for USB keyboard HID report
-            # uint8_t keys[6] = {0,0,0,0,0,0}
-            keys = arr.array('B', [0, 0, 0, 0, 0, 0])
+
+            keys = arr.array('B', [0, 0, 0, 0, 0, 0, 0, 0])
 
             #Get intial ble device List
             await process_action(ser, keys, ['ble_cmd','devlist'])
@@ -488,7 +487,7 @@ async def ble_serial_loop(queue, args, config, interrupt):
                 ser = BLESerialWrapper(client)
                 await ser.init_receive()       
                 
-                keys = arr.array('B', [0, 0, 0, 0, 0, 0])
+                keys = arr.array('B', [0, 0, 0, 0, 0, 0, 0, 0])
                 
                 print("Device connected.")
                 serial_loop_opened = True
@@ -591,6 +590,12 @@ async def process_action(ser, keys, cmd):
 
             elif cmd[1] == "switch_mode":
                 await blehid_switch_mode(ser)
+            
+            elif cmd[1] == "keyboard_release":
+                print("keyboard relase")
+                for i in range(0, 8):
+                    keys[i] = 0
+                await blehid_send_keyboardcode(ser, None, [], False, keys)
 
         elif cmd[0] == "check_dongle":
             return await blehid_get_at_response(ser)

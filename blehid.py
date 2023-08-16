@@ -109,13 +109,7 @@ keymap = dict([
     ("DOWNARROW", 0x51),
     ("UPARROW", 0x52),
     ("APP", 0x65),  # Keyboard Application
-    ("LCTRL", 0xE0),  # Keyboard Left Control
-    ("LSHIFT", 0xE1),  # Keyboard Left Shift
-    ("LALT", 0xE2),  # Keyboard Left Alt
     ("LGUI", 0xE3),  # Keyboard Left GUI
-    ("RCTRL", 0xE4),  # Keyboard Right Control
-    ("RSHIFT", 0xE5),  # Keyboard Right Shift
-    ("RALT", 0xE6),  # Keyboard Right Alt
     ("RGUI", 0xE7),  # Keyboard Right GUI
     ("CUSTOM~", 0x32),  # Keyboard Non-US # and ~
     ("NONUSHASH", 0x32),  # Alias
@@ -231,27 +225,30 @@ async def blehid_send_mousebutton(ser, btn, behavior=None):
 
 
 async def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
-    logging.debug('key:'+str(key)+'  modifiers:'+str(modifiers))
-    existingModifiers =  list(map(
-            lambda a: a[0],
-            filter(lambda a: a[1] in keys,
-               [("LCTRL", 0xe0), ("LSHIFT", 0xe1), ("LALT", 0xe2),
-                ("LMETA", 0xe3), ("RCTRL", 0xe4), ("RSHIFT", 0xe5),
-                ("RALT", 0xe6), ("RMETA", 0xe7)])))
-    modifiers=list(set(modifiers+existingModifiers))
-    logging.debug('existing modifiers:'+str(existingModifiers))
+    if key in ["LCTRL", "LSHIFT", "LALT", "LMETA", "RCTRL", "RSHIFT", "RALT", "RMETA"]:
+        modifiers.append(key)
+        key = None
+    
+    logging.debug('key:'+str(key)+'  modifiers:'+str(modifiers)+' action:'+str(down))
+   
+    # modifier handling
     hidmod = reduce(operator.or_, map(
         lambda a: a[1],
         filter(lambda a: a[0] in modifiers,
                [("LCTRL", 0x01), ("LSHIFT", 0x02), ("LALT", 0x04),
                 ("LMETA", 0x08), ("RCTRL", 0x10), ("RSHIFT", 0x20),
                 ("RALT", 0x40), ("RMETA", 0x80)])), 0)
+    if down == True:
+        keys[0] = keys[0] | hidmod
+    else: 
+        keys[0] = keys[0] & (~hidmod)
+
+    # key handling
     keycode = keymap.get(key, 0)
     # if OS == 'ios' and keycode == 13:
-    #    hidcode = 0x58
-    logging.debug("keycode: {:02x}, mod: {:02x}".format(keycode, hidmod))
+    #    hidcode = 0x58    
     if key != 0:
-        for i in range(0, 6):
+        for i in range(2, 8):
             if keys[i] == 0:
                 if down == True:
                     keys[i] = keycode
@@ -261,9 +258,13 @@ async def blehid_send_keyboardcode(ser, key, modifiers, down, keys):
                     keys[i] = 0
                 else:
                     break
-    atcmd = "AT+BLEKEYBOARDCODE={:02x}-00".format(hidmod)
+
+    # preparing command
+    logging.debug("keycode: {:02x}, mod: {:02x}".format(keycode, keys[0]))
+
+    atcmd = "AT+BLEKEYBOARDCODE={:02x}-00".format(keys[0])
     zerocmd = ""
-    for i in range(0, 6):
+    for i in range(2, 8):
         if keys[i] != 0:
             atcmd += "-{:02x}".format(keys[i])
         else:

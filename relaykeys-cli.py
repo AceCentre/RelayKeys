@@ -258,7 +258,6 @@ def do_main (args, config):
           else:
             type_char("\\")
         type_char(char)
-      do_keyevent(client, None, [], False)
     elif name == "paste":
       data = pyperclip.paste()
       for char in data:
@@ -270,17 +269,21 @@ def do_main (args, config):
           do_keyevent(client, key, mods, False)
           if delay > 0:
             sleep(delay/1000.0)
-      do_keyevent(client, None, [], False)
     elif name == "keyevent":
       parts = data.split(",")
       if len(parts) < 2:
         raise ValueError("Not enough params for keyevent command: {}".format(cmd))
+      
       key = parts[0]
+      if len(parts) == 2:
+        modifiers = None
+      elif len(parts) > 2:
+        modifiers = parts[1:-1]
       try:
         isdown = int(parts[-1]) == 1
       except ValueError:
         raise ValueError("Last param of keyevent command should be one of (0,1), in cmd: {}".format(cmd))
-      modifiers = parts[1:]
+      
       do_keyevent(client, key, modifiers, isdown)
       if delay > 0:
         sleep(delay/1000.0)
