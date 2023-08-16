@@ -1,35 +1,35 @@
-# Wired Mode
+# Kabelgebundener Modus
 
-## Plug-in Your RelayKeys stick & pair with a computer (Wired mode)
+## Schließen Sie Ihren RelayKeys-Stick an und verbinden Sie ihn mit einem Computer (kabelgebundener Modus)
 
-1. Make sure the Micro-USB connector is attached to the stick and then attach the female end of the USB lead into your computer
-2. You should see your stick light a solid blue ("Paired") or flashing blue ("Un-paired")
+1. Vergewissern Sie sich, dass der Micro-USB-Stecker mit dem Stick verbunden ist, und schließen Sie dann das weibliche Ende des USB-Kabels an Ihren Computer an.
+2. Ihr Stick sollte durchgehend blau leuchten ("Gekoppelt") oder blau blinken ("Nicht gekoppelt").
 
-If "Flashing". This means you have yet to pair the RelayKeys device with another computer.
+Wenn "Blinkt". Dies bedeutet, dass Sie das RelayKeys-Gerät noch mit einem anderen Computer koppeln müssen.
 
-### Put RelayKeys into a pairing mode
+### RelayKeys in einen Pairing-Modus versetzen
 
-You can do this in three different ways:
+Sie können dies auf drei verschiedene Arten tun:
 
-* Send a command using the "`relaykeys-QT.exe`" app and press "Add a device" in the toolbar - or -
-* Run "`relaykeys-cli.exe ble_cmd:devadd" - or -`
-* Press the Button on the RelayKeys hardware. It will now flash <mark style="background-color:yellow;">yellow</mark>
-* Next pair your device with RelayKeys.
+* Senden Sie einen Befehl mit der Anwendung "`relaykeys-QT.exe`" und drücken Sie "Gerät hinzufügen" in der Symbolleiste - oder -
+* Führen Sie "`relaykeys-cli.exe ble_cmd:devadd" aus - oder -`
+* Drücken Sie die Taste auf der RelayKeys-Hardware. Sie wird nun <mark style="background-color:yellow;">gelb</mark> blinken.
+* Koppeln Sie nun Ihr Gerät mit RelayKeys.
 
-### Pair with a Windows Computer
+### Koppeln mit einem Windows-Computer
 
-So to connect to Another Windows computer, go to Settings, Bluetooth, "Add a device", and connect to "AceRK"
+Um eine Verbindung zu einem anderen Windows-Computer herzustellen, gehen Sie zu Einstellungen, Bluetooth, "Gerät hinzufügen", und verbinden Sie sich mit "AceRK".
 
-![Pairing Windows](../../img/screenshots/windows-pairing.gif)
+![Fenster koppeln](../../img/screenshots/windows-pairing.gif)
 
-### Pair with an iOS device
+### Koppeln mit einem iOS-Gerät
 
-To connect to an iPad/iPhone, go to Settings, Bluetooth and add "Bluefruit52" or "AceRK" or "RelayKeys"\
-![Pairing iPad](../../img/screenshots/ipad-pairing.gif)
+Um eine Verbindung mit einem iPad/iPhone herzustellen, gehen Sie zu Einstellungen, Bluetooth und fügen Sie "Bluefruit52" oder "AceRK" oder "RelayKeys" hinzu.
+[iPad koppeln](../../img/screenshots/ipad-pairing.gif)
 
-### Pair with a Mac
+### Koppeln mit einem Mac
 
-To connect to a mac, Open up "System Preferences", Bluetooth and add "AceRK"
+Um eine Verbindung zu einem Mac herzustellen, öffnen Sie "Systemeinstellungen", Bluetooth und fügen Sie "AceRK" hinzu.
 
 ![Pairing Mac](../../img/screenshots/mac-pairing.gif)
 

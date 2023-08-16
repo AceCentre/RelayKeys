@@ -1,37 +1,32 @@
-# Bluefruit LE Friend
+# Bluefruit LE Freund
 
 ![](<../../.gitbook/assets/image (4).png>)
 
 {% hint style="info" %}
-Although it _should_ work - and we promise you it _did_ work - something has broken functionality working with the LE friend. So we aren't **officially** supporting this right now
+Obwohl es funktionieren _sollte_ - und wir versprechen Ihnen, dass es _funktioniert_ hat - ist etwas an der Funktionalität, die mit dem LE-Freund arbeitet, kaputt gegangen. Daher unterstützen wir dies im Moment **offiziell** nicht
 {% endhint %}
 
-* [Install the CP2104 Driver](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers)
-* Update it to 0.8.1. Easiest way to do this is to connect to using the Bluefruit app - it will auto-update it if required.
-* Plug it in
-* Set the switch on the device to CMD mode
-* Open up a serial terminal and connect to the device (See [here](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/terminal-settings#terraterm-windows-5-2) for exact settings for your Operating System)
-*   Turn on HID Mode. More info [here](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/ble-services#at-plus-blehiden-14-31). To be precise - enter this into your serial terminal
+* [Installieren Sie den CP2104-Treiber](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers)
+* Aktualisieren Sie ihn auf 0.8.1. Der einfachste Weg, dies zu tun, ist die Verbindung mit der Bluefruit-App - sie aktualisiert ihn automatisch, falls erforderlich.
+* Einstecken
+* Schalten Sie den Schalter am Gerät in den CMD-Modus.
+* Öffnen Sie ein serielles Terminal und stellen Sie eine Verbindung zum Gerät her (genaue Einstellungen für Ihr Betriebssystem finden Sie [hier] (https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/terminal-settings#terraterm-windows-5-2)).
+* Schalten Sie den HID-Modus ein. Mehr Informationen [hier](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/ble-services#at-plus-blehiden-14-31). Um genau zu sein - geben Sie folgendes in Ihr serielles Terminal ein
+```
+AT+BLEHIDEN=1
+ATZ
+```
 
-    ```
-      AT+BLEHIDEN=1
+(Nach jedem Eintrag sollte 'OK' erscheinen)
 
-      ATZ 
-    ```
+* Als nächstes ändern Sie die Standardgeschwindigkeit, d.h. geben Sie folgendes in Ihr serielles Terminal ein:
+```
+AT+BAUDRATE=115200
+```
+* Als nächstes versetzen Sie das Gerät in den [DATA-Modus](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/uart-test#blefriend-configuration-6-3) (schieben Sie den Schalter).
+* Schließlich aktualisieren Sie die Datei relaykeys.cfg mit
+```
+baud = 115200
+```
 
-(You should see 'OK' after each entry)
-
-*   Next change the default speed. i.e. enter this in your serial terminal:
-
-    ```
-      AT+BAUDRATE=115200
-    ```
-* Next put the device into [DATA mode](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/uart-test#blefriend-configuration-6-3) (slide the switch).
-*   Finally - update the relaykeys.cfg file with
-
-    ```
-      baud = 115200
-      
-    ```
-
-(Or whatever speed you so wish)
+(Oder jede andere Geschwindigkeit, die Sie wünschen)

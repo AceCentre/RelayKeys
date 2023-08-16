@@ -1,421 +1,418 @@
-# Command Line Usage
+# Befehlszeilenverwendung
 
-### Command Line flags
+### Kommandozeilen-Flags
 
-We have created a command line interface which allows you to send mouse and keyboard commands to your RelayKeys hardware.
+Wir haben eine Kommandozeilen-Schnittstelle entwickelt, mit der Sie Maus- und Tastaturbefehle an Ihre RelayKeys-Hardware senden können.
 
-To run it access
+Um es auszuführen, rufen Sie
 
-`relaykeys-cli.exe command:data`
+relaykeys-cli.exe Befehl:Daten".
 
-or if running it in pure python
+oder wenn es in reinem Python ausgeführt wird
 
-`python relaykeys-cli.py command:data`
+python relaykeys-cli.py command:data".
 
-and the non-verbose, non-windowed version
+und die nicht-verbale, nicht-fensterspezifische Version
 
-`python relaykeys-cli-win.py command:data`
+python relaykeys-cli-win.py command:data".
 
-Where 'command' and 'data' are provided below.
+Wobei "Befehl" und "Daten" unten angegeben sind.
 
 {% hint style="info" %}
-Remember to change your application accordingly We regularly use the term for command line application '_relaykeys-cli_' in this documentation. Often though you will want to use the '**relaykeys-cli-win.exe**' application that will run a little quicker and has no printed output. Use this for your default call to relaykeys from other applications. If you want to see any errors use '_relaykeys-cli.exe_'
+Denken Sie daran, Ihre Anwendung entsprechend zu ändern Wir verwenden in dieser Dokumentation regelmäßig den Begriff für die Kommandozeilenanwendung '_relaykeys-cli_'. Häufig werden Sie jedoch die Anwendung '**relaykeys-cli-win.exe**' verwenden wollen, die etwas schneller läuft und keine Druckausgabe hat. Verwenden Sie diese Anwendung für Ihren Standardaufruf von relaykeys aus anderen Anwendungen. Wenn Sie alle Fehler sehen wollen, verwenden Sie '_relaykeys-cli.exe_'
 {% endhint %}
 
 {% hint style="info" %}
-If you are developing with the code You must make sure the server is running when you call the cli files. The [server (aka Daemon)](../developers/relaykeys-daemon.md) is the code that turns these commands into the correct AT syntax and access the com port
+Wenn Sie mit dem Code entwickeln, müssen Sie sicherstellen, dass der Server läuft, wenn Sie die Cli-Dateien aufrufen. Der [server (aka Daemon)](../developers/relaykeys-daemon.md) ist der Code, der diese Befehle in die korrekte AT-Syntax umwandelt und auf den Com-Port zugreift
 {% endhint %}
 
-### Defining a Keymap -c
+### Definieren einer Keymap -c
 
-Keymap files are located in [**cli\_keymap**](https://github.com/AceCentre/RelayKeys/tree/master/cli\_keymaps) folder. You can choose which keymap file the CLI is going to use in the cfg by assigning file name to keymap\_file variable (see [here](https://github.com/AceCentre/RelayKeys/blob/12d3eadca2cea53561a5a3979562aae8b4b6cd7c/relaykeys-example.cfg#L17))
+Keymap-Dateien befinden sich im Ordner [**cli_keymap**](https://github.com/AceCentre/RelayKeys/tree/master/cli_keymaps). Sie können wählen, welche Keymap-Datei die CLI in der cfg verwenden soll, indem Sie den Dateinamen der Variable keymap_file zuweisen (siehe [hier](https://github.com/AceCentre/RelayKeys/blob/12d3eadca2cea53561a5a3979562aae8b4b6cd7c/relaykeys-example.cfg#L17))
 
-By default the **us\_keymap.json** is loaded.\
-\
-To run relaykeys-cli with other keymap either change the cfg setting [or use the -c flag](../developers/relaykeys-cfg.md) on the cli application. E.g.
+Standardmäßig wird die **us_keymap.json** geladen.
+Um relaykeys-cli mit einer anderen Tastaturbelegung laufen zu lassen, ändern Sie entweder die cfg-Einstellung [oder verwenden Sie das Flag -c](../developers/relaykeys-cfg.md) in der cli-Anwendung. z.B..
 
 `relaykeys-cli.exe -c .\relaykeys-example.cfg type:@`
 
-See more info on the format [here](../developers/relaykeys-cfg.md#introduction)
+Weitere Informationen über das Format finden Sie [hier](../developers/relaykeys-cfg.md#introduction)
 
-### Command: paste
+### Befehl: einfügen
 
-This takes the pasteboard of the computer (i.e. when you copy some text) and pastes the resulting string to RelayKeys
+Dies nimmt die Zwischenablage des Computers (z.B. wenn Sie einen Text kopieren) und fügt die resultierende Zeichenfolge in RelayKeys ein
 
-i.e.
+d.h.
 
-`relaykeys-cli.exe paste`
+Relais-Schlüssel-cli.exe einfügen".
 
-### Command: type:text
+### Befehl: type:text
 
-Types the string following the :. Note you will need to escape spaces etc
+Geben Sie die Zeichenfolge nach dem : ein. Beachten Sie, dass Sie Leerzeichen usw. auslassen müssen.
 
-`relaykeys-cli.exe type:Hello\ World`
+Relais-Schlüssel-cli.exe Typ:Hallo" Welt
 
-#### A special note about type/paste
+#### Ein besonderer Hinweis zum Thema Tippen/Einfügen
 
-You can send special characters, ones that are usually shifted, by sending the key and the shift modifier (see **keyevent** below). But for the type and paste commands we have some other characters that are hardcoded and it will do the conversion on the fly.
+Sie können Sonderzeichen senden, die normalerweise verschoben werden, indem Sie die Taste und den Umschaltmodifikator senden (siehe **keyevent** unten). Für die Befehle "Tippen" und "Einfügen" gibt es jedoch einige andere Zeichen, die fest kodiert sind, und die Umwandlung erfolgt im laufenden Betrieb.
 
-So for example, to send the @ symbol:
+Zum Beispiel, um das @-Symbol zu senden:
 
-`relaykeys-cli.exe type:@`
+relaykeys-cli.exe Typ:@`
 
-All codes which are converted can be seen below. **NB: \t = Tab \r\n are line breaks\~**
+Alle Codes, die umgewandelt werden, sind unten zu sehen. **NB: \t = Tabulator \r\n sind Zeilenumbrüche~**
 
-### Command: keypress:KEY,MODIFIER
+### Befehl: keypress:KEY,MODIFIER
 
-Sends the KEY and any modifier, For example:
+Sendet den KEY und einen beliebigen Modifikator, zum Beispiel:
 
-`relaykeys-cli.exe keypress:A`
+relaykeys-cli.exe Tastendruck:A
 
-Will emulate pressing and releasing the letter `A`. What about a shift?
+Emuliert das Drücken und Loslassen des Buchstabens "A". Was ist mit einer Verschiebung?
 
-`relaykeys-cli.exe keypress:A,LSHIFT`
+relaykeys-cli.exe Tastendruck:A,LSHIFT`
 
-Will emulate pressing the A with Left Shift. i.e. Upper casing the A.
+Emuliert das Drücken des A mit der linken Umschalttaste, d.h. das A wird groß geschrieben.
 
-`relaykeys-cliexe keypress:RIGHTARROW,LSHIFT,LCTRL`
+Relais-Tasten-Cliexe Tastendruck:RECHTSPFEIL,LSHIFT,LCTRL`
 
-Will press the right arrow, left shit and left control (would select the next word in programs like word)
+Drücken Sie die rechte Pfeiltaste, die linke Shit-Taste und die linke Steuertaste (um das nächste Wort in Programmen wie Word auszuwählen).
 
-#### Modifiers
+#### Modifikatoren
 
-* Left Control/CTRL: `LCTRL`
-* Left Shift : `LSHIFT`
-* Left Alt/Alt: `LALT`
-* (Left) Meta/Windows Key/Mac Key/Command Key: `LMETA` **Note: On Windows there is generally only one Windows key. So use LMETA to emulate pressing the Windows key**
-* Right Control/CTRL:: `LCTRL`
-* Right Shift : `RSHIFT`
-* (Right) Meta/Windows Key/Mac Key/Command Key: `RMETA`
+* Linke Steuerung/CTRL: `LCTRL`
+* Linke Umschalttaste: `LSHIFT`
+* Linke Alt/Alt-Taste: "LALT".
+* (Linke) Meta/Windows-Taste/Mac-Taste/Befehlstaste: LMETA **Hinweis: Unter Windows gibt es im Allgemeinen nur eine Windows-Taste. Benutze also LMETA, um das Drücken der Windows-Taste zu emulieren**
+* Rechte Steuerungstaste/CTRL: `LCTRL`
+* Rechte Umschalttaste: `RSHIFT`
+* (Rechts) Meta/Windows-Taste/Mac-Taste/Befehlstaste: `RMETA`
 
 {% hint style="info" %}
-If you are wanting to send two keys with a modifier - send the **key** - **then** **modifier**. E.g. `keypress:C,LCTRL` - not the other way round!&#x20;
+Wenn Sie zwei Tasten mit einem Modifikator senden wollen, senden Sie die **Taste** - **dann** **Modifikator**. Z.B. `Tastendruck:C,LCTRL` - nicht andersherum!&#x20;
 {% endhint %}
 
 {% hint style="warning" %}
-If you are sending to iOS or a Mac - remember that they use the Command (LMETA) key - often where windows uses the CTRL key read [here](https://support.apple.com/en-us/HT201236) for more examples
+Wenn Sie an iOS oder einen Mac senden, denken Sie daran, dass dort die Befehlstaste (LMETA) verwendet wird - oft dort, wo Windows die STRG-Taste verwendet. Lesen Sie [hier] (https://support.apple.com/en-us/HT201236) für weitere Beispiele
 {% endhint %}
 
-We also have a limited number of **consumer keys - namely volume related (if you need others do** [**let us know**](https://github.com/AceCentre/RelayKeys/issues/26)**)**
+Wir haben auch eine begrenzte Anzahl von **Verbraucher-Schlüsseln - und zwar volumenbezogen (wenn Sie weitere benötigen, lassen Sie es uns wissen** (https://github.com/AceCentre/RelayKeys/issues/26)**)**
 
-* Volume Up: `VOLUP`
-* Volume Down: `VOLDOWN`
-* Mute: `MUTE`
+* Lauter: `VOLUP`
+* Lautstärke runter: "VOLDOWN".
+* Stummschalten: `MUTE`
 
-So all the other keys are defined below. We will try and explain what these are when its ambiguous
+Alle anderen Schlüssel sind also unten definiert. Wir werden versuchen zu erklären, was diese sind, wenn sie nicht eindeutig sind
 
 <details>
 
 <summary>Keys</summary>
 
 * 0
-* 1
-* 2
-* 3
-* 4
-* 5
-* 6
-* 7
-* 8
-* 9
-* A
-* B
-* C
-* D
-* E
-* F
-* G
-* H
-* I
-* J
-* K
-* L
-* M
-* N
-* O
-* P
-* Q
-* R
-* S
-* T
-* U
-* V
-* W
-* X
-* Y
-* Z
-* BACKSPACE - Back Delete key
-* ENTER - Return
-* DELETE - Forward delete key
-* TAB
-* PAUSE
-* ESCAPE
-* SPACE
-* QUOTE
-* COMMA
-* MINUS
-* PERIOD
-* SLASH
-* SEMICOLON
-* EQUALS
-* LEFTBRACKET
-* BACKSLASH
-* RIGHTBRACKET
-* BACKQUOTE
-* KP0
-* KP1
-* KP2
-* KP3
-* KP4
-* KP5
-* KP6
-* KP7
-* KP8
-* KP9
-* KP\_PERIOD
-* KP\_DIVIDE
-* KP\_MULTIPLY
-* KP\_MINUS
-* KP\_PLUS
-* KP\_ENTER
-* KP\_EQUAL - Keypad =
-* KP\_COMMA
-* KP\_EQSIGN
-* UP
-* DOWN
-* RIGHT
-* LEFT
-* INSERT
-* HOME
-* END
-* PAGEUP
-* PAGEDOWN
-* F1
-* F2
-* F3
-* F4
-* F5
-* F6
-* F7
-* F8
-* F9
-* F10
-* F11
-* F12
-* NUMLOCK
-* CAPSLOCK
-* SCROLLOCK
-* RIGHTARROW
-* LEFTARROW
-* DOWNARROW
-* UPARROW
-* APP
-* LGUI - Keyboard Left GUI
-* RGUI - Keyboard Right GUI
-* CUSTOM\~ - Keyboard Non-US # and \~
-* PRINTSCREEN
-* POWER
-* EXECUTE
-* HELP
-* MENU
-* SELECT
-* STOP
-* AGAIN
-* UNDO
-* CUT
-* COPY
-* PASTE
-* FIND
-* MUTE
-* VOLUP
-* VOLDOWN
-* LOCKING\_CAPSLOCK
-* LOCKING\_NUMLOCK
-* LOCKING\_SCROLLOCK
-* ALTERASE
-* ATTENTION
-* CANCEL
-* CLEAR
-* PRIOR
-* RETURN
-* SEPARATOR
-* OUT 0xA0
-* OPER 0xA1
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
+[...]
 
 </details>
 
-### Command: keyevent:KEY,MODIFIER,Up/Down
+### Befehl: keyevent:KEY,MODIFIER,Up/Down
 
-Emulates holding or releasing one key with a modifer. For example:
+Emuliert das Halten oder Loslassen einer Taste mit einem Modifier. Zum Beispiel:
 
-`relaykeys-cli.exe keyevent:A,LSHIFT,1`
+Tastenereignis:A,LSHIFT,1`
 
-Emulates pressing a `A` with `Shift` Down. To release:
+Emuliert das Drücken von `A` mit `Shift` Down. Zum Loslassen:
 
-`relaykeys-cli.exe keyevent:A,LSHIFT,0`
+Tastenereignis:A,LSHIFT,0`
 
-So a classic example is to emulate pressing the Alt key and Tab key. Commonly used to switch applications. To do this you would need to send two commands.
+Ein klassisches Beispiel ist die Emulation des Drückens der Alt-Taste und der Tabulator-Taste. Dies wird häufig verwendet, um zwischen Anwendungen zu wechseln. Hierfür müssten Sie zwei Befehle senden.
 
 ```
-    relaykeys-cli-win.exe" keyevent:TAB,LALT,1
+relaykeys-cli-win.exe" keyevent:TAB,LALT,1
     relaykeys-cli-win.exe" keyevent:TAB,LALT,0
 ```
 
-### Command: mousemove:PixelsRight,PixelsDown
+### Befehl: mousemove:PixelsRight,PixelsDown
 
-Sends the command to move the mouse x Pixels Right and x Pixels Down. To go in the other direction send negative numbers. Eg. To go Right by 10 and Down by 10
+Sendet den Befehl, die Maus x Pixel nach rechts und x Pixel nach unten zu bewegen. Um in die andere Richtung zu gehen, senden Sie negative Zahlen. Z.B. um 10 nach rechts und um 10 nach unten zu gehen
 
-`relaykeys-cli.exe mousemove:10,10`
+relaykeys-cli.exe mousemove:10,10".
 
-and Left by 10, Up by 10:
+und Links um 10, oben um 10:
 
-`relaykeys-cli.exe mousemove:-10,-10`
+relaykeys-cli.exe mousemove:-10,-10`
 
-Straight up:
+Geradeaus:
 
-`relaykeys-cli.exe mousemove:0,-10`
+relaykeys-cli.exe mousemove:0,-10`
 
-Straight down:
+Gerade nach unten:
 
-`relaykeys-cli.exe mousemove:0,10`
+relaykeys-cli.exe mousemove:0,10".
 
-Straight right:
+Geradeaus rechts:
 
-`relaykeys-cli.exe mousemove:10,0`
+relaykeys-cli.exe mousemove:10,0".
 
-Straight left:
+Gerade links:
 
-`relaykeys-cli.exe mousemove:-10,0`
+relaykeys-cli.exe mousemove:-10,0`
 
 {% hint style="info" %}
-Want a way of repeating a mousemove for a while?\
-Run the application called **mouserepeat.exe** which uou will find in the RelayKeys install folder. Run it with `mouserepeat.exe -x 10 -y 10` - where that is your mouse direction to move it in. It will then repeat that until you quit the application. To do this run a powershell script:\
-\
+Möchten Sie eine Mausbewegung eine Weile lang wiederholen?
+Führen Sie die Anwendung **mouserepeat.exe** aus, die Sie im Installationsordner von RelayKeys finden. Führen Sie es mit "mouserepeat.exe -x 10 -y 10" aus, wobei die Richtung, in die Sie die Maus bewegen wollen, anzugeben ist. Dies wird dann so lange wiederholt, bis Sie die Anwendung beenden. Führen Sie dazu ein Powershell-Skript aus:
 `Stop-Process -Name "mouserepeat"`
 {% endhint %}
 
-### Command: mousebutton:Button,Behaviour
+### Befehl: mousebutton:Button,Behaviour
 
-Sends the Mouse button press. Mouse buttons available:
+Sendet das Drücken der Maustaste. Verfügbare Maustasten:
 
-* L: Left
-* R: Right
-* M: Middle
-* F: Scroll Forward
-* B: Scroll Backward
+* L: Links
+* R: Rechts
+* M: Mitte
+* F: Vorwärts blättern
+* B: Rückwärts blättern
 
-Behaviours:
+Verhaltensweisen:
 
-* click
-* doubleclick
+* Klicken
+* Doppelklick
 
-Note: If you don't provide a behaviour it will hold and release the button for 0 Seconds.
+Hinweis: Wenn Sie kein Verhalten angeben, wird die Taste für 0 Sekunden gehalten und wieder losgelassen.
 
-Send a doubleclick:
+Senden Sie einen Doppelklick:
 
-`relaykeys-cli.exe mousebutton:L,doubleclick`
+relaykeys-cli.exe Maustaste:L,Doppelklick`
 
-Send a right click:
+Senden Sie einen Rechtsklick:
 
-`relaykeys-cli.exe mousebutton:R,click`
+relaykeys-cli.exe Maustaste:R,Klick`
 
-**What about dragging?**
+**Was ist mit dem Ziehen? **
 
-Activate Drag Start button
+Aktivieren Sie die Schaltfläche Start ziehen
 
-`relaykeys-cli mousebutton:L,press`
+Relaykeys-cli Maustaste:L,drücken`
 
-User moves mouse
+Benutzer bewegt die Maus
 
-`relaykeys-cli mousemove:x,y`
+relaykeys-cli mousemove:x,y`
 
-User moves mouse some more
+Benutzer bewegt die Maus weiter
 
-`relaykeys-cli mousemove:x,y`
+relaykeys-cli mousemove:x,y`
 
-user activates Drag Stop button
+Der Benutzer aktiviert die Schaltfläche Ziehen stoppen
 
-`relaykeys-cli mousebutton:0`
+relaykeys-cli mousebutton:0
 
-### Command: delay: nms
+### Befehl: Verzögerung: nms
 
-Adds a delay. Particularly useful when writing a macro and you need to wait for something to happen on the client operating system.
+Fügt eine Verzögerung hinzu. Besonders nützlich, wenn Sie ein Makro schreiben und warten müssen, bis etwas auf dem Client-Betriebssystem passiert.
 
-`relaykeys-cli delay:1000`
+relaykeys-cli Verzögerung:1000
 
-Puts in a a delay of 1 second.
+Setzt eine Verzögerung von 1 Sekunde ein.
 
-### Device Management Commands
+### Geräteverwaltungsbefehle
 
-#### Optional extra flags --notfiy --copy
+#### Optionale Zusatzflaggen --notfiy --copy
 
-On the following commands you can provide a `--notify` flag. If so your Operating System will return a system notification. Useful if you dont have access to view the command line. Or if you wish provide a `--copy` flag. This will return the results to your pasteboard for you to paste the data back. **Be careful with this. It will overwrite any copy/paste functions you may already have.**
+Bei den folgenden Befehlen können Sie das Flag `--notify` angeben. In diesem Fall wird Ihr Betriebssystem eine Systembenachrichtigung zurückgeben. Nützlich, wenn Sie keinen Zugriff auf die Befehlszeile haben. Wenn Sie möchten, können Sie auch das Flag `--copy` angeben. Damit werden die Ergebnisse an Ihre Zwischenablage zurückgegeben, damit Sie die Daten wieder einfügen können. **Seien Sie vorsichtig damit. Es überschreibt alle Kopieren/Einfügen-Funktionen, die Sie vielleicht schon haben.
 
-`relaykeys-cli.exe ble_cmd:devname`
+relaykeys-cli.exe ble_cmd:devname`
 
-Returns the currently connected device
+Gibt das aktuell verbundene Gerät zurück
 
-`relaykeys-cli.exe ble_cmd:devlist`
+relaykeys-cli.exe ble_cmd:devlist`
 
-Gets a list of devices that the device has in memory
+Ruft eine Liste der Geräte ab, die sich im Speicher des Geräts befinden
 
-`relaykeys-cli.exe ble_cmd:devadd`
+relaykeys-cli.exe ble_cmd:devadd`
 
-Put the device into a pairing state
+Versetzen Sie das Gerät in einen Pairing-Status
 
-`relaykeys-cli.exe ble_cmd:devreset`
+relaykeys-cli.exe ble_cmd:devreset`
 
-Reset the entire stored devices (its like wiping the volatile memory)
+Zurücksetzen der gesamten gespeicherten Geräte (es ist wie das Löschen des flüchtigen Speichers)
 
-`relaykeys-cli.exe ble_cmd:switch`
+relaykeys-cli.exe ble_cmd:switch`
 
-Switch the current connected device to the next one in RelayKeys memory
+Schaltet das aktuell angeschlossene Gerät auf das nächste Gerät im RelayKeys-Speicher um
 
-`relaykeys-cli.exe ble_cmd:devremove=DEVNAME`
+relaykeys-cli.exe ble_cmd:devremove=DEVNAME`
 
-Remove just one named device from the memory.
+Entfernen Sie nur ein benanntes Gerät aus dem Speicher.
 
-`relaykeys-cli.exe ble_cmd:reconnect`
+relaykeys-cli.exe ble_cmd:reconnect`
 
-Tells the daemon/server to try and reconnect to the serial port.
+Sagt dem Daemon/Server, dass er versuchen soll, die Verbindung zur seriellen Schnittstelle wieder herzustellen.
 
-`relaykeys-cli.exe daemon:switch_mode`
+relaykeys-cli.exe daemon:switch_mode`
 
-Tells the daemon/server to try and switch between wired
+Sagt dem Daemon/Server, dass er versuchen soll, zwischen verkabelten
 
-`relaykeys-cli.exe daemon:get_mode`
+relaykeys-cli.exe daemon:get_mode`
 
-Returns current mode
+Gibt den aktuellen Modus zurück
 
-`relaykeys-cli.exe daemon:dongle_status`
+relaykeys-cli.exe daemon:dongle_status`
 
-Returns whether it is connected or not
+Gibt zurück, ob er verbunden ist oder nicht
 
-`relaykeys-cli.exe ble_cmd:get_mode`&#x20;
+relaykeys-cli.exe ble_cmd:get_mode`&#x20;
 
-Gets the current mode - wired or wireless
+Ruft den aktuellen Modus ab - verkabelt oder drahtlos
 
-`relaykeys-cli.exe ble_cmd:switch_mode`
+relaykeys-cli.exe ble_cmd:switch_mode`
 
-Switches mode from Wired -> Wireless and Wireless-> Wired.
+Wechselt den Modus von Verkabelt -> Drahtlos und Drahtlos-> Verkabelt.
 
-### Command: -f file.txt (Macro)
+### Befehl: -f file.txt (Makro)
 
-Provide a macro file - where each line in a text file is a cli command. For example **ios\_open\_notes.txt** found in the _macros_ directory of the installation folder (i.e at _C:\Program Files (x86)\Ace Centre\RelayKeys\maccros)_
+Erstellen Sie eine Makrodatei, bei der jede Zeile in einer Textdatei ein Cli-Befehl ist. Zum Beispiel **ios_open_notes.txt** im Verzeichnis _macros_ des Installationsordners (d. h. unter _C:\Programme (x86)\Ace Centre\RelayKeys\maccros)\
 
-`relaykeys-cli.exe -f ios_open_notes.txt`
+relaykeys-cli.exe -f ios_open_notes.txt`
 
-or like this
+oder so
 
-`relaykeys-cli.exe -f Documents/open_ios_notes.txt`
+relaykeys-cli.exe -f Dokumente/open_ios_notes.txt`
 
-where it reads the file from a file path.. or..\
-\
-`relaykeys-cli.exe -f ./open_ios_notes.txt`
+wo es die Datei aus einem Dateipfad liest... oder...
+relaykeys-cli.exe -f ./open_ios_notes.txt`
 
-where it reads the file in folder where current exe is run from\\
+wo die Datei in dem Ordner gelesen wird, aus dem die aktuelle Exe ausgeführt wird.
 
-where ios\_open\_notes.txt is:
+wo sich ios_open_notes.txt befindet:
 
 ```
 keypress:H,LMETA
@@ -426,9 +423,9 @@ keypress:ENTER
 ```
 
 {% hint style="info" %}
-Warning: There is no syntax checking of this document.
+Warnung: Es gibt keine Syntaxprüfung für dieses Dokument.
 {% endhint %}
 
 {% hint style="info" %}
-Want to send a long string of mouse commands and want to record your movements for a script? Use the RelayKeys-QT app and use the record macro function!
+Sie möchten eine lange Reihe von Mausbefehlen senden und Ihre Bewegungen für ein Skript aufzeichnen? Benutzen Sie die RelayKeys-QT-App und verwenden Sie die Aufzeichnungsmakrofunktion!
 {% endhint %}

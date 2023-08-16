@@ -1,7 +1,7 @@
-# 🖥 Using RelayKeys
+# 🖥 Verwendung von RelayKeys
 
-You can use RelayKeys in a number of different ways depending on your needs
+Sie können RelayKeys auf verschiedene Arten verwenden, je nach Ihren Bedürfnissen
 
-* Using our [desktop software](relaykeys-desktop-qt.md)
-* Using a [Command Line Application](relaykeys-cli.md) (that Third-party software such as AAC software can use)
-* Directly communicate over [serial](relaykeys-serial.md) in your software.&#x20;
+* Mit unserer [Desktop-Software](relaykeys-desktop-qt.md)
+* Mit einer [Befehlszeilenanwendung](relaykeys-cli.md) (die Software von Drittanbietern wie AAC-Software verwenden kann)
+* Direkte Kommunikation über [seriell](relaykeys-serial.md) in Ihrer Software.&#x20;

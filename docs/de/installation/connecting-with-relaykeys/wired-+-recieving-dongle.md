@@ -1,9 +1,8 @@
-# Wired + Recieving Dongle
 
-Plug in your receiving dongle to a device. Your device will see this as a keyboard attached. \
-\
-If you are asked to press some keys for the device to understand it, just close this window for now.&#x20;
+# Kabelgebunden + Empfangs-Dongle
 
-On the sending side, it will pair by default with the receiver. You don't need to do a thing. \
-\
-However, if you have gone and paired with any other devices, you may find this not work. You will need to remove any paired devices and try again.&#x20;
+Stecken Sie Ihren Empfangs-Dongle an ein Gerät an. Ihr Gerät wird dies als eine angeschlossene Tastatur sehen.
+Wenn Sie aufgefordert werden, einige Tasten zu drücken, damit das Gerät es versteht, schließen Sie dieses Fenster vorerst&#x20;
+
+Auf der Senderseite wird es standardmäßig mit dem Empfänger gekoppelt. Sie müssen nichts weiter tun.
+Wenn Sie jedoch bereits andere Geräte gekoppelt haben, kann es sein, dass dies nicht funktioniert. Sie müssen dann alle gekoppelten Geräte entfernen und es erneut versuchen;

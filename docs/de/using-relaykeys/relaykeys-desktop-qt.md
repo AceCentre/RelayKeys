@@ -1,27 +1,27 @@
 # RelayKeys Desktop (QT)
 
-If you don't want to use any specific AAC software, you can get going with our demonstration software "RelayKeys-QT" (aka RelayKeys or RelayKeys Desktop). You will find this on your desktop as well as your start programmes if you have installed our software. It has 4 main buttons on the left:
+Wenn Sie keine spezielle Software für Unterstützte Kommunikation verwenden möchten, können Sie mit unserer Demo-Software "RelayKeys-QT" (auch bekannt als RelayKeys oder RelayKeys Desktop) loslegen. Sie finden diese Software auf Ihrem Desktop und in Ihren Startprogrammen, wenn Sie unsere Software installiert haben. Es hat 4 Hauptschaltflächen auf der linken Seite:
 
-### Capture
+### Erfassen
 
 ![](<../.gitbook/assets/Screenshot 2022-07-26 at 20.07.33.png>)
 
-This screen enables you to capture the keystrokes and mouse movements and any captured input gets sent directly to the currently connected device. To connect a device - see "Devices" screen.
+Auf diesem Bildschirm können Sie die Tastenanschläge und Mausbewegungen erfassen, und alle erfassten Eingaben werden direkt an das aktuell verbundene Gerät gesendet. Um ein Gerät anzuschließen - siehe Bildschirm "Geräte".
 
-### Macro
+### Makro
 
 ![](<../.gitbook/assets/Screenshot 2022-07-26 at 20.08.09.png>)
 
-This screen enables you to create a macro file. This records your mouse or keystrokes and enables you to play it back. This is useful for creating long sequences of commands or say for writing a common piece of text such as a signature. You can play it back in this software or use the macro with the [CLI](relaykeys-cli.md#command-f-file.txt-macro) tool.
+In diesem Bildschirm können Sie eine Makrodatei erstellen. Diese zeichnet Ihre Maus- oder Tastenanschläge auf und ermöglicht es Ihnen, diese abzuspielen. Dies ist nützlich, um lange Befehlsfolgen zu erstellen oder beispielsweise einen allgemeinen Text wie eine Unterschrift zu schreiben. Sie können es in dieser Software abspielen oder das Makro mit dem [CLI](relaykeys-cli.md#command-f-f-file.txt-macro) Tool verwenden.
 
-### Connection
+### Verbindung
 
 ![](<../.gitbook/assets/Screenshot 2022-07-26 at 20.08.16.png>)
 
-This screen enables you to switch between paired devices and change the current mode. This means the RelayKeys hardware can run either as a wired dongle or a wireless device. Use the switch mode to change these modes.
+Auf diesem Bildschirm können Sie zwischen gekoppelten Geräten wechseln und den aktuellen Modus ändern. Das bedeutet, dass die RelayKeys-Hardware entweder als kabelgebundener Dongle oder als drahtloses Gerät betrieben werden kann. Verwenden Sie den Umschaltmodus, um diese Modi zu ändern.
 
-### Devices
+### Geräte
 
 ![](<../.gitbook/assets/Screenshot 2022-07-26 at 20.08.26.png>)
 
-This screen enables you to add and remove paired devices - as well as removing all devices from the relaykeys hardware.
+Auf diesem Bildschirm können Sie gekoppelte Geräte hinzufügen und entfernen - und auch alle Geräte von der Relaykeys-Hardware entfernen.

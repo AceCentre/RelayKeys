@@ -1,43 +1,43 @@
 # Tobii Communicator 5
 
-[Communicator 5](https://www.tobiidynavox.com/pages/communicator-5-ap) is a AAC software for Tobii Dynavox communication aids . Follow the steps below to add commands to your pageset
+[Communicator 5](https://www.tobiidynavox.com/pages/communicator-5-ap) ist eine Software für Unterstützte Kommunikation für Tobii Dynavox Kommunikationshilfen. Führen Sie die folgenden Schritte aus, um Befehle zu Ihrem Seitensatz hinzuzufügen
 
 {% hint style="info" %}
-Pageset quick start. Want a headstart? Download the Pageset [here](../../../resources/aac-software/RelayKeys6x11.cddx). It has all the commands you should need. Just import, add the pageset to your Home Page and adapt
+Pageset Schnellstart. Wollen Sie einen Vorsprung haben? Laden Sie das Pageset [hier] herunter (../../../resources/aac-software/RelayKeys6x11.cddx). Es enthält alle Befehle, die Sie brauchen sollten. Importieren Sie einfach, fügen Sie das Pageset zu Ihrer Homepage hinzu und passen Sie es an
 
 <img src="../../.gitbook/assets/communicator5_pageset.png" alt="" data-size="original">
 {% endhint %}
 
-## Sending the message bar
+## Versenden der Nachrichtenleiste
 
-This is the best way to enter longer texts and allows you to use the communication aid's prediction and phrase banks etc. Use the "Copy" command followed the Run Program command to run relaykeys-cli-win.exe with the **paste** argument
+Dies ist der beste Weg, um längere Texte einzugeben, und ermöglicht es Ihnen, die Vorhersage- und Phrasenspeicher der Kommunikationshilfe usw. zu nutzen. Verwenden Sie den Befehl "Kopieren" gefolgt vom Befehl Programm ausführen, um relaykeys-cli-win.exe mit dem Argument **Einfügen** auszuführen
 
-![](../../.gitbook/assets/communicator5\_text\_paste.png)
+![](../../.gitbook/assets/communicator5_text_paste.png)
 
-## Simple keystrokes
+## Einfache Tastenanschläge
 
-This is useful for making a keyboard-like page with individual letters and other keys that send one keystroke at a time. Use the Run Program command to run relaykeys-cli-win.exe with the **keypress:LETTER** argument (where letter is the key you want to send)
+Dies ist nützlich, um eine tastaturähnliche Seite mit einzelnen Buchstaben und anderen Tasten zu erstellen, die einen Tastendruck nach dem anderen senden. Verwenden Sie den Befehl Programm ausführen, um relaykeys-cli-win.exe mit dem Argument **keypress:LETTER** auszuführen (wobei letter die Taste ist, die Sie senden möchten)
 
-![](../../.gitbook/assets/communicator5\_keypress.png)
+![](../../.gitbook/assets/communicator5_keypress.png)
 
-## Sending keyboard shortcuts
+## Senden von Tastaturkürzeln
 
-For special commands and shortcuts such as control-C, alt-F4 etc use the Run Program command to run relaykeys-cli-win.exe with the **keypress:KEYNAME,MODIFIER** argument (where keyname is the key you want to send)
+Für spezielle Befehle und Tastenkombinationen wie Control-C, Alt-F4 usw. verwenden Sie den Befehl Programm ausführen, um relaykeys-cli-win.exe mit dem Argument **keypress:KEYNAME,MODIFIER** auszuführen (wobei keyname die Taste ist, die Sie senden möchten)
 
-![](../../.gitbook/assets/communicator5\_navigation\_shortcut.png)
+![](../../.gitbook/assets/communicator5_navigation_shortcut.png)
 
-## Sending mouse commands
+## Senden von Mausbefehlen
 
-Use the Run Program command to run relaykeys-cli-win.exe with the **mousemove:X,Y** argument (where X,Y is the distance you want to move the mouse), or the **mousebutton:BUTTON,ACTION** argument (where BUTTON is the button to use, and ACTION is click or doubleclick etc.)
+Verwenden Sie den Befehl Programm ausführen, um relaykeys-cli-win.exe mit dem Argument **mousemove:X,Y** (wobei X,Y der Abstand ist, um den Sie die Maus bewegen möchten) oder dem Argument **mousebutton:BUTTON,ACTION** (wobei BUTTON die zu verwendende Taste und ACTION ein Klick oder Doppelklick usw. ist) auszuführen.
 
-![](../../.gitbook/assets/communicator5\_navigation\_mousemove.png)
+![](../../.gitbook/assets/communicator5_navigation_mousemove.png)
 
-![](../../.gitbook/assets/communicator5\_navigation\_mousebutton.png)
+![](../../.gitbook/assets/communicator5_navigation_mousebutton.png)
 
-## Controlling RelayKeys
+## Steuerung von RelayKeys
 
-Use the Run Program command to run relaykeys-cli-win.exe with the ble-cmd:reconnect, ble-cmd:switch, or ble-cmd:devname --notify commands
+Verwenden Sie den Befehl Programm ausführen, um relaykeys-cli-win.exe mit den Befehlen ble-cmd:reconnect, ble-cmd:switch oder ble-cmd:devname --notify auszuführen
 
-![](../../.gitbook/assets/communicator5\_control\_reconnect.png)
+![](../../.gitbook/assets/communicator5_control_reconnect.png)
 
-![](../../.gitbook/assets/communicator5\_control\_switchnotify.png)
+![](../../.gitbook/assets/communicator5_control_switchnotify.png)

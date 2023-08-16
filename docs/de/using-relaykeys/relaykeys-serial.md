@@ -1,30 +1,30 @@
-# Serial API
+# Serielle API
 
-### Serial Commands
+### Serielle Befehle
 
-So if you want to communicate directly with the serial device - instead of via the  server you can. So to do this, you would need to write your software to open the serial connection and use the correct commands to _talk_ to the hardware.&#x20;
+Wenn Sie also direkt mit dem seriellen Gerät kommunizieren wollen - statt über den Server - können Sie das tun. Dazu müssten Sie Ihre Software so schreiben, dass sie die serielle Verbindung öffnet und die richtigen Befehle verwendet, um mit der Hardware zu _sprechen_;
 
-### Connection - Baud rate, nr/vid settings
+### Verbindung - Baudrate, nr/vid Einstellungen
 
-* Baud rate should be 115200
-* Hardware flow control CTS/RTS on
+* Die Baudrate sollte 115200 betragen.
+* Hardware-Flusskontrolle CTS/RTS eingeschaltet
 * nrfVID = '239A'
 * nrfPID = '8029'
 
-Then you send and receive commands over Serial. The following is a list of the commands and what you should expect to receive back
+Dann senden und empfangen Sie Befehle über die serielle Schnittstelle. Im Folgenden finden Sie eine Liste der Befehle und der zu erwartenden Rückmeldungen
 
-### Mouse and Keyboard commands
+### Maus- und Tastaturbefehle
 
-#### AT+BLEKEYBOARDCODE=KeyboardCode
+#### AT+BLEKEYBOARDCODE=TastaturCode
 
-The good thing about RelayKeys is that we dont try and send actual characters - we send actual keys. This is good - as it means we dont deal with the multilingual problems and different keyboard maps. However - it does mean the the command to send and press a keyboard key can look a little daunting. Here is what it looks like.
+Das Gute an RelayKeys ist, dass wir nicht versuchen, echte Zeichen zu senden - wir senden echte Schlüssel. Das ist gut - denn es bedeutet, dass wir uns nicht mit mehrsprachigen Problemen und unterschiedlichen Tastaturbelegungen herumschlagen müssen. Es bedeutet aber auch, dass der Befehl zum Senden und Drücken einer Taste auf der Tastatur ein wenig entmutigend aussehen kann. So sieht es aus.
 
 `AT+BLEKEYBOARDCODE=02-00-00-00-00-00-00-00`
 
-This is pretty standard stuff when it comes to a keyboard HID code. E.g. [look at this](https://www.usb.org/sites/default/files/documents/hut1\_12v2.pdf) to see what its all about. In short though:
+Dies ist ein ziemlicher Standard, wenn es um einen Tastatur-HID-Code geht. Z.B. [schauen Sie sich das an](https://www.usb.org/sites/default/files/documents/hut1_12v2.pdf), um zu sehen, worum es geht. Kurz und gut:
 
 ```
-    Byte 0: Keyboard modifier bits (SHIFT, ALT, CTRL etc)
+Byte 0: Keyboard modifier bits (SHIFT, ALT, CTRL etc)
     Byte 1: reserved
     Byte 2-7: Up to six keyboard usage indexes representing the keys that are 
               currently "pressed". 
@@ -32,97 +32,97 @@ This is pretty standard stuff when it comes to a keyboard HID code. E.g. [look a
               buffer) or not pressed.
 ```
 
-The letter "a" is usage code 0x04 for example. If you want an uppercase "A", then you would also need to set the Byte 0 modifier bits to select "Left Shift" (or "Right Shift").
+Der Buchstabe "a" hat zum Beispiel den Verwendungscode 0x04. Wenn Sie ein "A" in Großbuchstaben wünschen, müssen Sie auch die Modifikatorbits von Byte 0 auf "Linksverschiebung" (oder "Rechtsverschiebung") einstellen.
 
-Hint: [Look at this file for a way to format this nicely](https://github.com/AceCentre/RelayKeys/blob/69fffd89cf5ace9ee74ed6bc4fe958bff4fb3db2/blehid.py#L222)
+Hinweis: [Schauen Sie sich diese Datei an, um einen Weg zu finden, dies schön zu formatieren](https://github.com/AceCentre/RelayKeys/blob/69fffd89cf5ace9ee74ed6bc4fe958bff4fb3db2/blehid.py#L222)
 
 #### AT+BLEHIDMOUSEMOVE=MouseMoveX,MouseMoveY,0,0
 
-`AT+BLEHIDMOUSEMOVE=X,Y,WY,WX`
+AT+BLEHIDMOUSEMOVE=X,Y,WY,WX`
 
-* X = Right Pixels
-* Y = Down pixels
-* WY = Scroll Down
-* WX = Scroll Right
+* X = Rechte Bildpunkte
+* Y = Pixel nach unten
+* WY = Nach unten blättern
+* WX = Nach rechts blättern
 
-MouseMoveX = Pixels RIGHT and MouseMoveY = Pixels DOWN. So to go RIGHT/UP = use negative numbers.
+MouseMoveX = Pixel RIGHT und MouseMoveY = Pixel DOWN. Also, um nach RECHTS/oben zu gehen = negative Zahlen verwenden.
 
-e.g. This moves it Right by 10 and Down by 10
+z.B. Dies verschiebt sie um 10 nach rechts und um 10 nach unten
 
-`AT+BLEHIDMOUSEMOVE=10,10,0,0`
+AT+BLEHIDMOUSEMOVE=10,10,0,0`
 
 #### AT+BLEHIDMOUSEBUTTON=MouseButton
 
-`AT+BLEHIDMOUSEBUTTON=Button[,Action]`
+AT+BLEHIDMOUSEBUTTON=Button[,Action]`
 
-Button is one of
+Button ist einer der
 
-* l = Left
-* r= Right
-* m=Middle
-* b=Mouse backward
-* f=Mouse forward
+* l = Links
+* r= Rechts
+* m=Mitte
+* b=Maus rückwärts
+* f=Maus vorwärts
 
-NB: Mouse backward and forward are not available functions on all Operating Systems
+NB: Die Funktionen "Maus zurück" und "Maus vor" sind nicht auf allen Betriebssystemen verfügbar.
 
-Action is
+Aktion ist
 
-* Click
-* Doubleclick
-* O (which acts as press/release toggle)
+* Klicken
+* Doppelklick
+* O (fungiert als Umschalttaste für Drücken/Loslassen)
 
-e.g.
+z.B..
 
-_Single click:_
+_Einfacher Klick:_
 
 ```
 AT+BLEHIDMOUSEBUTTON=l,click
 ```
 
-_Double click:_
+_Doppelklick:_
 
 ```
 AT+BLEHIDMOUSEBUTTON=l,doubleclick
 ```
 
-### Connection commands
+### Verbindungsbefehle
 
 #### AT+BLEADDNEWDEVICE
 
-Adds a new device to the cached list of devices. After giving this AT command the user should connect with the board via BLE. If connection is successful then the device's name will be added into the list and the board will connect with the device.
+Fügt ein neues Gerät zur zwischengespeicherten Liste der Geräte hinzu. Nach der Eingabe dieses AT-Befehls sollte sich der Benutzer über BLE mit dem Board verbinden. Wenn die Verbindung erfolgreich ist, wird der Name des Geräts in die Liste aufgenommen und das Board verbindet sich mit dem Gerät.
 
-Note: A user can only add a new device if the cached list is not full. If the list is full then the board will return with an `Error`. If no new device connects with the board till the timeout (set to 30 seconds), a `Timeout Error` will be returned.
+Hinweis: Ein Benutzer kann nur dann ein neues Gerät hinzufügen, wenn die Liste im Cache nicht voll ist. Wenn die Liste voll ist, meldet das Board einen "Fehler". Wenn sich bis zum Timeout (auf 30 Sekunden eingestellt) kein neues Gerät mit dem Board verbindet, wird ein `Timeout Error` zurückgegeben.
 
-#### AT+BLEREMOVEDEVICE="DEVICE\_NAME"
+#### AT+BLEREMOVEDEVICE="DEVICE_NAME"
 
-This AT command will remove said device's name from the cached list. Device's name should be written between double quotes. You have to be exact with this! If `device_name` is not found in the list, then the board will return with an `Error`.
+Mit diesem AT-Befehl wird der Name des Geräts aus der Cache-Liste entfernt. Der Name des Geräts sollte in Anführungszeichen geschrieben werden. Sie müssen hier sehr genau sein! Wenn `device_name` nicht in der Liste gefunden wird, dann gibt die Karte einen `Error` zurück.
 
-If `device_name` is currently connected to a BLE device, then the board will disconnect from this device and then remove device's name from the list.
+Wenn `Gerätename` aktuell mit einem BLE-Gerät verbunden ist, trennt das Board die Verbindung zu diesem Gerät und entfernt den Gerätenamen aus der Liste.
 
 #### AT+BLECURRENTDEVICENAME
 
-This AT command will return the currently connected BLE device's name. If the board is not connected with any BLE device then it will return `NONE`.
+Dieser AT-Befehl gibt den Namen des aktuell verbundenen BLE-Geräts zurück. Wenn das Board nicht mit einem BLE-Gerät verbunden ist, wird `NONE` zurückgegeben.
 
 #### AT+SWITCHCONN
 
-This AT command will switch the BLE connection to the next device in the cached list. The board will try to connect with the next listed device till the timeout, then `Timeout Error` will be returned and the board will try to connect with the next device listed in the cache.. and so on..
+Mit diesem AT-Befehl wird die BLE-Verbindung zum nächsten Gerät in der Cache-Liste umgeschaltet. Das Board wird versuchen, sich mit dem nächsten aufgelisteten Gerät zu verbinden, bis die Zeitüberschreitung eintritt, dann wird "Timeout Error" zurückgegeben und das Board wird versuchen, sich mit dem nächsten im Cache aufgelisteten Gerät zu verbinden... und so weiter.
 
 #### AT+PRINTDEVLIST
 
-This AT command will return a list of device names.
+Dieser AT-Befehl liefert eine Liste von Gerätenamen.
 
 #### AT+BLEMAXDEVLISTSIZE=NUMBER
 
-This AT command will change the maximum number of BLE devices possible in the cached list. The number should be greater than 0 and less then 15
+Mit diesem AT-Befehl wird die maximal mögliche Anzahl von BLE-Geräten in der Cache-Liste geändert. Die Zahl sollte größer als 0 und kleiner als 15 sein
 
 #### AT+GETMODE
 
-Gets the current mode - either wired or wireless.&#x20;
+Ruft den aktuellen Modus ab - entweder kabelgebunden oder drahtlos. &#x20;
 
 #### AT+SWITCHMODE
 
-Switches the current mode from wired to wireless. Or Wireless to wired.&#x20;
+Schaltet den aktuellen Modus von kabelgebunden auf drahtlos um. Oder Drahtlos zu verdrahtet.&#x20;
 
 {% hint style="info" %}
-Note if the device **IS NOT** connected to RelayKeys wirelessly then it will stop responding. You will have to switch connection a different technique. See [here](../installation/#wireless-mode) for more details
+Beachten Sie, wenn das Gerät **NICHT** drahtlos mit RelayKeys verbunden ist, reagiert es nicht mehr. Sie müssen dann die Verbindung auf eine andere Technik umstellen. Siehe [hier](../installation/#wireless-mode) für weitere Details
 {% endhint %}

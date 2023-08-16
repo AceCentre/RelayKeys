@@ -1,10 +1,10 @@
 # Tobii Dynavox - Snap
 
-Before you look at using RelayKeys with Snap have you considered [AccessIT 3](https://www.tobiidynavox.com/products/accessit-3)? Its available for TD software and is good! There are some snags - its not multi device compatible and does require the dongle being plugged in.&#x20;
+Bevor Sie RelayKeys mit Snap verwenden, haben Sie [AccessIT 3] (https://www.tobiidynavox.com/products/accessit-3) in Betracht gezogen? Es ist für TD Software verfügbar und ist gut! Es gibt ein paar Probleme - es ist nicht mit mehreren Geräten kompatibel und der Dongle muss eingesteckt sein;
 
-## Adding an action - calling relaykeys
+## Hinzufügen einer Aktion - Aufruf von Relaykeys
 
-You need to edit your snap pageset - and create a "General" button - then you can add an action to a button. The action&#x20;
+Sie müssen Ihr Snap-Seitenset bearbeiten - und eine Schaltfläche "Allgemein" erstellen - dann können Sie eine Aktion zu einer Schaltfläche hinzufügen. Die Aktion&#x20;
 
 <figure><img src="../../.gitbook/assets/Snap1.png" alt=""><figcaption></figcaption></figure>
 

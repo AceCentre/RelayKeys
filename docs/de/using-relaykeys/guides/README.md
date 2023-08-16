@@ -1,29 +1,34 @@
-# 💬 Guides for use with AAC
+# 💬 Leitfäden zur Verwendung mit Unterstützter Kommunikation
 
 {% hint style="info" %}
-This is for end-users. If you are a developer please consider communicating with RelayKeys over the [serial](../relaykeys-serial.md) or [cli API.](../relaykeys-cli.md)
+Dies ist für Endbenutzer. Wenn Sie ein Entwickler sind, ziehen Sie bitte in Betracht, mit RelayKeys über die [serial](../relaykeys-serial.md) oder [cli API.](../relaykeys-cli.md) zu kommunizieren.
 {% endhint %}
 
 {% hint style="info" %}
-Right now we are focused on Windows AAC Software. For iOS or Android, a developer needs to support relaykeys for it to work.
+Im Moment konzentrieren wir uns auf Windows AAC Software. Für iOS oder Android muss ein Entwickler Relaykeys unterstützen, damit es funktioniert.
 {% endhint %}
 
-Most AAC software has a way of connecting to an external application. Some call this "Run Programme or something similar. As long as RelayKeys is installed and the correct hardware is connected you can then call the installed command line application - with [the correct syntax](../../../technical/reference.html).
+Die meiste AAC-Software hat eine Möglichkeit, sich mit einer externen Anwendung zu verbinden. Manche nennen dies "Programm ausführen" oder etwas Ähnliches. Solange RelayKeys installiert und die richtige Hardware angeschlossen ist, können Sie die installierte Kommandozeilenanwendung aufrufen - mit [der richtigen Syntax](../../../technical/reference.html).
 
-Take a look at the guides for your software.
+Werfen Sie einen Blick in die Anleitungen für Ihre Software.
 
-The key application you want to access is the `relaykeys-cli-win.exe` found in `C:\Program Files (x86)\Ace Centre\RelayKeys`\
-`\` For a full list of commands you can send see [here](../relaykeys-cli.md).
+Die Schlüsselanwendung, auf die Sie zugreifen möchten, ist `relaykeys-cli-win.exe`, zu finden unter `C:\Program Files (x86)\Ace Centre\RelayKeys`.
+Eine vollständige Liste der Befehle, die Sie senden können, finden Sie [hier] (../relaykeys-cli.md).
 
-### A tip on notifications
+Übersetzt mit www.DeepL.com/Translator (kostenlose Version)
 
-If you pass the _--notify_ flag to the cli application you will get notifications about the devices you are connected to and the status of the device. See [here](../relaykeys-cli.md#optional-extra-flag-notfiy) for more information
+### Ein Tipp zu Benachrichtigungen
 
-There is no documented way for third parties integrating their software into commercial AAC software for example integrated notifications. So we have to make use of the operating system notification system. The difficulty on Windows is that by default full screen apps do not see notifications. So to make this work we recommend three alterations to your notifications.
+Wenn Sie die Flagge _--notify_ an die cli-Anwendung übergeben, erhalten Sie Benachrichtigungen über die Geräte, mit denen Sie verbunden sind, und den Status des Geräts. Siehe [hier](../relaykeys-cli.md#optional-extra-flag-notfiy) für weitere Informationen
 
-1. Turn Focus Assist **off**.
-2. Turn **off** the setting "When I'm using an app in full screen mode"
+Es gibt keine dokumentierte Möglichkeit für Dritte, ihre Software in kommerzielle AAC-Software zu integrieren, z.B. integrierte Benachrichtigungen. Also müssen wir das Benachrichtigungssystem des Betriebssystems nutzen. Die Schwierigkeit unter Windows ist, dass Vollbildanwendungen standardmäßig keine Benachrichtigungen sehen. Damit dies funktioniert, empfehlen wir drei Änderungen an Ihren Benachrichtigungen.
+
+1. Schalten Sie den Fokus-Assistenten **aus**.
+2. Schalten Sie die Einstellung "Wenn ich eine Anwendung im Vollbildmodus verwende" **aus**.
 
 ![](../../.gitbook/assets/focus-assist.png)
 
-And next - because AAC users wont typically be able to dismiss notifications change the time that they appear for. To do this follow the steps [here](https://www.tenforums.com/tutorials/6175-change-how-long-show-notifications-windows-10-a.html).
+Und als Nächstes - weil unterstützt kommunizierende Nutzer normalerweise nicht in der Lage sind, Benachrichtigungen zu entlassen, ändern Sie die Zeit, für die sie angezeigt werden. Befolgen Sie dazu die Schritte [hier](https://www.tenforums.com/tutorials/6175-change-how-long-show-notifications-windows-10-a.html).
+
+
+Übersetzt mit www.DeepL.com/Translator (kostenlose Version)
