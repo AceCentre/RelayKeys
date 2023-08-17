@@ -1,4 +1,4 @@
-# Befehlszeilenverwendung
+# Verwendung der Kommandozeile
 
 ### Kommandozeilen-Flags
 
@@ -28,10 +28,9 @@ Wenn Sie mit dem Code entwickeln, müssen Sie sicherstellen, dass der Server lä
 
 ### Definieren einer Keymap -c
 
-Keymap-Dateien befinden sich im Ordner [**cli_keymap**](https://github.com/AceCentre/RelayKeys/tree/master/cli_keymaps). Sie können wählen, welche Keymap-Datei die CLI in der cfg verwenden soll, indem Sie den Dateinamen der Variable keymap_file zuweisen (siehe [hier](https://github.com/AceCentre/RelayKeys/blob/12d3eadca2cea53561a5a3979562aae8b4b6cd7c/relaykeys-example.cfg#L17))
+Keymap-Dateien befinden sich im Ordner [**cli\_keymap**](https://github.com/AceCentre/RelayKeys/tree/master/cli\_keymaps). Sie können wählen, welche Keymap-Datei die CLI in der cfg verwenden soll, indem Sie den Dateinamen der Variable keymap\_file zuweisen (siehe [hier](https://github.com/AceCentre/RelayKeys/blob/12d3eadca2cea53561a5a3979562aae8b4b6cd7c/relaykeys-example.cfg#L17))
 
-Standardmäßig wird die **us_keymap.json** geladen.
-Um relaykeys-cli mit einer anderen Tastaturbelegung laufen zu lassen, ändern Sie entweder die cfg-Einstellung [oder verwenden Sie das Flag -c](../developers/relaykeys-cfg.md) in der cli-Anwendung. z.B..
+Standardmäßig wird die **us\_keymap.json** geladen. Um relaykeys-cli mit einer anderen Tastaturbelegung laufen zu lassen, ändern Sie entweder die cfg-Einstellung [oder verwenden Sie das Flag -c](../developers/relaykeys-cfg.md) in der cli-Anwendung. z.B..
 
 `relaykeys-cli.exe -c .\relaykeys-example.cfg type:@`
 
@@ -57,9 +56,9 @@ Sie können Sonderzeichen senden, die normalerweise verschoben werden, indem Sie
 
 Zum Beispiel, um das @-Symbol zu senden:
 
-relaykeys-cli.exe Typ:@`
+relaykeys-cli.exe Typ:@\`
 
-Alle Codes, die umgewandelt werden, sind unten zu sehen. **NB: \t = Tabulator \r\n sind Zeilenumbrüche~**
+Alle Codes, die umgewandelt werden, sind unten zu sehen. **NB: \t = Tabulator \r\n sind Zeilenumbrüche\~**
 
 ### Befehl: keypress:KEY,MODIFIER
 
@@ -69,11 +68,11 @@ relaykeys-cli.exe Tastendruck:A
 
 Emuliert das Drücken und Loslassen des Buchstabens "A". Was ist mit einer Verschiebung?
 
-relaykeys-cli.exe Tastendruck:A,LSHIFT`
+relaykeys-cli.exe Tastendruck:A,LSHIFT\`
 
 Emuliert das Drücken des A mit der linken Umschalttaste, d.h. das A wird groß geschrieben.
 
-Relais-Tasten-Cliexe Tastendruck:RECHTSPFEIL,LSHIFT,LCTRL`
+Relais-Tasten-Cliexe Tastendruck:RECHTSPFEIL,LSHIFT,LCTRL\`
 
 Drücken Sie die rechte Pfeiltaste, die linke Shit-Taste und die linke Steuertaste (um das nächste Wort in Programmen wie Word auszuwählen).
 
@@ -88,11 +87,11 @@ Drücken Sie die rechte Pfeiltaste, die linke Shit-Taste und die linke Steuertas
 * (Rechts) Meta/Windows-Taste/Mac-Taste/Befehlstaste: `RMETA`
 
 {% hint style="info" %}
-Wenn Sie zwei Tasten mit einem Modifikator senden wollen, senden Sie die **Taste** - **dann** **Modifikator**. Z.B. `Tastendruck:C,LCTRL` - nicht andersherum!&#x20;
+Wenn Sie zwei Tasten mit einem Modifikator senden wollen, senden Sie die **Taste** - **dann** **Modifikator**. Z.B. `Tastendruck:C,LCTRL` - nicht andersherum!
 {% endhint %}
 
 {% hint style="warning" %}
-Wenn Sie an iOS oder einen Mac senden, denken Sie daran, dass dort die Befehlstaste (LMETA) verwendet wird - oft dort, wo Windows die STRG-Taste verwendet. Lesen Sie [hier] (https://support.apple.com/en-us/HT201236) für weitere Beispiele
+Wenn Sie an iOS oder einen Mac senden, denken Sie daran, dass dort die Befehlstaste (LMETA) verwendet wird - oft dort, wo Windows die STRG-Taste verwendet. Lesen Sie \[hier] (https://support.apple.com/en-us/HT201236) für weitere Beispiele
 {% endhint %}
 
 Wir haben auch eine begrenzte Anzahl von **Verbraucher-Schlüsseln - und zwar volumenbezogen (wenn Sie weitere benötigen, lassen Sie es uns wissen** (https://github.com/AceCentre/RelayKeys/issues/26)**)**
@@ -107,139 +106,7 @@ Alle anderen Schlüssel sind also unten definiert. Wir werden versuchen zu erkl�
 
 <summary>Keys</summary>
 
-* 0
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
-[...]
+* 0 \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...] \[...]
 
 </details>
 
@@ -247,18 +114,22 @@ Alle anderen Schlüssel sind also unten definiert. Wir werden versuchen zu erkl�
 
 Emuliert das Halten oder Loslassen einer Taste mit einem Modifier. Zum Beispiel:
 
-Tastenereignis:A,LSHIFT,1`
+Tastenereignis:A,LSHIFT,1\`
 
 Emuliert das Drücken von `A` mit `Shift` Down. Zum Loslassen:
 
-Tastenereignis:A,LSHIFT,0`
+Tastenereignis:A,LSHIFT,0\`
 
 Ein klassisches Beispiel ist die Emulation des Drückens der Alt-Taste und der Tabulator-Taste. Dies wird häufig verwendet, um zwischen Anwendungen zu wechseln. Hierfür müssten Sie zwei Befehle senden.
 
 ```
 relaykeys-cli-win.exe" keyevent:TAB,LALT,1
-    relaykeys-cli-win.exe" keyevent:TAB,LALT,0
+relaykeys-cli-win.exe" keyevent:TAB,LALT,0
 ```
+
+### Befehl: keyboard\_release&#x20;
+
+Gibt alle Tasten frei, die gedrückt wurden, z.B. einen Modifikator. Besonders nützlich, wenn Sie auf einem Empfängergerät mit einer anderen Tastatur tippen müssen.
 
 ### Befehl: mousemove:PixelsRight,PixelsDown
 
@@ -268,11 +139,11 @@ relaykeys-cli.exe mousemove:10,10".
 
 und Links um 10, oben um 10:
 
-relaykeys-cli.exe mousemove:-10,-10`
+relaykeys-cli.exe mousemove:-10,-10\`
 
 Geradeaus:
 
-relaykeys-cli.exe mousemove:0,-10`
+relaykeys-cli.exe mousemove:0,-10\`
 
 Gerade nach unten:
 
@@ -284,12 +155,10 @@ relaykeys-cli.exe mousemove:10,0".
 
 Gerade links:
 
-relaykeys-cli.exe mousemove:-10,0`
+relaykeys-cli.exe mousemove:-10,0\`
 
 {% hint style="info" %}
-Möchten Sie eine Mausbewegung eine Weile lang wiederholen?
-Führen Sie die Anwendung **mouserepeat.exe** aus, die Sie im Installationsordner von RelayKeys finden. Führen Sie es mit "mouserepeat.exe -x 10 -y 10" aus, wobei die Richtung, in die Sie die Maus bewegen wollen, anzugeben ist. Dies wird dann so lange wiederholt, bis Sie die Anwendung beenden. Führen Sie dazu ein Powershell-Skript aus:
-`Stop-Process -Name "mouserepeat"`
+Möchten Sie eine Mausbewegung eine Weile lang wiederholen? Führen Sie die Anwendung **mouserepeat.exe** aus, die Sie im Installationsordner von RelayKeys finden. Führen Sie es mit "mouserepeat.exe -x 10 -y 10" aus, wobei die Richtung, in die Sie die Maus bewegen wollen, anzugeben ist. Dies wird dann so lange wiederholt, bis Sie die Anwendung beenden. Führen Sie dazu ein Powershell-Skript aus: `Stop-Process -Name "mouserepeat"`
 {% endhint %}
 
 ### Befehl: mousebutton:Button,Behaviour
@@ -311,25 +180,25 @@ Hinweis: Wenn Sie kein Verhalten angeben, wird die Taste für 0 Sekunden gehalte
 
 Senden Sie einen Doppelklick:
 
-relaykeys-cli.exe Maustaste:L,Doppelklick`
+relaykeys-cli.exe Maustaste:L,Doppelklick\`
 
 Senden Sie einen Rechtsklick:
 
-relaykeys-cli.exe Maustaste:R,Klick`
+relaykeys-cli.exe Maustaste:R,Klick\`
 
-**Was ist mit dem Ziehen? **
+\*\*Was ist mit dem Ziehen? \*\*
 
 Aktivieren Sie die Schaltfläche Start ziehen
 
-Relaykeys-cli Maustaste:L,drücken`
+Relaykeys-cli Maustaste:L,drücken\`
 
 Benutzer bewegt die Maus
 
-relaykeys-cli mousemove:x,y`
+relaykeys-cli mousemove:x,y\`
 
 Benutzer bewegt die Maus weiter
 
-relaykeys-cli mousemove:x,y`
+relaykeys-cli mousemove:x,y\`
 
 Der Benutzer aktiviert die Schaltfläche Ziehen stoppen
 
@@ -347,72 +216,71 @@ Setzt eine Verzögerung von 1 Sekunde ein.
 
 #### Optionale Zusatzflaggen --notfiy --copy
 
-Bei den folgenden Befehlen können Sie das Flag `--notify` angeben. In diesem Fall wird Ihr Betriebssystem eine Systembenachrichtigung zurückgeben. Nützlich, wenn Sie keinen Zugriff auf die Befehlszeile haben. Wenn Sie möchten, können Sie auch das Flag `--copy` angeben. Damit werden die Ergebnisse an Ihre Zwischenablage zurückgegeben, damit Sie die Daten wieder einfügen können. **Seien Sie vorsichtig damit. Es überschreibt alle Kopieren/Einfügen-Funktionen, die Sie vielleicht schon haben.
+Bei den folgenden Befehlen können Sie das Flag `--notify` angeben. In diesem Fall wird Ihr Betriebssystem eine Systembenachrichtigung zurückgeben. Nützlich, wenn Sie keinen Zugriff auf die Befehlszeile haben. Wenn Sie möchten, können Sie auch das Flag `--copy` angeben. Damit werden die Ergebnisse an Ihre Zwischenablage zurückgegeben, damit Sie die Daten wieder einfügen können. \*\*Seien Sie vorsichtig damit. Es überschreibt alle Kopieren/Einfügen-Funktionen, die Sie vielleicht schon haben.
 
-relaykeys-cli.exe ble_cmd:devname`
+relaykeys-cli.exe ble\_cmd:devname\`
 
 Gibt das aktuell verbundene Gerät zurück
 
-relaykeys-cli.exe ble_cmd:devlist`
+relaykeys-cli.exe ble\_cmd:devlist\`
 
 Ruft eine Liste der Geräte ab, die sich im Speicher des Geräts befinden
 
-relaykeys-cli.exe ble_cmd:devadd`
+relaykeys-cli.exe ble\_cmd:devadd\`
 
 Versetzen Sie das Gerät in einen Pairing-Status
 
-relaykeys-cli.exe ble_cmd:devreset`
+relaykeys-cli.exe ble\_cmd:devreset\`
 
 Zurücksetzen der gesamten gespeicherten Geräte (es ist wie das Löschen des flüchtigen Speichers)
 
-relaykeys-cli.exe ble_cmd:switch`
+relaykeys-cli.exe ble\_cmd:switch\`
 
 Schaltet das aktuell angeschlossene Gerät auf das nächste Gerät im RelayKeys-Speicher um
 
-relaykeys-cli.exe ble_cmd:devremove=DEVNAME`
+relaykeys-cli.exe ble\_cmd:devremove=DEVNAME\`
 
 Entfernen Sie nur ein benanntes Gerät aus dem Speicher.
 
-relaykeys-cli.exe ble_cmd:reconnect`
+relaykeys-cli.exe ble\_cmd:reconnect\`
 
 Sagt dem Daemon/Server, dass er versuchen soll, die Verbindung zur seriellen Schnittstelle wieder herzustellen.
 
-relaykeys-cli.exe daemon:switch_mode`
+relaykeys-cli.exe daemon:switch\_mode\`
 
 Sagt dem Daemon/Server, dass er versuchen soll, zwischen verkabelten
 
-relaykeys-cli.exe daemon:get_mode`
+relaykeys-cli.exe daemon:get\_mode\`
 
 Gibt den aktuellen Modus zurück
 
-relaykeys-cli.exe daemon:dongle_status`
+relaykeys-cli.exe daemon:dongle\_status\`
 
 Gibt zurück, ob er verbunden ist oder nicht
 
-relaykeys-cli.exe ble_cmd:get_mode`&#x20;
+relaykeys-cli.exe ble\_cmd:get\_mode\`
 
 Ruft den aktuellen Modus ab - verkabelt oder drahtlos
 
-relaykeys-cli.exe ble_cmd:switch_mode`
+relaykeys-cli.exe ble\_cmd:switch\_mode\`
 
 Wechselt den Modus von Verkabelt -> Drahtlos und Drahtlos-> Verkabelt.
 
 ### Befehl: -f file.txt (Makro)
 
-Erstellen Sie eine Makrodatei, bei der jede Zeile in einer Textdatei ein Cli-Befehl ist. Zum Beispiel **ios_open_notes.txt** im Verzeichnis _macros_ des Installationsordners (d. h. unter _C:\Programme (x86)\Ace Centre\RelayKeys\maccros)\
+Erstellen Sie eine Makrodatei, bei der jede Zeile in einer Textdatei ein Cli-Befehl ist. Zum Beispiel **ios\_open\_notes.txt** im Verzeichnis _macros_ des Installationsordners (d. h. unter \_C:\Programme (x86)\Ace Centre\RelayKeys\maccros)\\
 
-relaykeys-cli.exe -f ios_open_notes.txt`
+relaykeys-cli.exe -f ios\_open\_notes.txt\`
 
 oder so
 
-relaykeys-cli.exe -f Dokumente/open_ios_notes.txt`
+relaykeys-cli.exe -f Dokumente/open\_ios\_notes.txt\`
 
-wo es die Datei aus einem Dateipfad liest... oder...
-relaykeys-cli.exe -f ./open_ios_notes.txt`
+wo es die Datei aus einem Dateipfad liest... oder... relaykeys-cli.exe -f ./open\_ios\_notes.txt\`
 
 wo die Datei in dem Ordner gelesen wird, aus dem die aktuelle Exe ausgeführt wird.
 
-wo sich ios_open_notes.txt befindet:
+wo sich ios\_open\_notes.txt befindet:
 
 ```
 keypress:H,LMETA
