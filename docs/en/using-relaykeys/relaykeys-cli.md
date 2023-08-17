@@ -261,6 +261,11 @@ So a classic example is to emulate pressing the Alt key and Tab key. Commonly us
     relaykeys-cli-win.exe" keyevent:TAB,LALT,0
 ```
 
+### Command: keyboard\_release
+
+Releases any keys that may have been held down, e.g. a modifier \
+Particularly useful if you need to type on one the receiving device with a different keyboard.&#x20;
+
 ### Command: mousemove:PixelsRight,PixelsDown
 
 Sends the command to move the mouse x Pixels Right and x Pixels Down. To go in the other direction send negative numbers. Eg. To go Right by 10 and Down by 10
