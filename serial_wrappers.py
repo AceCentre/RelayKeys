@@ -75,5 +75,11 @@ class DummySerial (object):
     def flushInput(self):
         pass
 
+    def flushOutput(self):
+        pass
+
     def readline(self):
         return b"OK\n"
+
+    def read_all(self):
+        return b"Dummy1\nDummy2\nDummy3\n"
