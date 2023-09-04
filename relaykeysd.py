@@ -567,7 +567,7 @@ async def process_action(ser, keys, cmd):
 
         elif cmd[0] == 'ble_cmd':
 
-            if cmd[1] == "switch":
+            if cmd[1] == "switch" or cmd[1].startswith("switch="):
                 await blehid_send_switch_command(ser, cmd[1])
 
             elif cmd[1] == "devname":

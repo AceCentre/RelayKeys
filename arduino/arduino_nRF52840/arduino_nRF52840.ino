@@ -859,26 +859,64 @@ void removeBleDevice(char *myLine)
 void switchBleConnection(char *myLine)
 {
   char buff[256];
+  char tempBleDevName[32] = {0};
+
+  BLEConnection *connection = NULL;
+  connection = Bluefruit.Connection(target_ble_conn);
   
   at_response("at+switchconn\n");
 
-  if (!Bluefruit.connected())
-  {
-    switchBleConnStartIndex = 1;
-    //Serial.println("Current Dev Index: " + String(switchBleConnStartIndex));
-    switchBleConnCurrIndex = 1;
-    flag_bleSwapConnProsStarted = 1;
-    swapConnProsStartTicks = millis();
-    
-    snprintf(buff, sizeof(buff), "Trying to connect with -  %s\n", bleDeviceNameList[switchBleConnCurrIndex - 1]);
-    at_response(buff);
+  if (!Bluefruit.connected()) {
+    at_response("ERROR: No device connected now\n");
+    return;
   }
-  else
-  {
-    BLEConnection *connection = NULL;
-    char tempBleDevName[32] = {0};
+  
+  if (bleDeviceNameListIndex < 2)  {          
+    at_response("ERROR: No other device present in list\n");
+    return;
+  }
 
-    connection = Bluefruit.Connection(target_ble_conn);
+  Serial.print("Received line: "); // temp
+  Serial.println(myLine); // temp
+
+  char * start_dev_p = strstr(myLine, "=\""); // search device argument
+  if (start_dev_p != NULL) {
+    // if device argument present, switch to next device
+    char * end_dev_p = strrchr(myLine, '\"');
+    if(end_dev_p != NULL && end_dev_p != (start_dev_p+1)) {
+      start_dev_p += 2; // move pointer to start of device name
+      
+      if((end_dev_p-start_dev_p) <= 31) {
+        strncpy(tempBleDevName, start_dev_p, (end_dev_p-start_dev_p));
+      }
+    }
+
+    if(strlen(tempBleDevName) != 0) {
+      Serial.print("Device argument: "); // temp
+      Serial.println(tempBleDevName);         // temp
+
+      for (int i = 0; i < bleDeviceNameListIndex; i++) {
+        if (!strcmp((char *)tempBleDevName, (char *)bleDeviceNameList[i])) {
+          switchBleConnCurrIndex = i+1;
+          flag_bleSwapConnProsStarted = 1;
+          swapConnProsStartTicks = millis();        
+        
+          snprintf(buff, sizeof(buff), "Trying to connect with -  %s\n", bleDeviceNameList[switchBleConnCurrIndex - 1]);
+          at_response(buff);
+
+          connection->disconnect();
+
+          return;
+        }
+      }
+      at_response("ERROR: Device not found in list\n");
+      return;
+    } else {
+      at_response("ERROR: Syntax\n");
+      return;
+    }
+  } else {
+    // if no device argument, switch to next device    
     connection->getPeerName(tempBleDevName, sizeof(tempBleDevName));
 
     //Serial.println("Current Dev Name: " + String(tempBleDevName));
@@ -889,12 +927,6 @@ void switchBleConnection(char *myLine)
       {
         switchBleConnStartIndex = i + 1;
         //Serial.println("Current Dev Index: " + String(switchBleConnStartIndex));
-
-        if (bleDeviceNameListIndex == 1)
-        {          
-          at_response("ERROR: No other device present in list\n");
-          break;
-        }
         
         if (switchBleConnStartIndex >= bleDeviceNameListIndex)
         {
@@ -917,6 +949,7 @@ void switchBleConnection(char *myLine)
       }
     }
   }
+
 }
 
 void printBleDevList(char *myLine)
@@ -1069,11 +1102,11 @@ void loop()
   if(!ble_mode) {    
     if(Serial.available() > 0) {
       receive_char(0, Serial.read());
-    }    
+    }
   }
 
-  if(digitalRead(USER_SW) == false) {    
-    if(detect_click() == 1){      
+  if(digitalRead(USER_SW) == false) {
+    if(detect_click() == 1){
       addNewBleDevice("");
     } else {
       change_mode("");
