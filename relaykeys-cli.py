@@ -82,6 +82,8 @@ def send_notification(command_type, command, result):
       notification.message = "Device list is cleared."
     elif command == "switch":
       notification.message = "Switching to next device."
+    elif command.startswith("switch="):
+      notification.message = "Trying to switch to \"{}\"".format(command.split("=")[1])
     elif "devremove" in command:
       removed_device = command.split("=")[1]
       notification.message = "{} was removed from device list.".format(removed_device)
