@@ -5,6 +5,7 @@ from sys import exit
 import sys
 from pathlib import Path
 import json
+import subprocess
 
 # util modules
 import logging
@@ -197,6 +198,9 @@ def do_devicecommand(client, devcommand, notify=False,copyresults=False):
     logging.info("devicecommand ({}) response : {}".format(devcommand, ret["result"]))
     if notify:
       send_notification("device command", devcommand, ret["result"])
+      if devcommand.startswith("switch"):
+        script_path = Path(__file__).resolve().parent / "poll_devname.py"
+        subprocess.Popen(["python", str(script_path)])
     if copyresults:
       copy_return("daemon command", devcommand, ret["result"])
 
