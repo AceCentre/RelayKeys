@@ -43,6 +43,7 @@ for script, exename, console in [
     ('relaykeysd.py', 'relaykeysd', True),
     ('relaykeysd-service.py', 'relaykeysd-service', True),
     ('relaykeysd-service-stop.py', 'relaykeysd-service-stop', True),
+    ('poll_devname.py', 'poll_devname', True),
     ('relaykeys-cli.py', 'relaykeys-cli', True),
     ('relaykeys-cli.py', 'relaykeys-cli-win', False),
         ('relaykeys-qt.py', 'relaykeys-qt', False)]:
@@ -59,7 +60,7 @@ for script, exename, console in [
 #os.system("md ./dist")
 
 # Do a pyinstaller on these files
-for spec in ['relaykeysd.spec', 'relaykeys-cli.spec', 'relaykeys-cli-win.spec', 'relaykeys-qt.spec']:
+for spec in ['relaykeysd.spec', 'relaykeys-cli.spec', 'poll_devname.spec', 'relaykeys-cli-win.spec', 'relaykeys-qt.spec']:
     subprocess.run(["pyinstaller", '-y', spec])
 
 # remaining files that dont fit the standard spec
@@ -80,7 +81,7 @@ for doc in ['README.md']:
 
 # Merge all directories
 if os.name == 'nt':
-    for item in [r"dist\relaykeysd-service", r"dist\relaykeysd-service-stop", r"dist\relaykeys-cli", r"dist\relaykeys-cli-win", r"dist\relaykeys-qt"]:
+    for item in [r"dist\relaykeysd-service", r"dist\relaykeysd-service-stop", r"dist\relaykeys-cli", r"dist\poll_devname", r"dist\relaykeys-cli-win", r"dist\relaykeys-qt"]:
         moveTree(item, r'dist\relaykeysd')
 if os.name == 'posix':
     for item in [r"dist/relaykeys-cli", r"dist/relaykeys-cli-win", r"dist/relaykeys-qt"]:

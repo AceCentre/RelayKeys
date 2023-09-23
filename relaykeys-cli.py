@@ -199,8 +199,14 @@ def do_devicecommand(client, devcommand, notify=False,copyresults=False):
     if notify:
       send_notification("device command", devcommand, ret["result"])
       if devcommand.startswith("switch"):
-        script_path = Path(__file__).resolve().parent / "poll_devname.py"
-        subprocess.Popen(["python", str(script_path)])
+        exe_path = Path(__file__).resolve().parent / "poll_devname.exe"
+        if exe_path.exists():
+          # run exe if builded
+          subprocess.Popen([str(exe_path)])
+        else:
+          # run script if no exe          
+          script_path = Path(__file__).resolve().parent / "poll_devname.py"
+          subprocess.Popen(["python", str(script_path)])
     if copyresults:
       copy_return("daemon command", devcommand, ret["result"])
 
