@@ -5,6 +5,7 @@ from sys import exit
 import sys
 from pathlib import Path
 import json
+import subprocess
 
 # util modules
 import logging
@@ -82,6 +83,8 @@ def send_notification(command_type, command, result):
       notification.message = "Device list is cleared."
     elif command == "switch":
       notification.message = "Switching to next device."
+    elif command.startswith("switch="):
+      notification.message = "Trying to switch to \"{}\"".format(command.split("=")[1])
     elif "devremove" in command:
       removed_device = command.split("=")[1]
       notification.message = "{} was removed from device list.".format(removed_device)
@@ -195,6 +198,15 @@ def do_devicecommand(client, devcommand, notify=False,copyresults=False):
     logging.info("devicecommand ({}) response : {}".format(devcommand, ret["result"]))
     if notify:
       send_notification("device command", devcommand, ret["result"])
+      if devcommand.startswith("switch"):
+        exe_path = Path(__file__).resolve().parent / "poll_devname.exe"
+        if exe_path.exists():
+          # run exe if builded
+          subprocess.Popen([str(exe_path)])
+        else:
+          # run script if no exe          
+          script_path = Path(__file__).resolve().parent / "poll_devname.py"
+          subprocess.Popen(["python", str(script_path)])
     if copyresults:
       copy_return("daemon command", devcommand, ret["result"])
 

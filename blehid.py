@@ -289,7 +289,9 @@ async def blehid_send_switch_command(ser, devicecommand):
     if devicecommand == 'switch':
         await _write_atcmd(ser, "AT+SWITCHCONN")
         await _read_response(ser)
-
+    elif devicecommand.startswith("switch="):
+        await _write_atcmd(ser, "AT+SWITCHCONN=\"{}\"".format(devicecommand.split("=")[1]))
+        await _read_response(ser)
 
 async def blehid_send_get_device_name(ser, devicecommand):
     logging.debug('device command:'+str(devicecommand))
