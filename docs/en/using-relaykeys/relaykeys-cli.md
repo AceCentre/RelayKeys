@@ -376,6 +376,10 @@ Reset the entire stored devices (its like wiping the volatile memory)
 
 Switch the current connected device to the next one in RelayKeys memory
 
+`relaykeys-cli.exe ble_cmd:switch:"Name" --notify`\
+\
+Switches BLE device by the name of a device.&#x20;
+
 `relaykeys-cli.exe ble_cmd:devremove=DEVNAME`
 
 Remove just one named device from the memory.
@@ -403,6 +407,8 @@ Gets the current mode - wired or wireless
 `relaykeys-cli.exe ble_cmd:switch_mode`
 
 Switches mode from Wired -> Wireless and Wireless-> Wired.
+
+
 
 ### Command: -f file.txt (Macro)
 
