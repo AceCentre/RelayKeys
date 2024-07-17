@@ -6,11 +6,17 @@ coverY: 0
 
 # 😎 Introduction
 
-Welcome to the RelayKeys Documentation! This comprehensive guide will help you swiftly get started, explore advanced features, and delve into the unique concepts that define RelayKeys.
+Welcome to the RelayKeys Documentation! This  guide will help you swiftly get started, explore advanced features, and understand the concepts that define RelayKeys.
 
 ### Introduction to RelayKeys
 
 RelayKeys is an open-source software and hardware suite designed to facilitate seamless communication between computers, tablets, and phones via Bluetooth connections. Initially tailored for _AAC_, its versatile technology extends its utility to a broader range of users who require text input or mouse commands to access Bluetooth-enabled devices.
+
+### How do you get it?
+
+You need a piece of hardware - a USB dongle that provides the bluetooth harware to allow your device to be a Bluetooth Keyboard/Mouse. You plug this into your AAC (Host) Windows based device. You can either use a receiving USB dongle on a second device to act as a Bluetooth receiver for devices that don't support bluetooth (and this is pre-paired) or connect directly to Bluetooth enabled devices (Phones, Computers). \
+\
+Once you have the hardware you need to [install our software](installation/download-and-setup-software.md) which is designed for Windows.&#x20;
 
 #### Purpose and Benefits
 
