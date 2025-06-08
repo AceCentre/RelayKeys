@@ -1,0 +1,181 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "relaykeys"
+version = "2.02"
+description = "A simple app/hardware solution to send keystrokes from one computer to another over Bluetooth LE"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "AceCentre", email = "info@acecentre.org.uk"},
+]
+maintainers = [
+    {name = "Will Wade", email = "wwade@acecentre.org.uk"},
+]
+keywords = ["bluetooth", "keyboard", "mouse", "assistive-technology", "accessibility"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Hardware",
+    "Topic :: Adaptive Technologies",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "pyserial>=3.4,<4",
+    "json-rpc>=1.12.1,<2",
+    "Werkzeug>=2.0.0,<3.0.0",
+    "configparser>=3.7.1,<4",
+    "requests>=2.21.0,<3",
+    "markdown>=3.0.1,<4",
+    "pyperclip>=1.7.0,<2",
+    "bleak",
+    "pynput",
+    "notify-py",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio",
+    "pytest-mock",
+    "pytest-cov",
+    "black",
+    "flake8",
+    "mypy",
+    "pre-commit",
+    "ruff",
+    "bandit",
+    "safety",
+]
+build = [
+    "pyinstaller",
+    "markdown",
+]
+gui = [
+    "PyQt5>=5.14.0; platform_system != 'Windows'",
+    "PyQt6>=6.0.0; platform_system == 'Windows'",
+]
+posix = [
+    "python-daemon>=2.2.3,<3; platform_system != 'Windows'",
+]
+
+[project.urls]
+Homepage = "https://docs.acecentre.org.uk/products/v/relaykeys/"
+Documentation = "https://docs.acecentre.org.uk/products/v/relaykeys/"
+Repository = "https://github.com/AceCentre/RelayKeys"
+Issues = "https://github.com/AceCentre/RelayKeys/issues"
+
+[project.scripts]
+relaykeys-daemon = "relaykeysd:main"
+relaykeys-cli = "relaykeys-cli:main"
+relaykeys-qt = "relaykeys-qt:main"
+
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+include = [
+    "*.py",
+    "cli_keymaps/*.json",
+    "macros/*.txt",
+    "resources/*.py",
+    "resources/*.png",
+    "resources/*.ico",
+    "relaykeys-example.cfg",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "F403", # star imports (legacy code)
+    "F405", # may be undefined from star imports (legacy code)
+    "E722", # bare except (legacy code)
+    "E712", # comparison to True/False (legacy code)
+    "C406", # dict() instead of {} (legacy code)
+    "C417", # map() usage (legacy code)
+    "W191", # tabs (legacy code)
+    "E701", # multiple statements (legacy code)
+    "B007", # unused loop variable (legacy code)
+    "B018", # useless expression (legacy code)
+    "E402", # module level import (legacy code)
+    "B904", # raise from (legacy code)
+    "E711", # comparison to None (legacy code)
+    "W291", # trailing whitespace (auto-fixable)
+    "W293", # blank line whitespace (auto-fixable)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"test_*.py" = ["B011", "B017", "F841"]
+"resources/*.py" = ["F403", "F405", "E722", "E712", "W191", "E701"]
+"*pygame*.py" = ["F403", "F405", "E722"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --cov=. --cov-report=term-missing"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "tests/*",
+    "test_*.py",
+    ".venv/*",
+    "build/*",
+    "dist/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Relaxed for legacy code
+ignore_missing_imports = true

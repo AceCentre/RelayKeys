@@ -3,17 +3,19 @@
 # Copyright 2010, Canonical, Ltd.
 # Author: Kees Cook <kees@ubuntu.com>
 # License: GPLv3
-import os, sys, select
+import os
+import select
+import sys
 
 parent, child = os.openpty()
 tty = os.ttyname(child)
-os.system('stty cs8 -icanon -echo < %s' % (tty))
-file = open('.serialDemo','w') 
+os.system(f"stty cs8 -icanon -echo < {tty}")
+file = open(".serialDemo", "w")
 file.write(tty)
 file.close()
 
 try:
-    os.system('stty cs8 -icanon -echo < /dev/stdin')
+    os.system("stty cs8 -icanon -echo < /dev/stdin")
 
     poller = select.poll()
     poller.register(parent, select.POLLIN)
@@ -31,5 +33,5 @@ try:
                 else:
                     os.write(parent, str(chars))
 finally:
-    os.system('stty sane < /dev/stdin')
-    os.remove('.serialDemo')
+    os.system("stty sane < /dev/stdin")
+    os.remove(".serialDemo")

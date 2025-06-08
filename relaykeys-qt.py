@@ -1,276 +1,315 @@
-# -*- coding: utf-8 -*-
-import os
-from time import sleep, time
-from sys import exit, argv
-import sys
+import argparse
 
 # util modules
 import logging
-import argparse
-from configparser import ConfigParser
+import os
+import sys
 import traceback
-
-from relaykeysclient import RelayKeysClient
-
-from pynput import mouse, keyboard
-
-from PyQt5.QtCore import pyqtSignal, Qt, pyqtSlot, QObject, QThread, QUrl, QTimer, QSize
-from PyQt5.QtGui import QIcon, QDesktopServices, QPainter, QPixmap, QFont
-from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow, \
-    QVBoxLayout, QHBoxLayout, QGridLayout, QStackedLayout, \
-    QMessageBox, QLabel, QAction, QMenu, QDialog, QAbstractButton, QPushButton, QFileDialog, QScrollArea, QFrame
-    
-from threading import Timer, Thread
-from queue import Queue, Empty as EmptyQueue
-
-import types
-
+from configparser import ConfigParser
 from pathlib import Path
+from queue import Empty as EmptyQueue
+from queue import Queue
+from sys import exit
+from threading import Thread, Timer
+from time import sleep, time
+
+from pynput import keyboard, mouse
+from PyQt5.QtCore import QObject, QSize, Qt, QThread, QTimer, QUrl, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QDesktopServices, QIcon
+from PyQt5.QtWidgets import (
+    QAction,
+    QApplication,
+    QDialog,
+    QFileDialog,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QStackedLayout,
+    QVBoxLayout,
+    QWidget,
+)
 
 # this import is only to support 'type' command in macrofiles
 from cli_keymap import *
-#import importlib
-#relaykeys_cli = importlib.import_module("relaykeys-cli")
+from relaykeysclient import RelayKeysClient
 
-parser = argparse.ArgumentParser(description='Relay Keys qt client.')
-parser.add_argument('--debug', dest='debug', action='store_const',
-                    const=True, default=False,
-                    help='set logger to debug level')
-parser.add_argument('--config', '-c', dest='config',
-                    default=None, help='Path to config file')
-parser.add_argument('--url', '-u', dest='url', default=None,
-                    help='rpc http url, default: http://127.0.0.1:5383/')
+# import importlib
+# relaykeys_cli = importlib.import_module("relaykeys-cli")
+
+parser = argparse.ArgumentParser(description="Relay Keys qt client.")
+parser.add_argument(
+    "--debug",
+    dest="debug",
+    action="store_const",
+    const=True,
+    default=False,
+    help="set logger to debug level",
+)
+parser.add_argument(
+    "--config", "-c", dest="config", default=None, help="Path to config file"
+)
+parser.add_argument(
+    "--url",
+    "-u",
+    dest="url",
+    default=None,
+    help="rpc http url, default: http://127.0.0.1:5383/",
+)
 
 devList = []
 
 macros_folder = str(Path(__file__).resolve().parent / "macros")
 
-modifiers_map = dict([
-    (keyboard.Key.ctrl_l, "LCTRL"),
-    (keyboard.Key.ctrl_r, "RCTRL"),
-    (keyboard.Key.shift_l, "LSHIFT"),
-    (keyboard.Key.shift_r, "RSHIFT"),
-    (keyboard.Key.alt_r, "RALT"),
-    (keyboard.Key.alt_l, "LALT"),
-    (keyboard.Key.cmd_l, "LMETA"),
-    (keyboard.Key.cmd_r, "RMETA"),
-])
+modifiers_map = dict(
+    [
+        (keyboard.Key.ctrl_l, "LCTRL"),
+        (keyboard.Key.ctrl_r, "RCTRL"),
+        (keyboard.Key.shift_l, "LSHIFT"),
+        (keyboard.Key.shift_r, "RSHIFT"),
+        (keyboard.Key.alt_r, "RALT"),
+        (keyboard.Key.alt_l, "LALT"),
+        (keyboard.Key.cmd_l, "LMETA"),
+        (keyboard.Key.cmd_r, "RMETA"),
+    ]
+)
 
-keysmap_printable = dict([
-    (65, "A"),
-    (66, "B"),
-    (67, "C"),
-    (68, "D"),
-    (69, "E"),
-    (70, "F"),
-    (71, "G"),
-    (72, "H"),
-    (73, "I"),
-    (74, "J"),
-    (75, "K"),
-    (76, "L"),
-    (77, "M"),
-    (78, "N"),
-    (79, "O"),
-    (80, "P"),
-    (81, "Q"),
-    (82, "R"),
-    (83, "S"),
-    (84, "T"),
-    (85, "U"),
-    (86, "V"),
-    (87, "W"),
-    (88, "X"),
-    (89, "Y"),
-    (90, "Z"),
-    (49, "1"),
-    (50, "2"),
-    (51, "3"),
-    (52, "4"),
-    (53, "5"),
-    (54, "6"),
-    (55, "7"),
-    (56, "8"),
-    (57, "9"),
-    (48, "0"),
-    (190, "PERIOD"),
-    (188, "COMMA"),
-    (186, "SEMICOLON"),
-    (0xBD, "MINUS"),  # VK_OEM_MINUS
-    (187, "EQUALS"),
-    (191, "SLASH"),
-    (220, "BACKSLASH"),
-    (222, "QUOTE"),
-    (219, "LEFTBRACKET"),
-    (221, "RIGHTBRACKET"),
-    (445, "UNDERSCORE"),
-    (0xC0, "BACKQUOTE"),  # Keyboard Non-US # and ~
-    (0x60, "0"),  # VK_NUMPAD0 in numlock mode
-    (0x61, "1"),  # VK_NUMPAD1 in numlock mode
-    (0x62, "2"),  # VK_NUMPAD2 in numlock mode
-    (0x63, "3"),  # VK_NUMPAD3 in numlock mode
-    (0x64, "4"),  # VK_NUMPAD4 in numlock mode
-    (0x65, "5"),  # VK_NUMPAD5 in numlock mode
-    (0x66, "6"),  # VK_NUMPAD6 in numlock mode
-    (0x67, "7"),  # VK_NUMPAD7 in numlock mode
-    (0x68, "8"),  # VK_NUMPAD8 in numlock mode
-    (0x69, "9"),  # VK_NUMPAD9 in numlock mode
-    (0x6E, "PERIOD"),  # VK_DECIMAL in numlock mode# 
-    (0x6A, "KP_MULTIPLY"),  # keypad multiply, VK_MULTIPLY
-    (0x6F, "KP_DIVIDE"),  # keypad divide, VK_DIVIDE
-    (0x6B, "KP_PLUS"),
-    (0x6D, "KP_MINUS"),
-    (12, "KP_5_DIS"),  # keypad 5 doesn't have any function when numlock disabled    
-])
+keysmap_printable = dict(
+    [
+        (65, "A"),
+        (66, "B"),
+        (67, "C"),
+        (68, "D"),
+        (69, "E"),
+        (70, "F"),
+        (71, "G"),
+        (72, "H"),
+        (73, "I"),
+        (74, "J"),
+        (75, "K"),
+        (76, "L"),
+        (77, "M"),
+        (78, "N"),
+        (79, "O"),
+        (80, "P"),
+        (81, "Q"),
+        (82, "R"),
+        (83, "S"),
+        (84, "T"),
+        (85, "U"),
+        (86, "V"),
+        (87, "W"),
+        (88, "X"),
+        (89, "Y"),
+        (90, "Z"),
+        (49, "1"),
+        (50, "2"),
+        (51, "3"),
+        (52, "4"),
+        (53, "5"),
+        (54, "6"),
+        (55, "7"),
+        (56, "8"),
+        (57, "9"),
+        (48, "0"),
+        (190, "PERIOD"),
+        (188, "COMMA"),
+        (186, "SEMICOLON"),
+        (0xBD, "MINUS"),  # VK_OEM_MINUS
+        (187, "EQUALS"),
+        (191, "SLASH"),
+        (220, "BACKSLASH"),
+        (222, "QUOTE"),
+        (219, "LEFTBRACKET"),
+        (221, "RIGHTBRACKET"),
+        (445, "UNDERSCORE"),
+        (0xC0, "BACKQUOTE"),  # Keyboard Non-US # and ~
+        (0x60, "0"),  # VK_NUMPAD0 in numlock mode
+        (0x61, "1"),  # VK_NUMPAD1 in numlock mode
+        (0x62, "2"),  # VK_NUMPAD2 in numlock mode
+        (0x63, "3"),  # VK_NUMPAD3 in numlock mode
+        (0x64, "4"),  # VK_NUMPAD4 in numlock mode
+        (0x65, "5"),  # VK_NUMPAD5 in numlock mode
+        (0x66, "6"),  # VK_NUMPAD6 in numlock mode
+        (0x67, "7"),  # VK_NUMPAD7 in numlock mode
+        (0x68, "8"),  # VK_NUMPAD8 in numlock mode
+        (0x69, "9"),  # VK_NUMPAD9 in numlock mode
+        (0x6E, "PERIOD"),  # VK_DECIMAL in numlock mode#
+        (0x6A, "KP_MULTIPLY"),  # keypad multiply, VK_MULTIPLY
+        (0x6F, "KP_DIVIDE"),  # keypad divide, VK_DIVIDE
+        (0x6B, "KP_PLUS"),
+        (0x6D, "KP_MINUS"),
+        (12, "KP_5_DIS"),  # keypad 5 doesn't have any function when numlock disabled
+    ]
+)
 
-if os.name == 'posix':
+if os.name == "posix":
 
-	keysmap_non_printable = dict([
-		(keyboard.Key.enter,  "ENTER"),
-		(keyboard.Key.space,  "SPACE"),
-		(keyboard.Key.backspace,  "BACKSPACE"),
-		(keyboard.Key.tab,  "TAB"),
-		(keyboard.Key.page_up,  "PAGEUP"),
-		(keyboard.Key.page_down,  "PAGEDOWN"),
-		(keyboard.Key.left,  "LEFTARROW"),
-		(keyboard.Key.right,  "RIGHTARROW"),
-		(keyboard.Key.up,  "UPARROW"),
-		(keyboard.Key.down,  "DOWNARROW"),
-		(keyboard.Key.esc,  "ESCAPE"),
-		(keyboard.Key.home,  "HOME"),
-		(keyboard.Key.end,  "END"), 
-		(keyboard.Key.caps_lock,  "CAPSLOCK"),
-		(keyboard.Key.f1, "F1"),
-		(keyboard.Key.f2, "F2"),
-		(keyboard.Key.f3, "F3"),
-		(keyboard.Key.f4, "F4"),
-		(keyboard.Key.f5, "F5"),
-		(keyboard.Key.f6, "F6"),
-		(keyboard.Key.f7, "F7"),
-		(keyboard.Key.f8, "F8"),
-		(keyboard.Key.f9, "F9"),
-		(keyboard.Key.f10, "F10"),
-		(keyboard.Key.f11, "F11"),
-		(keyboard.Key.f12, "F12"),
-		(keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
-		(keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
-		(keyboard.Key.media_volume_down, "VOLDOWN"),  # VK_VOLUME_DOWN, Keyboard Volume Down
-	])
+    keysmap_non_printable = dict(
+        [
+            (keyboard.Key.enter, "ENTER"),
+            (keyboard.Key.space, "SPACE"),
+            (keyboard.Key.backspace, "BACKSPACE"),
+            (keyboard.Key.tab, "TAB"),
+            (keyboard.Key.page_up, "PAGEUP"),
+            (keyboard.Key.page_down, "PAGEDOWN"),
+            (keyboard.Key.left, "LEFTARROW"),
+            (keyboard.Key.right, "RIGHTARROW"),
+            (keyboard.Key.up, "UPARROW"),
+            (keyboard.Key.down, "DOWNARROW"),
+            (keyboard.Key.esc, "ESCAPE"),
+            (keyboard.Key.home, "HOME"),
+            (keyboard.Key.end, "END"),
+            (keyboard.Key.caps_lock, "CAPSLOCK"),
+            (keyboard.Key.f1, "F1"),
+            (keyboard.Key.f2, "F2"),
+            (keyboard.Key.f3, "F3"),
+            (keyboard.Key.f4, "F4"),
+            (keyboard.Key.f5, "F5"),
+            (keyboard.Key.f6, "F6"),
+            (keyboard.Key.f7, "F7"),
+            (keyboard.Key.f8, "F8"),
+            (keyboard.Key.f9, "F9"),
+            (keyboard.Key.f10, "F10"),
+            (keyboard.Key.f11, "F11"),
+            (keyboard.Key.f12, "F12"),
+            (keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
+            (keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
+            (
+                keyboard.Key.media_volume_down,
+                "VOLDOWN",
+            ),  # VK_VOLUME_DOWN, Keyboard Volume Down
+        ]
+    )
 
 else:
 
-	keysmap_non_printable = dict([
-		(keyboard.Key.enter,  "ENTER"),
-		(keyboard.Key.space,  "SPACE"),
-		(keyboard.Key.backspace,  "BACKSPACE"),
-		(keyboard.Key.tab,  "TAB"),
-		(keyboard.Key.page_up,  "PAGEUP"),
-		(keyboard.Key.page_down,  "PAGEDOWN"),
-		(keyboard.Key.left,  "LEFTARROW"),
-		(keyboard.Key.right,  "RIGHTARROW"),
-		(keyboard.Key.up,  "UPARROW"),
-		(keyboard.Key.down,  "DOWNARROW"),
-		(keyboard.Key.esc,  "ESCAPE"),
-		(keyboard.Key.home,  "HOME"),
-		(keyboard.Key.end,  "END"),
-		(keyboard.Key.insert,  "INSERT"),
-		(keyboard.Key.delete,  "DELETE"),
-		#(keyboard.Key,  "APP"),  # Applications key
-		(keyboard.Key.caps_lock,  "CAPSLOCK"),
-		(keyboard.Key.num_lock,  "NUMLOCK"),
-		(keyboard.Key.f1, "F1"),
-		(keyboard.Key.f2, "F2"),
-		(keyboard.Key.f3, "F3"),
-		(keyboard.Key.f4, "F4"),
-		(keyboard.Key.f5, "F5"),
-		(keyboard.Key.f6, "F6"),
-		(keyboard.Key.f7, "F7"),
-		(keyboard.Key.f8, "F8"),
-		(keyboard.Key.f9, "F9"),
-		(keyboard.Key.f10, "F10"),
-		(keyboard.Key.f11, "F11"),
-		(keyboard.Key.f12, "F12"),
-		(keyboard.Key.print_screen, "PRINTSCREEN"),  # Keyboard PrintScreen, VK_SNAPSHOT
-		#(keyboard.Key., "EXECUTE"),  # VK_EXECUTE
-		#(keyboard.Key., "HELP"),  # VK_HELP
-		#(keyboard.Key., "MENU"),  # VK_MENU
-		(keyboard.Key.pause, "PAUSE"),  # VK_PAUSE
-		#(keyboard.Key., "SELECT"),  # VK_SELECT
-		#(keyboard.Key., "STOP"),  # VK_MEDIA_STOP, Keyboard Stop
-		(keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
-		(keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
-		(keyboard.Key.media_volume_down, "VOLDOWN"),  # VK_VOLUME_DOWN, Keyboard Volume Down
-		#(keyboard.Key., "CANCEL"),  # VK_CANCEL
-		#(keyboard.Key., "CLEAR"),  # VK_CLEAR, Keyboard Clear
-		#(keyboard.Key., "PRIOR"),  # VK_PRIOR, Keyboard Prior
-		#(keyboard.Key., "ENTER"),  # VK_RETURN, ENTER
-		#(keyboard.Key., "SEPARATOR"),  # VK_SEPARATOR
-		#(keyboard.Key., "POWER"),  # VK_SLEEP
-		#(keyboard.Key., "CANCEL")  # VK_CANCEL
-	])
+    keysmap_non_printable = dict(
+        [
+            (keyboard.Key.enter, "ENTER"),
+            (keyboard.Key.space, "SPACE"),
+            (keyboard.Key.backspace, "BACKSPACE"),
+            (keyboard.Key.tab, "TAB"),
+            (keyboard.Key.page_up, "PAGEUP"),
+            (keyboard.Key.page_down, "PAGEDOWN"),
+            (keyboard.Key.left, "LEFTARROW"),
+            (keyboard.Key.right, "RIGHTARROW"),
+            (keyboard.Key.up, "UPARROW"),
+            (keyboard.Key.down, "DOWNARROW"),
+            (keyboard.Key.esc, "ESCAPE"),
+            (keyboard.Key.home, "HOME"),
+            (keyboard.Key.end, "END"),
+            (keyboard.Key.insert, "INSERT"),
+            (keyboard.Key.delete, "DELETE"),
+            # (keyboard.Key,  "APP"),  # Applications key
+            (keyboard.Key.caps_lock, "CAPSLOCK"),
+            (keyboard.Key.num_lock, "NUMLOCK"),
+            (keyboard.Key.f1, "F1"),
+            (keyboard.Key.f2, "F2"),
+            (keyboard.Key.f3, "F3"),
+            (keyboard.Key.f4, "F4"),
+            (keyboard.Key.f5, "F5"),
+            (keyboard.Key.f6, "F6"),
+            (keyboard.Key.f7, "F7"),
+            (keyboard.Key.f8, "F8"),
+            (keyboard.Key.f9, "F9"),
+            (keyboard.Key.f10, "F10"),
+            (keyboard.Key.f11, "F11"),
+            (keyboard.Key.f12, "F12"),
+            (
+                keyboard.Key.print_screen,
+                "PRINTSCREEN",
+            ),  # Keyboard PrintScreen, VK_SNAPSHOT
+            # (keyboard.Key., "EXECUTE"),  # VK_EXECUTE
+            # (keyboard.Key., "HELP"),  # VK_HELP
+            # (keyboard.Key., "MENU"),  # VK_MENU
+            (keyboard.Key.pause, "PAUSE"),  # VK_PAUSE
+            # (keyboard.Key., "SELECT"),  # VK_SELECT
+            # (keyboard.Key., "STOP"),  # VK_MEDIA_STOP, Keyboard Stop
+            (keyboard.Key.media_volume_mute, "MUTE"),  # VK_VOLUME_MUTE
+            (keyboard.Key.media_volume_up, "VOLUP"),  # VK_VOLUME_UP, Keyboard Volume Up
+            (
+                keyboard.Key.media_volume_down,
+                "VOLDOWN",
+            ),  # VK_VOLUME_DOWN, Keyboard Volume Down
+            # (keyboard.Key., "CANCEL"),  # VK_CANCEL
+            # (keyboard.Key., "CLEAR"),  # VK_CLEAR, Keyboard Clear
+            # (keyboard.Key., "PRIOR"),  # VK_PRIOR, Keyboard Prior
+            # (keyboard.Key., "ENTER"),  # VK_RETURN, ENTER
+            # (keyboard.Key., "SEPARATOR"),  # VK_SEPARATOR
+            # (keyboard.Key., "POWER"),  # VK_SLEEP
+            # (keyboard.Key., "CANCEL")  # VK_CANCEL
+        ]
+    )
 
-char_keysmap = dict([
-    (65, ("a", "A")),
-    (66, ("b", "B")),
-    (67, ("c", "C")),
-    (68, ("d", "D")),
-    (69, ("e", "E")),
-    (70, ("f", "F")),
-    (71, ("g", "G")),
-    (72, ("h", "H")),
-    (73, ("i", "I")),
-    (74, ("j", "J")),
-    (75, ("k", "K")),
-    (76, ("l", "L")),
-    (77, ("m", "M")),
-    (78, ("n", "N")),
-    (79, ("o", "O")),
-    (80, ("p", "P")),
-    (81, ("q", "Q")),
-    (82, ("r", "R")),
-    (83, ("s", "S")),
-    (84, ("t", "T")),
-    (85, ("u", "U")),
-    (86, ("v", "V")),
-    (87, ("w", "W")),
-    (88, ("x", "X")),
-    (89, ("y", "Y")),
-    (90, ("z", "Z")),
-    (49, "1"),
-    (50, "2"),
-    (51, "3"),
-    (52, "4"),
-    (53, "5"),
-    (54, "6"),
-    (55, "7"),
-    (56, "8"),
-    (57, "9"),
-    (48, "0"),
-    (190, "."),
-    (188, ","),
-    (186, ";"),
-    (0xBD, "-"),  # VK_OEM_MINUS
-    (187, "="),
-    (191, "/"),
-    (220, "\\"),
-    (222, "'"),
-    (219, ("[", "{")),
-    (221, ("]", "}")),
-    (13, ""),  # "ENTER"
-    (32, ""),  # "SPACE"
-    (8, ""),  # "BACKSPACE"
-    (9, ""),  # "TAB"
-    (445, "_"),  # "UNDERSCORE"
-    (0xC0, "~"),  # Keyboard Non-US # and ~
-    (0x0D, ""),  # VK_RETURN, ENTER
-])
+char_keysmap = dict(
+    [
+        (65, ("a", "A")),
+        (66, ("b", "B")),
+        (67, ("c", "C")),
+        (68, ("d", "D")),
+        (69, ("e", "E")),
+        (70, ("f", "F")),
+        (71, ("g", "G")),
+        (72, ("h", "H")),
+        (73, ("i", "I")),
+        (74, ("j", "J")),
+        (75, ("k", "K")),
+        (76, ("l", "L")),
+        (77, ("m", "M")),
+        (78, ("n", "N")),
+        (79, ("o", "O")),
+        (80, ("p", "P")),
+        (81, ("q", "Q")),
+        (82, ("r", "R")),
+        (83, ("s", "S")),
+        (84, ("t", "T")),
+        (85, ("u", "U")),
+        (86, ("v", "V")),
+        (87, ("w", "W")),
+        (88, ("x", "X")),
+        (89, ("y", "Y")),
+        (90, ("z", "Z")),
+        (49, "1"),
+        (50, "2"),
+        (51, "3"),
+        (52, "4"),
+        (53, "5"),
+        (54, "6"),
+        (55, "7"),
+        (56, "8"),
+        (57, "9"),
+        (48, "0"),
+        (190, "."),
+        (188, ","),
+        (186, ";"),
+        (0xBD, "-"),  # VK_OEM_MINUS
+        (187, "="),
+        (191, "/"),
+        (220, "\\"),
+        (222, "'"),
+        (219, ("[", "{")),
+        (221, ("]", "}")),
+        (13, ""),  # "ENTER"
+        (32, ""),  # "SPACE"
+        (8, ""),  # "BACKSPACE"
+        (9, ""),  # "TAB"
+        (445, "_"),  # "UNDERSCORE"
+        (0xC0, "~"),  # Keyboard Non-US # and ~
+        (0x0D, ""),  # VK_RETURN, ENTER
+    ]
+)
 
 
-class KeyboardStatusWidget (QWidget):
+class KeyboardStatusWidget(QWidget):
     updateStatusSignal = pyqtSignal(list, list, list)
 
     def __init__(self):
-        super(KeyboardStatusWidget, self).__init__()
+        super().__init__()
         self.updateStatusSignal.connect(self.onUpdateStatus)
         self.hlayout = QHBoxLayout()
         self.hlayout.setAlignment(Qt.AlignLeft)
@@ -283,8 +322,7 @@ class KeyboardStatusWidget (QWidget):
         label.setContentsMargins(5, 5, 5, 5)
         label.setAlignment(Qt.AlignVCenter)
         fontsize = 10
-        label.setText("<font size='{fontsize}'>+</font>"
-                      .format(fontsize=fontsize))
+        label.setText(f"<font size='{fontsize}'>+</font>")
         item = QVBoxLayout()
         item.addWidget(label)
         self.items.append(item)
@@ -294,6 +332,7 @@ class KeyboardStatusWidget (QWidget):
         def layout_del_inner(layout):
             for i in reversed(range(layout.count())):
                 layout.itemAt(i).widget().setParent(None)
+
         for item in self.items:
             self.hlayout.removeItem(item)
             layout_del_inner(item)
@@ -304,8 +343,9 @@ class KeyboardStatusWidget (QWidget):
             label.setContentsMargins(5, 5, 5, 5)
             label.setAlignment(Qt.AlignVCenter)
             fontsize = 10
-            label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
-                          .format(text=key, fontsize=fontsize))
+            label.setText(
+                f"<font style='font-weight:bold;' size='{fontsize}'>{key}</font>"
+            )
             item = QVBoxLayout()
             item.addWidget(label)
             self.items.append(item)
@@ -319,8 +359,9 @@ class KeyboardStatusWidget (QWidget):
             label.setContentsMargins(5, 5, 5, 5)
             label.setAlignment(Qt.AlignVCenter)
             fontsize = 10
-            label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
-                          .format(text=mod, fontsize=fontsize))
+            label.setText(
+                f"<font style='font-weight:bold;' size='{fontsize}'>{mod}</font>"
+            )
             item = QVBoxLayout()
             item.addWidget(label)
             self.items.append(item)
@@ -334,8 +375,11 @@ class KeyboardStatusWidget (QWidget):
             label.setContentsMargins(5, 5, 5, 5)
             label.setAlignment(Qt.AlignVCenter)
             fontsize = 10
-            label.setText("<font style='font-weight:bold;color:darkred;' size='{fontsize}'>{text}</font>"
-                          .format(text="??(0x{:02x})".format(key), fontsize=fontsize))
+            label.setText(
+                "<font style='font-weight:bold;color:darkred;' size='{fontsize}'>{text}</font>".format(
+                    text=f"??(0x{key:02x})", fontsize=fontsize
+                )
+            )
             item = QVBoxLayout()
             item.addWidget(label)
             self.items.append(item)
@@ -343,35 +387,37 @@ class KeyboardStatusWidget (QWidget):
             if i + 1 != len(unknown_keys):
                 self.addPlusLabel()
 
+
 class DeviceEntryWidget(QFrame):
     def __init__(self, devname, deleteDeviceFunction):
         super(QFrame, self).__init__()
         self.setStyleSheet("background-color: rgb(255,255,255)")
-        deviceEntryLayout = QHBoxLayout(self)        
+        deviceEntryLayout = QHBoxLayout(self)
         self.device_name = devname
         self.deleteDeviceFunction = deleteDeviceFunction
 
-        deviceNameLabel = QLabel()        
-        deviceNameLabel.setText("<font size='5'>{}</font>".format(self.device_name))
+        deviceNameLabel = QLabel()
+        deviceNameLabel.setText(f"<font size='5'>{self.device_name}</font>")
 
         # push button option
         deleteDeviceSwitch = QPushButton()
         deleteDeviceSwitch.setIcon(QIcon("resources/delete_icon.png"))
-        deleteDeviceSwitch.setIconSize(QSize(35,35))
-        deleteDeviceSwitch.setFlat(True)        
+        deleteDeviceSwitch.setIconSize(QSize(35, 35))
+        deleteDeviceSwitch.setFlat(True)
         deleteDeviceSwitch.clicked.connect(self.sendDeleteCommand)
         deleteDeviceSwitch.setFocusPolicy(Qt.NoFocus)
 
         deviceEntryLayout.addWidget(deviceNameLabel)
         deviceEntryLayout.addStretch()
         deviceEntryLayout.addWidget(deleteDeviceSwitch)
-    
+
     def sendDeleteCommand(self):
         self.deleteDeviceFunction(self.device_name)
 
+
 class DeviceListWidget(QFrame):
     def __init__(self, deleteDeviceFunction):
-        super(QFrame, self).__init__()        
+        super(QFrame, self).__init__()
 
         self.deviceListLayout = QVBoxLayout(self)
 
@@ -384,11 +430,11 @@ class DeviceListWidget(QFrame):
         deviceEntry = DeviceEntryWidget(devname, self.deleteDeviceFunction)
         self.deviceWidgetsList.append(deviceEntry)
 
-        self.deviceListLayout.insertWidget(len(self.deviceWidgetsList)-1, deviceEntry)
-        
+        self.deviceListLayout.insertWidget(len(self.deviceWidgetsList) - 1, deviceEntry)
+
         if self.deviceListLayout.count() == 1:
             self.deviceListLayout.addStretch()
-    
+
     def clearList(self):
         while self.deviceListLayout.count():
             item = self.deviceListLayout.takeAt(0)
@@ -398,8 +444,9 @@ class DeviceListWidget(QFrame):
                 widget.deleteLater()
         self.deviceWidgetsList = []
 
-class Window (QMainWindow):
-    showErrorMessageSignal = pyqtSignal(str)    
+
+class Window(QMainWindow):
+    showErrorMessageSignal = pyqtSignal(str)
     addDeviceListSignal = pyqtSignal(str)
     clearDeviceListSignal = pyqtSignal()
     switchDeviceSignal = pyqtSignal()
@@ -410,12 +457,12 @@ class Window (QMainWindow):
 
     def __init__(self, args, config):
         self.devList = []
-        super(Window, self).__init__()
+        super().__init__()
         clientconfig = config["client"]
 
         self.setStyleSheet("QPushButton {font: 18px}")
         self.app_obj = QApplication.instance()
-        
+
         self.showErrorMessageSignal.connect(self.showErrorMessage)
         self._keyboard_disabled = False
         self._mouse_disabled = True
@@ -425,13 +472,15 @@ class Window (QMainWindow):
         self._unknown_keys = []
         self._keyboard_toggle_key = clientconfig.get("keyboard_togglekey", "A")
         self._keyboard_toggle_modifiers = clientconfig.get(
-            "keyboard_togglemods", "LALT").split(",")
+            "keyboard_togglemods", "LALT"
+        ).split(",")
         self._mouse_toggle_key = clientconfig.get("mouse_togglekey", "S")
         self._mouse_toggle_modifiers = clientconfig.get(
-            "mouse_togglemods", "LALT").split(",")
+            "mouse_togglemods", "LALT"
+        ).split(",")
         self._last_mouse_pos = None
         self._last_mouse_calltime = 0
-        self._curBleDeviceName = '---'
+        self._curBleDeviceName = "---"
         self._macroBuffer = []
         self._recordMacroStatus = False
 
@@ -442,18 +491,20 @@ class Window (QMainWindow):
         host = clientconfig.get("host", None)
         port = clientconfig.get("port", None)
         if url is None and not (host is None and port is None):
-            self.client = RelayKeysClient(host=host, port=port,
-                                          username=clientconfig.get(
-                                              "username", None),
-                                          password=clientconfig.get("password", None))
+            self.client = RelayKeysClient(
+                host=host,
+                port=port,
+                username=clientconfig.get("username", None),
+                password=clientconfig.get("password", None),
+            )
         else:
             if url is None:
                 url = "http://127.0.0.1:5383/"
             self.client = RelayKeysClient(url=url)
-        
+
         # loading ketmap for supporting type command in macros
         if "cli" not in config.sections():
-            config["cli"] = {}  
+            config["cli"] = {}
         if not load_keymap_file(config["cli"]):
             return
 
@@ -478,34 +529,33 @@ class Window (QMainWindow):
         dockWidget.setStyleSheet("QPushButton {min-width: 100px; min-height: 100px;}")
 
         capturePageSwtich = QPushButton()
-        capturePageSwtich.setText('Capture')
+        capturePageSwtich.setText("Capture")
         capturePageSwtich.clicked.connect(lambda: self.switchTab(0))
         capturePageSwtich.setFocusPolicy(Qt.NoFocus)
 
         devicePageSwtich = QPushButton()
-        devicePageSwtich.setText('Devices')
-        devicePageSwtich.clicked.connect(lambda: self.switchTab(1))        
+        devicePageSwtich.setText("Devices")
+        devicePageSwtich.clicked.connect(lambda: self.switchTab(1))
         devicePageSwtich.setFocusPolicy(Qt.NoFocus)
-        
-        macroPageSwtich = QPushButton()
-        macroPageSwtich.setText('Macro')
-        macroPageSwtich.clicked.connect(lambda: self.switchTab(2))        
-        macroPageSwtich.setFocusPolicy(Qt.NoFocus)
-        
-        connectionPageSwtich = QPushButton()
-        connectionPageSwtich.setText('Connection')
-        connectionPageSwtich.clicked.connect(lambda: self.switchTab(3))        
-        connectionPageSwtich.setFocusPolicy(Qt.NoFocus)        
 
+        macroPageSwtich = QPushButton()
+        macroPageSwtich.setText("Macro")
+        macroPageSwtich.clicked.connect(lambda: self.switchTab(2))
+        macroPageSwtich.setFocusPolicy(Qt.NoFocus)
+
+        connectionPageSwtich = QPushButton()
+        connectionPageSwtich.setText("Connection")
+        connectionPageSwtich.clicked.connect(lambda: self.switchTab(3))
+        connectionPageSwtich.setFocusPolicy(Qt.NoFocus)
 
         dockLayout.addWidget(capturePageSwtich)
         dockLayout.addWidget(devicePageSwtich)
         dockLayout.addWidget(macroPageSwtich)
-        dockLayout.addWidget(connectionPageSwtich)        
-        dockLayout.addStretch()        
+        dockLayout.addWidget(connectionPageSwtich)
+        dockLayout.addStretch()
 
         # Capture tab
-        captureTab = QWidget()        
+        captureTab = QWidget()
         captureTabLayout = QVBoxLayout(captureTab)
 
         captureTab.setStyleSheet("QPushButton {min-width: 250px; min-height: 50px;}")
@@ -513,24 +563,30 @@ class Window (QMainWindow):
         self.deviceNameCaptureTab = QLabel()
         # mouse and keyboard controls layout
         inputControlBar = QGridLayout()
-        
-        # keyboard section        
+
+        # keyboard section
         self.keyboardControlLabel = QLabel()
-        
-        keyboardToggleButton = QPushButton()        
-        keyboardToggleButton.setText('Toggle: {}'.format(self.getShortcutText(
-            self._keyboard_toggle_key, self._keyboard_toggle_modifiers)))
-        keyboardToggleButton.setToolTip('Keyboard disable toggle')
+
+        keyboardToggleButton = QPushButton()
+        keyboardToggleButton.setText(
+            "Toggle: {}".format(
+                self.getShortcutText(
+                    self._keyboard_toggle_key, self._keyboard_toggle_modifiers
+                )
+            )
+        )
+        keyboardToggleButton.setToolTip("Keyboard disable toggle")
         keyboardToggleButton.clicked.connect(self.didClickKeyboardToggle)
-        keyboardToggleButton.setFocusPolicy(Qt.NoFocus)       
+        keyboardToggleButton.setFocusPolicy(Qt.NoFocus)
 
         # mouse section
         self.mouseControlLabel = QLabel()
 
         mouseToggleButton = QPushButton()
-        mouseToggleButton.setText('Toggle: {}'.format(
-            self.getShortcutText(self._mouse_toggle_key, self._mouse_toggle_modifiers)))
-        mouseToggleButton.setToolTip('Mouse disable toggle')        
+        mouseToggleButton.setText(
+            f"Toggle: {self.getShortcutText(self._mouse_toggle_key, self._mouse_toggle_modifiers)}"
+        )
+        mouseToggleButton.setToolTip("Mouse disable toggle")
         mouseToggleButton.clicked.connect(self.didClickMouseToggle)
         mouseToggleButton.setFocusPolicy(Qt.NoFocus)
 
@@ -538,19 +594,19 @@ class Window (QMainWindow):
 
         inputControlBar.addWidget(self.keyboardControlLabel, 0, 0)
         inputControlBar.addWidget(self.mouseControlLabel, 0, 1)
-        inputControlBar.addWidget(keyboardToggleButton, 1, 0)        
+        inputControlBar.addWidget(keyboardToggleButton, 1, 0)
         inputControlBar.addWidget(mouseToggleButton, 1, 1)
-        
+
         captureTabLayout.addWidget(self.deviceNameCaptureTab)
-        captureTabLayout.addLayout(inputControlBar)        
-        
+        captureTabLayout.addLayout(inputControlBar)
 
         self.keyboardStatusWidget = KeyboardStatusWidget()
         captureTabLayout.addWidget(self.keyboardStatusWidget)
 
         try:
             self._show_last_n_chars = int(
-                clientconfig.get("show_last_n_chars", "20"), 10)
+                clientconfig.get("show_last_n_chars", "20"), 10
+            )
         except ValueError:
             self._show_last_n_chars = 0
 
@@ -565,33 +621,36 @@ class Window (QMainWindow):
             p.setColor(label.backgroundRole(), Qt.white)
             label.setPalette(p)
             fontsize = 10
-            label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
-                          .format(text="", fontsize=fontsize))
-            captureTabLayout.addWidget(label)             
+            label.setText(
+                "<font style='font-weight:bold;' size='{fontsize}'>{text}</font>".format(
+                    text="", fontsize=fontsize
+                )
+            )
+            captureTabLayout.addWidget(label)
 
         # macro controls tab
         macroTab = QWidget()
         macroTabLayout = QVBoxLayout(macroTab)
         macroTab.setStyleSheet("QPushButton {min-width: 250px; min-height: 50px;}")
-        
+
         self.macroRecordSwitch = QPushButton()
-        self.macroRecordSwitch.setText('Start recording macro')
-        self.macroRecordSwitch.setToolTip('Start recording new macro')
+        self.macroRecordSwitch.setText("Start recording macro")
+        self.macroRecordSwitch.setToolTip("Start recording new macro")
         self.macroRecordSwitch.clicked.connect(self.toggleMacroRecord)
         self.macroRecordSwitch.setFocusPolicy(Qt.NoFocus)
-        
+
         replayMacroSwitch = QPushButton()
-        replayMacroSwitch.setText('Replay last macro')
-        replayMacroSwitch.setToolTip('Replay last macro')
+        replayMacroSwitch.setText("Replay last macro")
+        replayMacroSwitch.setToolTip("Replay last macro")
         replayMacroSwitch.clicked.connect(self.replayLastMacro)
         replayMacroSwitch.setFocusPolicy(Qt.NoFocus)
-        
+
         executeMacroSwitch = QPushButton()
-        executeMacroSwitch.setText('Run macro file')
-        executeMacroSwitch.setToolTip('Run macro file')
+        executeMacroSwitch.setText("Run macro file")
+        executeMacroSwitch.setToolTip("Run macro file")
         executeMacroSwitch.clicked.connect(self.loadMacroFile)
         executeMacroSwitch.setFocusPolicy(Qt.NoFocus)
-                
+
         self.macroStatusLabel = QLabel()
         self.macroStatusLabel.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
         self.updateMacroStatusLabel("Idle")
@@ -603,11 +662,11 @@ class Window (QMainWindow):
         macroTabLayout.addWidget(executeMacroSwitch)
         macroTabLayout.addWidget(self.macroStatusLabel)
 
-        #connection tab
+        # connection tab
         connectionTab = QWidget()
         connectionTabLayout = QVBoxLayout(connectionTab)
 
-        connectionTab.setStyleSheet("QPushButton {min-width: 250px; min-height: 50px;}")        
+        connectionTab.setStyleSheet("QPushButton {min-width: 250px; min-height: 50px;}")
 
         # daemon controls section
         daemonControlBar = QGridLayout()
@@ -617,17 +676,16 @@ class Window (QMainWindow):
 
         self.setDaemonLabelSignal.connect(self.daemonStatusLabel.setText)
         self.setDongleLabelSignal.connect(self.dongleStatusLabel.setText)
-        
 
         daemonControlBar.addWidget(self.daemonStatusLabel, 0, 0)
         daemonControlBar.addWidget(self.dongleStatusLabel, 0, 1)
 
         daemonModeSwitch = QPushButton()
-        daemonModeSwitch.setText('Switch mode')
-        daemonModeSwitch.setToolTip('Switch daemon mode')
+        daemonModeSwitch.setText("Switch mode")
+        daemonModeSwitch.setToolTip("Switch daemon mode")
         daemonModeSwitch.clicked.connect(self.switchDaemonMode)
         daemonModeSwitch.setFocusPolicy(Qt.NoFocus)
-        daemonControlBar.addWidget(daemonModeSwitch, 1, 0)        
+        daemonControlBar.addWidget(daemonModeSwitch, 1, 0)
 
         self.updateStatusTimer = QTimer()
         self.updateStatusTimer.timeout.connect(self.updateStatusCallback)
@@ -635,7 +693,7 @@ class Window (QMainWindow):
         self.updateStatusTimer.start()
 
         self.updateStatusCallback()
-      
+
         connectionTabLayout.addLayout(daemonControlBar)
         connectionTabLayout.addStretch()
 
@@ -643,26 +701,25 @@ class Window (QMainWindow):
         devicesTab = QWidget()
         devicesTabLayout = QVBoxLayout(devicesTab)
 
-        devicesTab.setStyleSheet("QPushButton {min-width: 100px; min-height: 50px;}")        
+        devicesTab.setStyleSheet("QPushButton {min-width: 100px; min-height: 50px;}")
 
         # Current device controls section
         bleControlBar = QGridLayout()
 
-        self.deviceNameConnTab = QLabel()   
-        
+        self.deviceNameConnTab = QLabel()
+
         self.updateDeviceLabelSignal.connect(self.updateDeviceNameLabel)
         self.updateDeviceNameLabel(self._curBleDeviceName)
         self.deviceNameConnTab.setAlignment(Qt.AlignBottom)
 
-        
         bleConnectionSwitch = QPushButton()
-        bleConnectionSwitch.setText('Switch device')
-        bleConnectionSwitch.setToolTip('Swicth ble device connection')
+        bleConnectionSwitch.setText("Switch device")
+        bleConnectionSwitch.setToolTip("Swicth ble device connection")
         bleConnectionSwitch.clicked.connect(self.sendBleToggleCommand)
         bleConnectionSwitch.setFocusPolicy(Qt.NoFocus)
 
-        self.switchDeviceSignal.connect(self.sendBleToggleCommand)        
-       
+        self.switchDeviceSignal.connect(self.sendBleToggleCommand)
+
         bleControlBar.addWidget(self.deviceNameConnTab, 0, 0, 1, 2)
         bleControlBar.addWidget(bleConnectionSwitch, 1, 0)
 
@@ -675,7 +732,7 @@ class Window (QMainWindow):
 
         scrollAreaContainer = QScrollArea()
         scrollAreaContainer.setFrameStyle(QFrame.WinPanel | QFrame.Sunken)
-        scrollAreaContainer.setLineWidth(3)        
+        scrollAreaContainer.setLineWidth(3)
         scrollAreaContainer.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scrollAreaContainer.setWidget(self.deviceList)
         scrollAreaContainer.setWidgetResizable(True)
@@ -684,23 +741,23 @@ class Window (QMainWindow):
         deviceListControlsBar = QVBoxLayout()
 
         addDeviceSwitch = QPushButton()
-        addDeviceSwitch.setText('Add device')
-        addDeviceSwitch.setToolTip('Add new device to list')
+        addDeviceSwitch.setText("Add device")
+        addDeviceSwitch.setToolTip("Add new device to list")
         addDeviceSwitch.clicked.connect(self.addDeviceButtonClicked)
         addDeviceSwitch.setFocusPolicy(Qt.NoFocus)
 
         refreshListSwitch = QPushButton()
-        refreshListSwitch.setText('Refresh list')
-        refreshListSwitch.setToolTip('Refresh devices list')
+        refreshListSwitch.setText("Refresh list")
+        refreshListSwitch.setToolTip("Refresh devices list")
         refreshListSwitch.clicked.connect(self.refreshDeviceListButtonClicked)
         refreshListSwitch.setFocusPolicy(Qt.NoFocus)
 
         resetListSwitch = QPushButton()
-        resetListSwitch.setText('Reset device list')
-        resetListSwitch.setToolTip('Remove all devices from list')
+        resetListSwitch.setText("Reset device list")
+        resetListSwitch.setToolTip("Remove all devices from list")
         resetListSwitch.clicked.connect(self.resetDeviceListButtonClicked)
         resetListSwitch.setFocusPolicy(Qt.NoFocus)
-        
+
         deviceListControlsBar.addWidget(addDeviceSwitch)
         deviceListControlsBar.addWidget(refreshListSwitch)
         deviceListControlsBar.addWidget(resetListSwitch)
@@ -717,12 +774,12 @@ class Window (QMainWindow):
         self.tabLayout.addWidget(captureTab)
         self.tabLayout.addWidget(devicesTab)
         self.tabLayout.addWidget(macroTab)
-        self.tabLayout.addWidget(connectionTab)       
+        self.tabLayout.addWidget(connectionTab)
 
-        mainWidget = QWidget(self)        
+        mainWidget = QWidget(self)
         mainLayout = QHBoxLayout(mainWidget)
         mainLayout.addWidget(dockWidget)
-        mainLayout.addLayout(self.tabLayout)  
+        mainLayout.addLayout(self.tabLayout)
 
         self.setCentralWidget(mainWidget)
 
@@ -732,8 +789,8 @@ class Window (QMainWindow):
         self.resize(625, 435)
 
         # Help Menu
-        userMenu = self.menuBar()        
-        helpMenu = userMenu.addMenu("&Help") 
+        userMenu = self.menuBar()
+        helpMenu = userMenu.addMenu("&Help")
 
         helpMenuGitHubDoc = QAction("Git Hub Docs", self)
         helpMenuGitHubDoc.triggered.connect(self.openGitHubUrl)
@@ -742,11 +799,11 @@ class Window (QMainWindow):
         helpMenuAceCentre = QAction("Ace Centre", self)
         helpMenuAceCentre.triggered.connect(self.openAceCentreUrl)
         helpMenu.addAction(helpMenuAceCentre)
-        
-        self.send_action('ble_cmd', 'keyboard_release')
 
-        self.send_action('ble_cmd', 'devname')
-        self.send_action('ble_cmd', 'devlist')
+        self.send_action("ble_cmd", "keyboard_release")
+
+        self.send_action("ble_cmd", "devname")
+        self.send_action("ble_cmd", "devlist")
 
     def didShowWindow(self):
         pass
@@ -757,11 +814,11 @@ class Window (QMainWindow):
 
     @pyqtSlot()
     def readBleDeviceName(self):
-        self.send_action('ble_cmd', 'devname')
+        self.send_action("ble_cmd", "devname")
 
     @pyqtSlot()
     def sendBleToggleCommand(self):
-        self.send_action('ble_cmd', 'switch')
+        self.send_action("ble_cmd", "switch")
 
     @pyqtSlot()
     def didClickKeyboardToggle(self):
@@ -779,10 +836,10 @@ class Window (QMainWindow):
         self._recordMacroStatus = not self._recordMacroStatus
         if self._recordMacroStatus:
             self.updateMacroStatusLabel("Recording new macro")
-            self.macroRecordSwitch.setText('Stop recording macro')
+            self.macroRecordSwitch.setText("Stop recording macro")
             self._macroBuffer = []
         else:
-            self.macroRecordSwitch.setText('Start recording macro')
+            self.macroRecordSwitch.setText("Start recording macro")
             self.saveMacro()
             self.updateMacroStatusLabel("Idle")
 
@@ -792,7 +849,7 @@ class Window (QMainWindow):
             return
 
         # remember previous states and disable sending keyboard and mouse actions while executing macro
-        keyboard_state_tmp = self._keyboard_disabled    
+        keyboard_state_tmp = self._keyboard_disabled
         mouse_state_tmp = self._mouse_disabled
         self._keyboard_disabled = True
         self._mouse_disabled = True
@@ -812,30 +869,31 @@ class Window (QMainWindow):
             return
 
         # remember previous states and disable sending keyboard and mouse actions while executing macro
-        keyboard_state_tmp = self._keyboard_disabled    
+        keyboard_state_tmp = self._keyboard_disabled
         mouse_state_tmp = self._mouse_disabled
         self._keyboard_disabled = True
         self._mouse_disabled = True
 
-        file_path = QFileDialog.getOpenFileName(self, 'Open File', macros_folder, "Text files (*.txt)")[0]
-        file_name = file_path[file_path.rfind('/')+1:]
+        file_path = QFileDialog.getOpenFileName(
+            self, "Open File", macros_folder, "Text files (*.txt)"
+        )[0]
+        file_name = file_path[file_path.rfind("/") + 1 :]
 
-        if file_path != '':            
+        if file_path != "":
             self._macroBuffer = []
-            with open(file_path, "r") as file:
+            with open(file_path) as file:
                 for line in file.readlines():
                     cmd = line.strip("\n")
                     if cmd == "":
                         continue
                     else:
                         self._macroBuffer.append(cmd)
-            
-            self.updateMacroStatusLabel("Running {}".format(file_name))
+
+            self.updateMacroStatusLabel(f"Running {file_name}")
             self.app_obj.processEvents()
             self.executeMacroBuffer()
             self.updateMacroStatusLabel("Idle")
-            
-        
+
         # return previous states
         self._keyboard_disabled = keyboard_state_tmp
         self._mouse_disabled = mouse_state_tmp
@@ -844,81 +902,88 @@ class Window (QMainWindow):
     def switchDaemonMode(self):
         if self.dongle_status == "Connected":
             self.client_send_action("ble_cmd", "switch_mode")
-        
+
         self.client_send_action("daemon", "switch_mode")
         self.updateStatusCallback()
 
     @pyqtSlot()
-    def updateStatusCallback(self):        
+    def updateStatusCallback(self):
         self.send_action("daemon", "get_mode")
         self.send_action("daemon", "dongle_status")
-        self.send_action('ble_cmd', 'devname')
+        self.send_action("ble_cmd", "devname")
 
     def getShortcutText(self, key, modifiers):
-        return " + ".join((key, ) + tuple(modifiers))
+        return " + ".join((key,) + tuple(modifiers))
 
     def updateMacroStatusLabel(self, text):
-        self.macroStatusLabel.setText("<font size='5' style='font-weight:bold;'>Macro status: </font><font size='5'>{}</font>".format(text))
+        self.macroStatusLabel.setText(
+            f"<font size='5' style='font-weight:bold;'>Macro status: </font><font size='5'>{text}</font>"
+        )
 
     def updateDeviceNameLabel(self, text):
-        self.deviceNameCaptureTab.setText("<font size='5' style='font-weight:bold;'>Cur Device: </font><font size='5'>{}</font>".format(text))
-        self.deviceNameConnTab.setText("<font size='5' style='font-weight:bold;'>Cur Device: </font><font size='5'>{}</font>".format(text))
+        self.deviceNameCaptureTab.setText(
+            f"<font size='5' style='font-weight:bold;'>Cur Device: </font><font size='5'>{text}</font>"
+        )
+        self.deviceNameConnTab.setText(
+            f"<font size='5' style='font-weight:bold;'>Cur Device: </font><font size='5'>{text}</font>"
+        )
 
-    #Menu Functions
+    # Menu Functions
 
     def openGitHubUrl(self):
-        url = QUrl('https://acecentre.github.io/RelayKeys/')
+        url = QUrl("https://acecentre.github.io/RelayKeys/")
         if not QDesktopServices.openUrl(url):
-            QMessageBox.warning(self, 'Open Url', 'Could not open url')
+            QMessageBox.warning(self, "Open Url", "Could not open url")
 
     def openAceCentreUrl(self):
-        url = QUrl('https://acecentre.org.uk/')
+        url = QUrl("https://acecentre.org.uk/")
         if not QDesktopServices.openUrl(url):
-            QMessageBox.warning(self, 'Open Url', 'Could not open url')
-        
+            QMessageBox.warning(self, "Open Url", "Could not open url")
+
     def resetDeviceListButtonClicked(self):
-        self.send_action('ble_cmd', 'devreset')
+        self.send_action("ble_cmd", "devreset")
 
     def refreshDeviceListButtonClicked(self):
-        self.send_action('ble_cmd', 'devlist')
+        self.send_action("ble_cmd", "devlist")
 
     def removeDeviceButtonClicked(self):
         action = self.sender()
-        self.send_action('ble_cmd', 'devremove=' + action.text()[2:])
-    
+        self.send_action("ble_cmd", "devremove=" + action.text()[2:])
+
     def removeDeviceCommand(self, devname):
-        self.send_action('ble_cmd', 'devremove=' + devname[2:])
+        self.send_action("ble_cmd", "devremove=" + devname[2:])
 
     def addDeviceUpdateDialog(self, found):
 
-        self.send_action('ble_cmd', 'devlist')
+        self.send_action("ble_cmd", "devlist")
 
         if self.oldDevList != self.devList and len(self.devList):
-            self.BLEStatusLabel.setText("New Device Added") 
-            
+            self.BLEStatusLabel.setText("New Device Added")
+
             self.addBLEDeviceOK.setEnabled(True)
             self.workerBLE.stop()
             self.BLEthread.quit()
             self.BLEthread.wait()
-            self.send_action('ble_cmd', 'devname')
+            self.send_action("ble_cmd", "devname")
 
         if self.addBLEDialog.isVisible() == False:
             self.workerBLE.stop()
             self.BLEthread.quit()
             self.BLEthread.wait()
-            self.send_action('ble_cmd', 'devname')
+            self.send_action("ble_cmd", "devname")
 
     def addDeviceButtonClicked(self):
 
         class BLEWorker(QObject):
             finished = pyqtSignal()
             progress = pyqtSignal(int)
+
             def __init__(self):
-                super(BLEWorker, self).__init__()
+                super().__init__()
                 self._isRunning = True
 
             def run(self):
-                
+
                 while self._isRunning:
                     sleep(1)
                     self.progress.emit(2)
@@ -926,13 +991,13 @@ class Window (QMainWindow):
             def stop(self):
                 self._isRunning = False
 
-        self.send_action('ble_cmd', 'devadd')
+        self.send_action("ble_cmd", "devadd")
 
         self.oldDevList = self.devList
-        self.devList = []        
+        self.devList = []
 
         self.addBLEDialog = QDialog(self)
-        
+
         self.addBLEDialog.setWindowTitle("Add New BLE Device")
 
         self.BLElayout = QVBoxLayout()
@@ -949,7 +1014,7 @@ class Window (QMainWindow):
         self.addBLEDeviceCancel = QPushButton()
         self.addBLEDeviceCancel.setText("Cancel")
         self.addBLEDeviceCancel.clicked.connect(self.addBLEDialog.reject)
-        
+
         bleControlBar.addWidget(self.addBLEDeviceOK)
         bleControlBar.addWidget(self.addBLEDeviceCancel)
 
@@ -963,7 +1028,7 @@ class Window (QMainWindow):
 
         self.BLEthread = QThread()
         self.workerBLE = BLEWorker()
-        
+
         self.workerBLE.moveToThread(self.BLEthread)
 
         self.BLEthread.started.connect(self.workerBLE.run)
@@ -971,25 +1036,35 @@ class Window (QMainWindow):
         self.workerBLE.finished.connect(self.workerBLE.deleteLater)
         self.BLEthread.finished.connect(self.BLEthread.deleteLater)
         self.workerBLE.progress.connect(self.addDeviceUpdateDialog)
-        
+
         self.addBLEDeviceOK.setEnabled(False)
 
         self.BLEthread.start()
-        
-        self.BLEthread.finished.connect(
-            lambda: self.addBLEDeviceOK.setEnabled(True)
-        )
+
+        self.BLEthread.finished.connect(lambda: self.addBLEDeviceOK.setEnabled(True))
 
         self.addBLEDialog.exec()
 
     def updateTogglesStatus(self):
         fontsize = 5
-        self.keyboardControlLabel.setText("<font style='color: {color}; font-weight:bold;' size='{fontsize}'>{text}</font>"
-                                          .format(text="Keyboard Disabled" if self._keyboard_disabled else "Keyboard Enabled", fontsize=fontsize,
-                                                  color="#777" if self._keyboard_disabled else "#222"))
-        self.mouseControlLabel.setText("<font style='color: {color}; font-weight:bold;' size='{fontsize}'>{text}</font>"
-                                       .format(text="Mouse Disabled" if self._mouse_disabled else "Mouse Enabled", fontsize=fontsize,
-                                               color="#777" if self._mouse_disabled else "#222"))
+        self.keyboardControlLabel.setText(
+            "<font style='color: {color}; font-weight:bold;' size='{fontsize}'>{text}</font>".format(
+                text=(
+                    "Keyboard Disabled"
+                    if self._keyboard_disabled
+                    else "Keyboard Enabled"
+                ),
+                fontsize=fontsize,
+                color="#777" if self._keyboard_disabled else "#222",
+            )
+        )
+        self.mouseControlLabel.setText(
+            "<font style='color: {color}; font-weight:bold;' size='{fontsize}'>{text}</font>".format(
+                text="Mouse Disabled" if self._mouse_disabled else "Mouse Enabled",
+                fontsize=fontsize,
+                color="#777" if self._mouse_disabled else "#222",
+            )
+        )
 
     def updateShowLastChars(self):
         label = self._show_last_n_chars_label
@@ -997,9 +1072,10 @@ class Window (QMainWindow):
             return
         fontsize = 10
         text = " ".join(self._last_n_chars)
-        label.setText("<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
-                      .format(text=text, fontsize=fontsize))
-    
+        label.setText(
+            f"<font style='font-weight:bold;' size='{fontsize}'>{text}</font>"
+        )
+
     """
     def createTrayIcon(self):
         self.trayIconMenu = QMenu(self)
@@ -1023,15 +1099,20 @@ class Window (QMainWindow):
         self._keyboard_listener.stop()
         self._mouse_listener.stop()
         sleep(0.2)
-        self.send_action('ble_cmd', 'keyboard_release')
+        self.send_action("ble_cmd", "keyboard_release")
         sleep(0.2)
         self._client_queue.put(("EXIT",))
-        
 
     def initHooks(self):
-        self._keyboard_listener = keyboard.Listener(on_press=self.onKeyboardDown, on_release=self.onKeyboardUp)
+        self._keyboard_listener = keyboard.Listener(
+            on_press=self.onKeyboardDown, on_release=self.onKeyboardUp
+        )
         self._keyboard_listener.start()
-        self._mouse_listener = mouse.Listener(on_move=self.mouse_on_move, on_click=self.mouse_on_click, on_scroll=self.mouse_on_scroll)
+        self._mouse_listener = mouse.Listener(
+            on_move=self.mouse_on_move,
+            on_click=self.mouse_on_click,
+            on_scroll=self.mouse_on_scroll,
+        )
         self._mouse_listener.start()
 
     def showErrorMessage(self, msg):
@@ -1054,21 +1135,21 @@ class Window (QMainWindow):
             except EmptyQueue:
                 if len(inputlist) == 0:
                     continue
-                have_exit = len(
-                    list(filter(lambda a: a[0] == 'EXIT', inputlist))) > 0
+                have_exit = len(list(filter(lambda a: a[0] == "EXIT", inputlist))) > 0
                 if have_exit:
                     break
                 # expecting the rest are actions
                 # merge mousemove actions
-                mousemove_list = tuple(
-                    filter(lambda a: a[0] == 'mousemove', inputlist))
+                mousemove_list = tuple(filter(lambda a: a[0] == "mousemove", inputlist))
                 if len(mousemove_list) > 1:
-                    inputlist = list(
-                        filter(lambda a: a[0] != 'mousemove', inputlist))
-                    mousemove = ['mousemove']
+                    inputlist = list(filter(lambda a: a[0] != "mousemove", inputlist))
+                    mousemove = ["mousemove"]
                     for i in range(1, 5):
                         mousemove.append(
-                            sum(map(lambda a: a[i] if len(a) > i else 0, mousemove_list)))
+                            sum(
+                                map(lambda a: a[i] if len(a) > i else 0, mousemove_list)
+                            )
+                        )
                     inputlist.append(tuple(mousemove))
                 # send actions
                 if not self.client_send_actions(inputlist):
@@ -1087,67 +1168,96 @@ class Window (QMainWindow):
             for action in actions:
                 if action[0] == "ble_cmd":
                     ble_cmd_ret = self.client_send_action("ble_cmd", action[1])
-                    if ble_cmd_ret == False or  ble_cmd_ret == "FAIL" or ble_cmd_ret == "TIMEOUT" or ble_cmd_ret == "No connection with dongle":
-                        continue        
+                    if (
+                        ble_cmd_ret == False
+                        or ble_cmd_ret == "FAIL"
+                        or ble_cmd_ret == "TIMEOUT"
+                        or ble_cmd_ret == "No connection with dongle"
+                    ):
+                        continue
 
                     if action[1] == "devname":
                         self._curBleDeviceName = ble_cmd_ret
                         self.updateDeviceLabelSignal.emit(self._curBleDeviceName)
                     elif action[1] == "devlist":
                         self.clearDeviceListSignal.emit()
-                        self.devList = []                                                        
+                        self.devList = []
                         for device in ble_cmd_ret:
-                            if 'Device found in list - ' not in device \
-                                and 'Disconnected - Device already present in list' not in device \
-                                and 'ERROR:' not in device \
-                                and 'OK' not in device \
-                                and 'SUCCESS' not in device:
+                            if (
+                                "Device found in list - " not in device
+                                and "Disconnected - Device already present in list"
+                                not in device
+                                and "ERROR:" not in device
+                                and "OK" not in device
+                                and "SUCCESS" not in device
+                            ):
                                 self.addDeviceListSignal.emit(device)
                                 self.devList.append(device)
                     elif action[1] == "devreset":
-                            self.clearDeviceListSignal.emit()
-                            self.devList = []                    
-                    elif 'devremove' in action[1]:                        
-                        self.send_action('ble_cmd', 'devlist')
-                        self.send_action('ble_cmd', 'devname')
-                    
+                        self.clearDeviceListSignal.emit()
+                        self.devList = []
+                    elif "devremove" in action[1]:
+                        self.send_action("ble_cmd", "devlist")
+                        self.send_action("ble_cmd", "devname")
 
-                elif action[0] == "daemon":                    
+                elif action[0] == "daemon":
                     daemon_ret = self.client_send_action("daemon", action[1])
-                    if daemon_ret == False or daemon_ret == "FAIL" or daemon_ret == "TIMEOUT" or daemon_ret == "No connection with dongle":
-                        continue                    
-                    
+                    if (
+                        daemon_ret == False
+                        or daemon_ret == "FAIL"
+                        or daemon_ret == "TIMEOUT"
+                        or daemon_ret == "No connection with dongle"
+                    ):
+                        continue
+
                     if action[1] == "get_mode":
                         self.daemon_mode = daemon_ret
-                        self.setDaemonLabelSignal.emit("<font size='5' style='font-weight:bold;'>Daemon: </font><font size='5'>{0}.</font>".format(self.daemon_mode))                        
+                        self.setDaemonLabelSignal.emit(
+                            f"<font size='5' style='font-weight:bold;'>Daemon: </font><font size='5'>{self.daemon_mode}.</font>"
+                        )
                     elif action[1] == "dongle_status":
-                        self.dongle_status = daemon_ret                        
-                        self.setDongleLabelSignal.emit("<font size='5' style='font-weight:bold;'>Dongle: </font><font size='5'>{0}.</font>".format(self.dongle_status))                        
+                        self.dongle_status = daemon_ret
+                        self.setDongleLabelSignal.emit(
+                            f"<font size='5' style='font-weight:bold;'>Dongle: </font><font size='5'>{self.dongle_status}.</font>"
+                        )
                         if self.dongle_status != "Connected":
                             self._curBleDeviceName = "NONE"
                             self.updateDeviceLabelSignal.emit(self._curBleDeviceName)
-            
+
                 else:
                     filtred_actions.append(action)
 
             if len(filtred_actions) == 0:
                 return True
-                            
+
             ret = self.client.actions(filtred_actions)
-            if 'result' not in ret:
-                logging.error("actions {} response error: {}".format(
-                    ", ".join(map(str, actions)), ret.get("error", "undefined")))
+            if "result" not in ret:
+                logging.error(
+                    "actions {} response error: {}".format(
+                        ", ".join(map(str, actions)), ret.get("error", "undefined")
+                    )
+                )
                 self.showErrorMessageSignal.emit("Failed to send the message!")
             else:
-                if ret["result"] == "FAIL" or ret["result"] == "TIMEOUT" or ret["result"] == "No connection with dongle":
-                    return False               
+                if (
+                    ret["result"] == "FAIL"
+                    or ret["result"] == "TIMEOUT"
+                    or ret["result"] == "No connection with dongle"
+                ):
+                    return False
 
-                logging.info("actions {} response: {}".format(
-                    ", ".join(map(str, filtred_actions)), ret["result"]))
+                logging.info(
+                    "actions {} response: {}".format(
+                        ", ".join(map(str, filtred_actions)), ret["result"]
+                    )
+                )
                 return True
         except:
-            logging.error("actions {} raise: {}".format(
-                ", ".join(map(str, actions)), traceback.format_exc()))
+            logging.error(
+                "actions {} raise: {}".format(
+                    ", ".join(map(str, actions)), traceback.format_exc()
+                )
+            )
             self.showErrorMessageSignal.emit("Failed to send the message!")
         return False
 
@@ -1155,33 +1265,43 @@ class Window (QMainWindow):
         try:
             func = getattr(self.client, action, None)
             if func == None:
-                raise ValueError("unknown action: {}".format(action))
+                raise ValueError(f"unknown action: {action}")
             ret = func(*args)
-            if 'result' not in ret:
-                logging.error("{} ({}) response error: {}".format(
-                    action, ", ".join(map(str, args)), ret.get("error", "undefined")))
+            if "result" not in ret:
+                logging.error(
+                    "{} ({}) response error: {}".format(
+                        action, ", ".join(map(str, args)), ret.get("error", "undefined")
+                    )
+                )
                 # self.showErrorMessageSignal.emit("Failed to send the message!")
             else:
-                logging.info("{} ({}) response: {}".format(
-                    action, ", ".join(map(str, args)), ret["result"]))
+                logging.info(
+                    "{} ({}) response: {}".format(
+                        action, ", ".join(map(str, args)), ret["result"]
+                    )
+                )
                 return ret["result"]
         except:
-            logging.error("{} ({}) raise: {}".format(
-                action, ", ".join(map(str, args)), traceback.format_exc()))
+            logging.error(
+                "{} ({}) raise: {}".format(
+                    action, ", ".join(map(str, args)), traceback.format_exc()
+                )
+            )
             # self.showErrorMessageSignal.emit("Failed to send the message!")
         return False
 
     def send_action(self, action, *args):
         # capture actions if recording
-        if self._recordMacroStatus:            
+        if self._recordMacroStatus:
             self.appendMacroCommand(action, args)
 
         self._client_queue.put((action,) + args)
 
     def checkShortcutTrigger(self, key, mods, tkey, tmods):
         match = False
-        if ((tkey is None and len(tmods) > 0) or key == tkey) and \
-                len(tmods) == len(mods):
+        if ((tkey is None and len(tmods) > 0) or key == tkey) and len(tmods) == len(
+            mods
+        ):
             match = True
             for tmod in tmods:
                 if tmod not in mods:
@@ -1190,13 +1310,20 @@ class Window (QMainWindow):
             return match
 
     def _keyboardToggleCheck(self, key):
-        if self.checkShortcutTrigger(key, self._modifiers, self._keyboard_toggle_key, self._keyboard_toggle_modifiers):
-            self.send_action('ble_cmd', 'keyboard_release')
+        if self.checkShortcutTrigger(
+            key,
+            self._modifiers,
+            self._keyboard_toggle_key,
+            self._keyboard_toggle_modifiers,
+        ):
+            self.send_action("ble_cmd", "keyboard_release")
             self._keyboard_disabled = not self._keyboard_disabled
             self.keyboardStatusWidget.updateStatusSignal.emit([], [], [])
             self.updateTogglesStatus()
             return False
-        elif self.checkShortcutTrigger(key, self._modifiers, self._mouse_toggle_key, self._mouse_toggle_modifiers):
+        elif self.checkShortcutTrigger(
+            key, self._modifiers, self._mouse_toggle_key, self._mouse_toggle_modifiers
+        ):
             self._mouse_disabled = not self._mouse_disabled
             self.updateTogglesStatus()
             return False
@@ -1205,11 +1332,11 @@ class Window (QMainWindow):
     def onKeyboardDown(self, key_ev):
         key = None
         mod = None
-        if(isinstance(key_ev, keyboard.KeyCode)):            
-            key = keysmap_printable.get(key_ev.vk, None)            
-        else:           
-           key = keysmap_non_printable.get(key_ev, None)
-           mod = modifiers_map.get(key_ev, None)
+        if isinstance(key_ev, keyboard.KeyCode):
+            key = keysmap_printable.get(key_ev.vk, None)
+        else:
+            key = keysmap_non_printable.get(key_ev, None)
+            mod = modifiers_map.get(key_ev, None)
 
         if key is not None:
             if key not in self._keys:
@@ -1222,13 +1349,13 @@ class Window (QMainWindow):
 
         # check shortcuts combinations
         if len(self._keys) != 0 and len(self._modifiers) != 0:
-            if self._modifiers[0] == "LSHIFT" and self._keys[0] == "ESCAPE":                
+            if self._modifiers[0] == "LSHIFT" and self._keys[0] == "ESCAPE":
                 self.toggleRecordSignal.emit()
                 return
-            if self._modifiers[0] == "LALT" and self._keys[0] == "N":                
+            if self._modifiers[0] == "LALT" and self._keys[0] == "N":
                 self.switchDeviceSignal.emit()
                 return
-        
+
         ret = self._keyboardToggleCheck(key)
         if ret is not None:
             return
@@ -1241,25 +1368,32 @@ class Window (QMainWindow):
                 chr = char_keysmap.get(key_ev.vk, None)
                 if chr is not None and len(chr) > 0:
                     if isinstance(chr, (tuple)):
-                        chr = chr[0] if len(chr) == 1 or \
-                            ("LSHIFT" not in self._modifiers and "RSHIFT" not in self._modifiers) else chr[1]
+                        chr = (
+                            chr[0]
+                            if len(chr) == 1
+                            or (
+                                "LSHIFT" not in self._modifiers
+                                and "RSHIFT" not in self._modifiers
+                            )
+                            else chr[1]
+                        )
                     while len(self._last_n_chars) >= self._show_last_n_chars:
                         self._last_n_chars.pop(0)
                     self._last_n_chars.append(chr)
                     self.updateShowLastChars()
-            self.send_action('keyevent', key, [], True)            
+            self.send_action("keyevent", key, [], True)
         elif mod is not None:
             # set the modifiers
-            self.send_action('keyevent', None, [mod], True)
+            self.send_action("keyevent", None, [mod], True)
 
     def onKeyboardUp(self, key_ev):
         key = None
         mod = None
-        if(isinstance(key_ev, keyboard.KeyCode)):            
+        if isinstance(key_ev, keyboard.KeyCode):
             key = keysmap_printable.get(key_ev.vk, None)
-        else:           
-           key = keysmap_non_printable.get(key_ev, None)
-           mod = modifiers_map.get(key_ev, None)
+        else:
+            key = keysmap_non_printable.get(key_ev, None)
+            mod = modifiers_map.get(key_ev, None)
 
         if key is not None and key in self._keys:
             self._keys.remove(key)
@@ -1274,55 +1408,55 @@ class Window (QMainWindow):
             return
         self.updateKeyboardState()
         if key is not None:
-            self.send_action('keyevent', key, [], False)            
+            self.send_action("keyevent", key, [], False)
         elif mod is not None:
             # set the modifiers
-            self.send_action('keyevent', None, [mod], False)        
+            self.send_action("keyevent", None, [mod], False)
 
-    def mouse_on_move(self, x, y):        
+    def mouse_on_move(self, x, y):
         if not self._mouse_disabled:
             if self._last_mouse_pos is None:
-                self._last_mouse_pos = [x, y]                
+                self._last_mouse_pos = [x, y]
                 return True
-            if time() - self._last_mouse_calltime >0.100:
+            if time() - self._last_mouse_calltime > 0.100:
                 dx = x - self._last_mouse_pos[0]
                 dy = y - self._last_mouse_pos[1]
 
-                self.send_action('mousemove', dx, dy)
+                self.send_action("mousemove", dx, dy)
                 self._last_mouse_pos = [x, y]
 
                 self._last_mouse_calltime = time()
-    
+
     def mouse_on_click(self, x, y, button, pressed):
         if not self._mouse_disabled:
             if button == mouse.Button.left and pressed:
-                self.send_action('mousebutton', 'l', 'press')
+                self.send_action("mousebutton", "l", "press")
             elif button == mouse.Button.left and not pressed:
-                self.send_action('mousebutton', '0')
-            #elif event.Message == PyHook3.HookConstants.WM_LBUTTONDBLCLK:
-            #    self.send_action('mousebutton', 'l', 'doubleclick')                
+                self.send_action("mousebutton", "0")
+            # elif event.Message == PyHook3.HookConstants.WM_LBUTTONDBLCLK:
+            #    self.send_action('mousebutton', 'l', 'doubleclick')
             elif button == mouse.Button.right and pressed:
-                self.send_action('mousebutton', 'r', 'press')
+                self.send_action("mousebutton", "r", "press")
             elif button == mouse.Button.right and not pressed:
-                self.send_action('mousebutton', '0')
-            #elif event.Message == PyHook3.HookConstants.WM_RBUTTONDBLCLK:
+                self.send_action("mousebutton", "0")
+            # elif event.Message == PyHook3.HookConstants.WM_RBUTTONDBLCLK:
             #    self.send_action('mousebutton', 'r', 'doubleclick')
             elif button == mouse.Button.middle and pressed:
-                self.send_action('mousebutton', 'm', 'press')
+                self.send_action("mousebutton", "m", "press")
             elif button == mouse.Button.middle and not pressed:
-                self.send_action('mousebutton', '0')
-            #elif event.Message == PyHook3.HookConstants.WM_MBUTTONDBLCLK:
+                self.send_action("mousebutton", "0")
+            # elif event.Message == PyHook3.HookConstants.WM_MBUTTONDBLCLK:
             #    self.send_action('mousebutton', 'm', 'doubleclick')
-    
-    def mouse_on_scroll(self, x, y, dx, dy):        
+
+    def mouse_on_scroll(self, x, y, dx, dy):
         if not self._mouse_disabled:
-            self.send_action('mousemove', 0, 0, dy, dx)
+            self.send_action("mousemove", 0, 0, dy, dx)
 
     def onUpdateKeyState(self):
-        """This update event handler is used to update shown state of keyboard
-        """
+        """This update event handler is used to update shown state of keyboard"""
         self.keyboardStatusWidget.updateStatusSignal.emit(
-            self._keys, self._modifiers, self._unknown_keys)
+            self._keys, self._modifiers, self._unknown_keys
+        )
 
     def updateKeyboardState(self):
         if self._keystate_update_timer != None:
@@ -1330,12 +1464,11 @@ class Window (QMainWindow):
         self._keystate_update_timer = Timer(0.05, self.onUpdateKeyState)
         self._keystate_update_timer.start()
 
-
-    def appendMacroCommand(self, action, args):        
+    def appendMacroCommand(self, action, args):
         recorded_cmd = action + ":"
         if action == "keyevent":
             recorded_cmd += str(args[0]) + ","
-            if len(args[1])==0:
+            if len(args[1]) == 0:
                 recorded_cmd += "None,"
             else:
                 recorded_cmd += ",".join(args[1]) + ","
@@ -1348,74 +1481,81 @@ class Window (QMainWindow):
             recorded_cmd += ",".join(args)
         else:
             return
-        
+
         self._macroBuffer.append(recorded_cmd)
-    
+
     def saveMacro(self):
         if len(self._macroBuffer) == 0:
             return
-        
+
         # remember previous states and disable sending keyboard and mouse actions while saving
-        keyboard_state_tmp = self._keyboard_disabled    
+        keyboard_state_tmp = self._keyboard_disabled
         mouse_state_tmp = self._mouse_disabled
         self._keyboard_disabled = True
         self._mouse_disabled = True
 
-        file_path = QFileDialog.getSaveFileName(self, 'Save File', macros_folder, "Text files (*.txt)")[0]
-        if file_path != '':
-            with open(file_path, "w") as file:            
+        file_path = QFileDialog.getSaveFileName(
+            self, "Save File", macros_folder, "Text files (*.txt)"
+        )[0]
+        if file_path != "":
+            with open(file_path, "w") as file:
                 for line in self._macroBuffer:
                     file.write(line)
-                    file.write('\n')
-        
-        
+                    file.write("\n")
+
         # return previous states
         self._keyboard_disabled = keyboard_state_tmp
         self._mouse_disabled = mouse_state_tmp
 
-    def executeMacroBuffer(self):        
+    def executeMacroBuffer(self):
         for command in self._macroBuffer:
             parts = command.split(":")
             cmd_type = parts[0]
             cmd_args = parts[1].split(",")
-            
+
             if cmd_type == "keyevent":
                 key = cmd_args[0]
-                modifiers = []                
+                modifiers = []
                 if cmd_args[1] != "None":
                     modifiers = cmd_args[1:-1]
                 event = bool(int(cmd_args[-1]))
-                
+
                 self.send_action("keyevent", key, modifiers, event)
             elif cmd_type == "keypress":
-                #print("keypress args", cmd_args) #temp
+                # print("keypress args", cmd_args) #temp
                 key = cmd_args[0]
-                modifiers = []                
+                modifiers = []
                 if len(cmd_args) > 1:
                     modifiers = cmd_args[1:]
-                
+
                 self.send_action("keyevent", key, modifiers, True)
                 sleep(0.05)
                 self.send_action("keyevent", key, modifiers, False)
 
             elif cmd_type == "mousemove":
-                if len(cmd_args) == 4:                
-                    self.send_action("mousemove", int(cmd_args[0]), int(cmd_args[1]), int(cmd_args[2]), int(cmd_args[3]))
+                if len(cmd_args) == 4:
+                    self.send_action(
+                        "mousemove",
+                        int(cmd_args[0]),
+                        int(cmd_args[1]),
+                        int(cmd_args[2]),
+                        int(cmd_args[3]),
+                    )
                 else:
                     self.send_action("mousemove", int(cmd_args[0]), int(cmd_args[1]))
             elif cmd_type == "mousebutton":
-                if len(cmd_args) == 2:                
+                if len(cmd_args) == 2:
                     self.send_action("mousebutton", cmd_args[0], cmd_args[1])
                 else:
                     self.send_action("mousebutton", cmd_args[0])
             elif cmd_type == "delay":
                 delay_value = float(cmd_args[0])
-                sleep(delay_value/1000.0)
+                sleep(delay_value / 1000.0)
             elif cmd_type == "type":
-                #print("got type command: ", cmd_args[0]) #temp
+                # print("got type command: ", cmd_args[0]) #temp
                 for char in cmd_args[0]:
                     type_key, type_mods = char_to_keyevent_params(char)
-                    
+
                     self.send_action("keyevent", type_key, type_mods, True)
                     sleep(0.05)
                     self.send_action("keyevent", type_key, type_mods, False)
@@ -1425,9 +1565,8 @@ class Window (QMainWindow):
                 continue
 
             sleep(0.05)
-        
-        self.send_action('ble_cmd', 'keyboard_release')
 
+        self.send_action("ble_cmd", "keyboard_release")
 
 
 def main():
@@ -1441,10 +1580,12 @@ def main():
     config = ConfigParser()
     dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
     if args.config is None:
-        config.read([
-            os.path.expanduser('~/.relaykeys.cfg'),
-            os.path.join(dirname, 'relaykeys.cfg'),
-        ])
+        config.read(
+            [
+                os.path.expanduser("~/.relaykeys.cfg"),
+                os.path.join(dirname, "relaykeys.cfg"),
+            ]
+        )
     else:
         config.read([args.config])
     if "client" not in config.sections():
@@ -1458,8 +1599,10 @@ def main():
         return app.exec_()
     except:
         raise
-        #QMessageBox.critical(None, "RelayKeys Fatal Error", "{}".format(traceback.format_exc()))
+        # QMessageBox.critical(None, "RelayKeys Fatal Error", "{}".format(traceback.format_exc()))
         # return 1
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     ret = main()
     exit(ret)

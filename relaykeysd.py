@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #
 # The control daemon for handling BLE HID
 # communication with http-JSON-RPC
@@ -10,43 +8,45 @@
 #   Run demoSerial.py
 #   Call this code with relayKeys.py --noserial
 
-import os
-import serial
-from time import sleep
-from sys import exit
-import sys
-import serial.tools.list_ports
-from hashlib import sha256
-from threading import Thread
-from queue import Queue, Empty as QueueEmpty
 import array as arr
-from os import urandom
+import os
+import sys
+from hashlib import sha256
 from math import floor
+from os import urandom
+from queue import Empty as QueueEmpty
+from queue import Queue
+from sys import exit
+from threading import Thread
+from time import sleep
 
-if os.name == 'posix':  # unix based OS
+import serial
+import serial.tools.list_ports
+
+if os.name == "posix":  # unix based OS
     from daemon import DaemonContext
     from lockfile.pidlockfile import PIDLockFile
 
 # util modules
-import logging
 import argparse
-from configparser import ConfigParser
-import traceback
-
-# rpc modules
-from werkzeug.wrappers import Request, Response
-from werkzeug.serving import make_server, WSGIRequestHandler as BaseRequestHandler
-from jsonrpc import JSONRPCResponseManager, Dispatcher
-from jsonrpc.jsonrpc2 import JSONRPC20Response
 
 # ble mode dependencies
 import asyncio
-import sys
+import logging
+import traceback
+from configparser import ConfigParser
 
-from bleak import BleakScanner, BleakClient
-from bleak.backends.scanner import AdvertisementData
+from bleak import BleakClient, BleakScanner
 from bleak.backends.device import BLEDevice
+from bleak.backends.scanner import AdvertisementData
 from bleak.exc import BleakError
+from jsonrpc import Dispatcher, JSONRPCResponseManager
+from jsonrpc.jsonrpc2 import JSONRPC20Response
+from werkzeug.serving import WSGIRequestHandler as BaseRequestHandler
+from werkzeug.serving import make_server
+
+# rpc modules
+from werkzeug.wrappers import Request, Response
 
 from serial_wrappers import BLESerialWrapper, DummySerial
 
@@ -54,14 +54,25 @@ UART_SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
 UART_RX_CHAR_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
 UART_TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
-from blehid import blehid_send_keyboardcode, blehid_init_serial, \
-    blehid_send_movemouse, blehid_send_mousebutton, blehid_send_devicecommand, \
-    blehid_send_switch_command, blehid_send_get_device_name, blehid_get_device_list, \
-    blehid_send_add_device, blehid_send_clear_device_list, blehid_send_remove_device, \
-    blehid_get_at_response, blehid_get_mode, blehid_switch_mode
+import json
 
 import requests
-import json
+
+from blehid import (
+    blehid_get_at_response,
+    blehid_get_device_list,
+    blehid_get_mode,
+    blehid_init_serial,
+    blehid_send_add_device,
+    blehid_send_clear_device_list,
+    blehid_send_get_device_name,
+    blehid_send_keyboardcode,
+    blehid_send_mousebutton,
+    blehid_send_movemouse,
+    blehid_send_remove_device,
+    blehid_send_switch_command,
+    blehid_switch_mode,
+)
 
 # from pygame.locals import *
 # from pygame.compat import as_bytes
@@ -70,9 +81,9 @@ import json
 # Use AT+BAUDRATE=115200 but make sure hardware flow control CTS/RTS works
 DEFAULT_BAUD = 115200
 # BAUD = 9600
-nrfVID = '239A'
-nrfPIDs = ['8029','810B', '8051']
-devName = 'NONE'
+nrfVID = "239A"
+nrfPIDs = ["8029", "810B", "8051"]
+devName = "NONE"
 devList = []
 RETRY_TIMEOUT = 10
 QUEUE_TIMEOUT = 3
@@ -81,53 +92,85 @@ ble_mode = False
 daemon_quit = False
 serial_loop_opened = False
 
-parser = argparse.ArgumentParser(
-    description='Relay keys daemon, BLEHID controller.')
-parser.add_argument('--noserial', dest='noserial', action='store_const',
-                    const=True, default=False,
-                    help='debug option to run the daemon with no hardware (with help of demoSerial.py')
-parser.add_argument('--dev', dest='dev', default=None,
-                    help='device to use as bluetooth serial')
-parser.add_argument('--baud', dest='baud', default=None,
-                    help='specify serial baud, default: {}'.format(DEFAULT_BAUD))
-parser.add_argument('--debug', dest='debug', action='store_const',
-                    const=True, default=False,
-                    help='set logger to debug level')
-parser.add_argument('--ble_mode', dest='ble_mode', action='store_const',
-                    const=True, default=False,
-                    help='choosing work in ble mode')
-parser.add_argument('--daemon', '-d', dest='daemon', action='store_const',
-                    const=True, default=False,
-                    help='Run as daemon, posfix specific')
-parser.add_argument('--pidfile', dest='pidfile', default=None,
-                    help='file to hold pid of daemon, posfix specific')
-parser.add_argument('--logfile', dest='logfile', default=None,
-                    help='file to log messages too')
-parser.add_argument('--config', '-c', dest='config',
-                    default=None, help='Path to config file')
+parser = argparse.ArgumentParser(description="Relay keys daemon, BLEHID controller.")
+parser.add_argument(
+    "--noserial",
+    dest="noserial",
+    action="store_const",
+    const=True,
+    default=False,
+    help="debug option to run the daemon with no hardware (with help of demoSerial.py",
+)
+parser.add_argument(
+    "--dev", dest="dev", default=None, help="device to use as bluetooth serial"
+)
+parser.add_argument(
+    "--baud",
+    dest="baud",
+    default=None,
+    help=f"specify serial baud, default: {DEFAULT_BAUD}",
+)
+parser.add_argument(
+    "--debug",
+    dest="debug",
+    action="store_const",
+    const=True,
+    default=False,
+    help="set logger to debug level",
+)
+parser.add_argument(
+    "--ble_mode",
+    dest="ble_mode",
+    action="store_const",
+    const=True,
+    default=False,
+    help="choosing work in ble mode",
+)
+parser.add_argument(
+    "--daemon",
+    "-d",
+    dest="daemon",
+    action="store_const",
+    const=True,
+    default=False,
+    help="Run as daemon, posfix specific",
+)
+parser.add_argument(
+    "--pidfile",
+    dest="pidfile",
+    default=None,
+    help="file to hold pid of daemon, posfix specific",
+)
+parser.add_argument(
+    "--logfile", dest="logfile", default=None, help="file to log messages too"
+)
+parser.add_argument(
+    "--config", "-c", dest="config", default=None, help="Path to config file"
+)
 
 
-class CommandException (BaseException):
+class CommandException(BaseException):
     pass
 
 
-class RPCServExitException (BaseException):
+class RPCServExitException(BaseException):
     pass
 
 
-class AppExitException (BaseException):
+class AppExitException(BaseException):
     pass
 
 
-class RequestHandler (BaseRequestHandler):
+class RequestHandler(BaseRequestHandler):
     def log(self, type, message, *args):
         # treat `info` logs as `debug
         lvl = logging.DEBUG
-        if type == 'error':
+        if type == "error":
             lvl = logging.ERROR
-        logging.log(lvl, '%s - - [%s] %s\n' % (self.address_string(),
-                                               self.log_date_time_string(),
-                                               message % args))
+        logging.log(
+            lvl,
+            f"{self.address_string()} - - [{self.log_date_time_string()}] {message % args}\n",
+        )
 
 
 def rpc_server_worker(host, port, username, password, queue):
@@ -141,22 +184,21 @@ def rpc_server_worker(host, port, username, password, queue):
         global serial_loop_opened
         if not serial_loop_opened:
             return "No connection with dongle"
-            
+
         try:
             global devName
             global devList
 
             actionlist = args[0]
-            data = []
 
             for action in actionlist:
-                
-                if action[0] not in ('mousemove', 'mousebutton', 'keyevent', 'ble_cmd'):
-                
-                    raise ValueError('unknown action')
-            
+
+                if action[0] not in ("mousemove", "mousebutton", "keyevent", "ble_cmd"):
+
+                    raise ValueError("unknown action")
+
             respqueue = Queue(1)
-            queue.put((respqueue, 'actions', actionlist), True)            
+            queue.put((respqueue, "actions", actionlist), True)
             try:
                 return respqueue.get(True, 5)
             except QueueEmpty:
@@ -210,14 +252,14 @@ def rpc_server_worker(host, port, username, password, queue):
         global serial_loop_opened
         if not serial_loop_opened:
             return "No connection with dongle"
-            
+
         devcommand = args[0]
         respqueue = Queue(1)
         queue.put((respqueue, "ble_cmd", devcommand), True)
-        try:            
+        try:
             return respqueue.get(True, 5)
         except QueueEmpty:
-            return "TIMEOUT"            
+            return "TIMEOUT"
 
     @dispatcher.add_method
     def daemon(args):
@@ -239,13 +281,13 @@ def rpc_server_worker(host, port, username, password, queue):
             if serial_loop_opened:
                 respqueue = Queue(1)
                 queue.put((respqueue, "check_dongle"), True)
-                try:            
-                    response = respqueue.get(True, 5)         
+                try:
+                    response = respqueue.get(True, 5)
                     if response == "OK":
                         return "Connected"
                 except QueueEmpty:
-                    pass                
-                            
+                    pass
+
             return "No connection"
 
     @dispatcher.add_method
@@ -261,21 +303,29 @@ def rpc_server_worker(host, port, username, password, queue):
     @Request.application
     def app(request):
         # auth with simplified version of equal op (timing attack secure)
-        if (username != "" or password != "") and \
-           (getattr(request.authorization, "username", "") != username or
-            int(sha256(bytes(getattr(request.authorization, "password", ""), "utf8")).hexdigest(), 16) -
-                password != 0):
+        if (username != "" or password != "") and (
+            getattr(request.authorization, "username", "") != username
+            or int(
+                sha256(
+                    bytes(getattr(request.authorization, "password", ""), "utf8")
+                ).hexdigest(),
+                16,
+            )
+            - password
+            != 0
+        ):
             json = JSONRPC20Response(
-                error={"code": 403, "message": "Invalid username or password!"}).json
-            return Response(json, 403, mimetype='application/json')
+                error={"code": 403, "message": "Invalid username or password!"}
+            ).json
+            return Response(json, 403, mimetype="application/json")
         response = JSONRPCResponseManager.handle(request.data, dispatcher)
-        return Response(response.json, mimetype='application/json')
+        return Response(response.json, mimetype="application/json")
 
     try:
         # response queue is used to notify result of attempt to run the server
         respqueue = queue.get()
         srv = make_server(host, port, app, request_handler=RequestHandler)
-        logging.info("http-jsonrpc listening at {}:{}".format(host, port))
+        logging.info(f"http-jsonrpc listening at {host}:{port}")
         queue.task_done()  # let run_rpc_server return
         respqueue.put("SUCCESS")
         srv.serve_forever()
@@ -286,6 +336,7 @@ def rpc_server_worker(host, port, username, password, queue):
         respqueue.put("FAIL")
         logging.error(traceback.format_exc())
 
+
 # run rpc server on another thread
 
 
@@ -293,13 +344,13 @@ def run_rpc_server(host, port, username, password):
     queue = Queue(10)
     respqueue = Queue(1)
     queue.put(respqueue)
-    t = Thread(target=rpc_server_worker, args=(host, port, username, password,
-                                               queue))
+    t = Thread(target=rpc_server_worker, args=(host, port, username, password, queue))
     t.daemon = True
     t.start()
     if respqueue.get(True) == "FAIL":
         return None
     return queue
+
 
 def shutdown_server():
     payload = {
@@ -308,28 +359,31 @@ def shutdown_server():
         "jsonrpc": "2.0",
         "id": 0,
     }
-    headers = {'content-type': 'application/json'}
+    headers = {"content-type": "application/json"}
     data = json.dumps(payload)
     try:
-        resp = requests.post("http://127.0.0.1:5383/", data, headers=headers, timeout=10)
+        requests.post("http://127.0.0.1:5383/", data, headers=headers, timeout=10)
     except requests.exceptions.ConnectionError:
         print("Connection closed")
+
 
 def find_device_path(noserial, seldev):
     dev = None
     if noserial:
-        if os.name == 'posix':
-            serialdemofile = os.path.join(os.path.dirname(
-                os.path.realpath(__file__)), '.serialDemo')
+        if os.name == "posix":
+            serialdemofile = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), ".serialDemo"
+            )
             if os.path.isfile(serialdemofile):
-                with open(serialdemofile, 'r') as f:
+                with open(serialdemofile) as f:
                     dev = f.read()
             else:
                 logging.critical(
-                    'no-serial is set to true.. Please make sure you have already run \'python resources\demoSerial.py\' from a different shell')
+                    "no-serial is set to true.. Please make sure you have already run 'python resources\\demoSerial.py' from a different shell"
+                )
                 exit(-1)
-        elif (os.name == 'nt'):
-            dev = 'COM7' if seldev is None else seldev
+        elif os.name == "nt":
+            dev = "COM7" if seldev is None else seldev
     else:
         if seldev != None:
             logging.debug("port from config: " + seldev)
@@ -338,36 +392,39 @@ def find_device_path(noserial, seldev):
                     dev = seldev
                     logging.debug("specified port present")
                     break
-            
+
             if dev == None:
                 logging.debug("specified port wasn't found")
 
         if dev == None:
             logging.debug("Starting automatic search of port")
             for p in serial.tools.list_ports.comports():
-                if ("CP2104" in p.description):
-                    logging.debug('serial desc:' + str(p))
+                if "CP2104" in p.description:
+                    logging.debug("serial desc:" + str(p))
                     dev = p.device
-                elif ("nRF52" in p.description):
-                    logging.debug('serial desc:' + str(p))
+                elif "nRF52" in p.description:
+                    logging.debug("serial desc:" + str(p))
                     dev = p.device
-                elif (p.vid == nrfVID and p.pid.upper() in nrfPIDs):
-                    logging.debug('serial desc:' + str(p))
-                    dev = p.device                 
-                elif(nrfVID in p.hwid.upper()):
-                    logging.debug('serial desc:' + str(p))
-                    dev = p.device 
+                elif p.vid == nrfVID and p.pid.upper() in nrfPIDs:
+                    logging.debug("serial desc:" + str(p))
+                    dev = p.device
+                elif nrfVID in p.hwid.upper():
+                    logging.debug("serial desc:" + str(p))
+                    dev = p.device
 
     return dev
+
 
 def do_main(args, config, interrupt=None):
     global ble_mode, daemon_quit
 
     # actions queue
-    queue = run_rpc_server(config.get("host", "127.0.0.1"),
-                           config.getint("port", 5383),
-                           config.get("username", ""),
-                           config.get("password", ""))
+    queue = run_rpc_server(
+        config.get("host", "127.0.0.1"),
+        config.getint("port", 5383),
+        config.get("username", ""),
+        config.get("password", ""),
+    )
     try:  # remove password from memory
         del config["password"]
     except:
@@ -375,21 +432,21 @@ def do_main(args, config, interrupt=None):
     if queue is None:
         logging.critical("Could not start rpc server")
         return -1  # exit the process
-    
+
     ble_mode = True if args.ble_mode else False
 
     while not daemon_quit:
-        if not ble_mode: 
+        if not ble_mode:
             asyncio.run(hardware_serial_loop(queue, args, config, interrupt))
         else:
             try:
                 asyncio.run(ble_serial_loop(queue, args, config, interrupt))
             except asyncio.CancelledError:
                 pass
-    
-    
+
     logging.info("relaykeysd exit!")
     return 0
+
 
 async def hardware_serial_loop(queue, args, config, interrupt):
     global daemon_quit, serial_loop_opened
@@ -397,34 +454,31 @@ async def hardware_serial_loop(queue, args, config, interrupt):
     try:
         if interrupt is not None:
             interrupt()
-        baud = args.baud if args.baud is not None else config.get(
-            "baud", DEFAULT_BAUD)
-        seldev = args.dev if args.dev is not None else config.get(
-            "dev", None)
-        noserial = True if args.noserial else config.getboolean(
-            "noserial", False)
+        baud = args.baud if args.baud is not None else config.get("baud", DEFAULT_BAUD)
+        seldev = args.dev if args.dev is not None else config.get("dev", None)
+        noserial = True if args.noserial else config.getboolean("noserial", False)
         devicepath = find_device_path(noserial, seldev)
         if devicepath == None:
-            raise serial.serialutil.SerialException("No port found")        
-        if os.name == 'nt' and noserial:
+            raise serial.serialutil.SerialException("No port found")
+        if os.name == "nt" and noserial:
             SerialCls = DummySerial
         else:
             SerialCls = serial.Serial
         with SerialCls(devicepath, baud, rtscts=0, timeout=2) as ser:
-            
-            logging.info("serial device opened: {}".format(devicepath))
+
+            logging.info(f"serial device opened: {devicepath}")
             serial_loop_opened = True
 
-            #logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
+            # logging.info("INIT MSG: {}".format(str(ser.readline(), "utf8")))
             await blehid_init_serial(ser)
 
-            keys = arr.array('B', [0, 0, 0, 0, 0, 0, 0, 0])
+            keys = arr.array("B", [0, 0, 0, 0, 0, 0, 0, 0])
 
-            #Get intial ble device List
-            await process_action(ser, keys, ['ble_cmd','devlist'])
-            #Get intial ble device name
-            await process_action(ser, keys, ['ble_cmd','devname'])
-            
+            # Get intial ble device List
+            await process_action(ser, keys, ["ble_cmd", "devlist"])
+            # Get intial ble device name
+            await process_action(ser, keys, ["ble_cmd", "devname"])
+
             try:
                 while True:
                     if interrupt is not None:
@@ -436,7 +490,7 @@ async def hardware_serial_loop(queue, args, config, interrupt):
                             daemon_quit = True
                             break
                         elif cmd[1] == "break_loop":
-                            logging.info('Breaking hardware serial loop')
+                            logging.info("Breaking hardware serial loop")
                             break
                         else:
                             output = await process_action(ser, keys, cmd[1:])
@@ -455,8 +509,9 @@ async def hardware_serial_loop(queue, args, config, interrupt):
     except serial.serialutil.SerialException:
         serial_loop_opened = False
         logging.error(traceback.format_exc())
-        logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
+        logging.info(f"Will retry in {RETRY_TIMEOUT} seconds")
         sleep(RETRY_TIMEOUT)
+
 
 async def ble_serial_loop(queue, args, config, interrupt):
     global daemon_quit, serial_loop_opened
@@ -464,10 +519,10 @@ async def ble_serial_loop(queue, args, config, interrupt):
     def match_nus_uuid(device: BLEDevice, adv: AdvertisementData):
         print("services of scanned device: ", adv)
 
-        if adv.local_name == "AceRK":  #UART_SERVICE_UUID.lower() in adv.service_uuids:
+        if adv.local_name == "AceRK":  # UART_SERVICE_UUID.lower() in adv.service_uuids:
             return True
         return False
-    
+
     def handle_disconnect(_: BleakClient):
         print("Device was disconnected.")
         """
@@ -476,19 +531,21 @@ async def ble_serial_loop(queue, args, config, interrupt):
         for task in asyncio.all_tasks():
             task.cancel()   
         """
-    
+
     if interrupt is not None:
-            interrupt()
+        interrupt()
     device = await BleakScanner.find_device_by_filter(match_nus_uuid)
 
     if device != None:
         try:
-            async with BleakClient(device, disconnected_callback=handle_disconnect) as client:
+            async with BleakClient(
+                device, disconnected_callback=handle_disconnect
+            ) as client:
                 ser = BLESerialWrapper(client)
-                await ser.init_receive()       
-                
-                keys = arr.array('B', [0, 0, 0, 0, 0, 0, 0, 0])
-                
+                await ser.init_receive()
+
+                keys = arr.array("B", [0, 0, 0, 0, 0, 0, 0, 0])
+
                 print("Device connected.")
                 serial_loop_opened = True
 
@@ -503,14 +560,14 @@ async def ble_serial_loop(queue, args, config, interrupt):
                                 daemon_quit = True
                                 break
                             elif cmd[1] == "break_loop":
-                                logging.info('Breaking BLE serial loop')                                
+                                logging.info("Breaking BLE serial loop")
                                 return
                             else:
                                 output = await process_action(ser, keys, cmd[1:])
                                 if cmd[0] is not None:
                                     cmd[0].put(output)
                                 queue.task_done()
-                                
+
                                 # checking if connection present
                                 if not client.is_connected:
                                     print("client lost connection")
@@ -522,14 +579,19 @@ async def ble_serial_loop(queue, args, config, interrupt):
                     daemon_quit = True
 
                 serial_loop_opened = False
-        except (asyncio.exceptions.TimeoutError, asyncio.exceptions.InvalidStateError, BleakError, OSError):
+        except (
+            asyncio.exceptions.TimeoutError,
+            asyncio.exceptions.InvalidStateError,
+            BleakError,
+            OSError,
+        ):
             serial_loop_opened = False
             logging.error(traceback.format_exc())
     else:
         logging.error("Device not found")
-    
+
     if not daemon_quit:
-        logging.info("Will retry in {} seconds".format(RETRY_TIMEOUT))
+        logging.info(f"Will retry in {RETRY_TIMEOUT} seconds")
         sleep(RETRY_TIMEOUT)
 
 
@@ -540,7 +602,7 @@ async def process_action(ser, keys, cmd):
             for action in cmd[1]:
                 outputs.append(await process_action(ser, keys, action))
             return ", ".join(outputs)
-            
+
         if cmd[0] == "keyevent":
             key = cmd[1]
             modifiers = cmd[2]
@@ -556,16 +618,21 @@ async def process_action(ser, keys, cmd):
 
         elif cmd[0] == "mousebutton":
             btn = str(cmd[1]).lower() if cmd[1] is not None else None
-            behavior = str(cmd[2]).lower() if len(
-                cmd) > 2 and cmd[2] is not None else None
+            behavior = (
+                str(cmd[2]).lower() if len(cmd) > 2 and cmd[2] is not None else None
+            )
             if len(btn) > 1 or btn not in "lrmbf0":
-                raise CommandException("Unknown mousebutton: {}".format(btn))
-            if behavior is not None and behavior not in ("press", "click", "doubleclick", "hold"):
-                raise CommandException(
-                    "Unknown mousebutton behavior: {}".format(behavior))
+                raise CommandException(f"Unknown mousebutton: {btn}")
+            if behavior is not None and behavior not in (
+                "press",
+                "click",
+                "doubleclick",
+                "hold",
+            ):
+                raise CommandException(f"Unknown mousebutton behavior: {behavior}")
             await blehid_send_mousebutton(ser, btn, behavior)
 
-        elif cmd[0] == 'ble_cmd':
+        elif cmd[0] == "ble_cmd":
 
             if cmd[1] == "switch" or cmd[1].startswith("switch="):
                 await blehid_send_switch_command(ser, cmd[1])
@@ -590,7 +657,7 @@ async def process_action(ser, keys, cmd):
 
             elif cmd[1] == "switch_mode":
                 await blehid_switch_mode(ser)
-            
+
             elif cmd[1] == "keyboard_release":
                 print("keyboard relase")
                 for i in range(0, 8):
@@ -611,7 +678,7 @@ async def process_action(ser, keys, cmd):
 
 def init_logger(dirname, isdaemon, args, config):
     # init logger
-    loggerformatter = logging.Formatter('%(asctime)-15s: %(message)s')
+    loggerformatter = logging.Formatter("%(asctime)-15s: %(message)s")
     logger = logging.getLogger()
     # logging stdout handler
     if not isdaemon:
@@ -640,8 +707,15 @@ def mkpasswd(n, chars):
     ret = ""
     charsn = len(chars)
     while n > 0:
-        index = int(floor((int.from_bytes(
-            urandom(4), byteorder='little', signed=False) / 2**(8*4)) * charsn))
+        index = int(
+            floor(
+                (
+                    int.from_bytes(urandom(4), byteorder="little", signed=False)
+                    / 2 ** (8 * 4)
+                )
+                * charsn
+            )
+        )
         ret += chars[index]
         n -= 1
     return ret
@@ -653,34 +727,37 @@ def main(interrupt=None):
     dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
     if args.config is None:
         configfile = None
-        for afile in [os.path.expanduser('~/.relaykeys.cfg'),
-                      os.path.join(dirname, 'relaykeys.cfg')]:
+        for afile in [
+            os.path.expanduser("~/.relaykeys.cfg"),
+            os.path.join(dirname, "relaykeys.cfg"),
+        ]:
             if len(config.read([afile])) > 0:
                 configfile = afile
                 break
     else:
         if len(config.read([args.config])) == 0:
-            raise ValueError(
-                "Could not read config file: {}".format(args.config))
+            raise ValueError(f"Could not read config file: {args.config}")
         configfile = args.config
     if "server" not in config.sections():
         config["server"] = {}
     serverconfig = config["server"]
     if serverconfig.getboolean("rewritepasswordonce", False):
         serverconfig["password"] = mkpasswd(
-            24, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+            24, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        )
         del serverconfig["rewritepasswordonce"]
         if "client" in config.sections():
             config["client"]["password"] = serverconfig["password"]
         with open(configfile, "w") as f:
             config.write(f)
-    isdaemon = args.daemon or serverconfig.getboolean(
-        "daemon", False) if os.name == 'posix' else False
+    isdaemon = (
+        args.daemon or serverconfig.getboolean("daemon", False)
+        if os.name == "posix"
+        else False
+    )
     if isdaemon:
-        pidfile = os.path.realpath(
-            args.pidfile or serverconfig.get("pidfile", None))
-        with DaemonContext(working_directory=os.getcwd(),
-                           pidfile=PIDLockFile(pidfile)):
+        pidfile = os.path.realpath(args.pidfile or serverconfig.get("pidfile", None))
+        with DaemonContext(working_directory=os.getcwd(), pidfile=PIDLockFile(pidfile)):
             init_logger(dirname, True, args, serverconfig)
             return do_main(args, serverconfig, interrupt)
     else:
@@ -689,6 +766,6 @@ def main(interrupt=None):
 
 
 # MAIN
-if __name__ == '__main__':
+if __name__ == "__main__":
     ret = main()
     exit(ret)
