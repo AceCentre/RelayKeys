@@ -13,8 +13,8 @@ from time import sleep
 import pyperclip
 from notifypy import Notify
 
-from .keymap import *
 from ..core.client import RelayKeysClient
+from .keymap import *
 
 parser = argparse.ArgumentParser(description="Relay keys daemon, BLEHID controller.")
 parser.add_argument(
@@ -177,15 +177,11 @@ def do_keyevent(client, key, modifiers, isdown):
     try:
         ret = client.keyevent(key, modifiers, isdown)
         logging.info(
-            "keyevent ({}, {}, {}) response: {}".format(
-                key, modifiers, isdown, ret
-            )
+            f"keyevent ({key}, {modifiers}, {isdown}) response: {ret}"
         )
     except Exception as e:
         logging.error(
-            "keyevent ({}, {}, {}) response error: {}".format(
-                key, modifiers, isdown, str(e)
-            )
+            f"keyevent ({key}, {modifiers}, {isdown}) response error: {str(e)}"
         )
         raise CommandErrorResponse()
 
@@ -209,13 +205,11 @@ def do_mousemove(client, right, down, wy, wx):
     try:
         ret = client.mousemove(right, down, wy, wx)
         logging.info(
-            "mousemove ({}, {}) response: {}".format(right, down, ret)
+            f"mousemove ({right}, {down}) response: {ret}"
         )
     except Exception as e:
         logging.error(
-            "mousemove ({}, {}) response error: {}".format(
-                right, down, str(e)
-            )
+            f"mousemove ({right}, {down}) response error: {str(e)}"
         )
         raise CommandErrorResponse()
 
@@ -239,13 +233,11 @@ def do_mousebutton(client, btn, behavior=None):
     try:
         ret = client.mousebutton(btn, behavior)
         logging.info(
-            "mousebutton ({}, {}) response: {}".format(btn, behavior, ret)
+            f"mousebutton ({btn}, {behavior}) response: {ret}"
         )
     except Exception as e:
         logging.error(
-            "mousebutton ({}, {}) response error: {}".format(
-                btn, behavior, str(e)
-            )
+            f"mousebutton ({btn}, {behavior}) response error: {str(e)}"
         )
         raise CommandErrorResponse()
 
@@ -254,7 +246,7 @@ def do_devicecommand(client, devcommand, notify=False, copyresults=False):
     try:
         ret = client.ble_cmd(devcommand)
         logging.info(
-            "devicecommand ({}) response : {}".format(devcommand, ret)
+            f"devicecommand ({devcommand}) response : {ret}"
         )
         if notify:
             send_notification("device command", devcommand, ret)
@@ -271,9 +263,7 @@ def do_devicecommand(client, devcommand, notify=False, copyresults=False):
             copy_return("daemon command", devcommand, ret)
     except Exception as e:
         logging.error(
-            "devicecommand ({}) response error: {}".format(
-                devcommand, str(e)
-            )
+            f"devicecommand ({devcommand}) response error: {str(e)}"
         )
         raise CommandErrorResponse()
 
@@ -281,16 +271,14 @@ def do_devicecommand(client, devcommand, notify=False, copyresults=False):
 def do_daemoncommand(client, command, notify=False, copyresults=False):
     try:
         ret = client.daemon(command)
-        logging.info("daemoncommand ({}) response : {}".format(command, ret))
+        logging.info(f"daemoncommand ({command}) response : {ret}")
         if notify:
             send_notification("daemon command", command, ret)
         if copyresults:
             copy_return("daemon command", command, ret)
     except Exception as e:
         logging.error(
-            "daemoncommand ({}) response error: {}".format(
-                command, str(e)
-            )
+            f"daemoncommand ({command}) response error: {str(e)}"
         )
         raise CommandErrorResponse()
 

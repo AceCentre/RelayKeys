@@ -5,14 +5,15 @@ Continuously sends mouse movement commands until stopped.
 """
 
 import argparse
+import os
 import sys
 import time
-import os
 
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from relaykeys.core.client import RelayKeysClient
+
 
 def main():
     parser = argparse.ArgumentParser(description="Repeat mouse movements")

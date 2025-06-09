@@ -4,11 +4,9 @@ Hardware-aware tests for RelayKeys
 These tests automatically adapt based on whether hardware is connected
 """
 
-import pytest
-import subprocess
 import time
-import requests
-import json
+
+import pytest
 
 
 @pytest.mark.no_hardware

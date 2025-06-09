@@ -19,6 +19,7 @@ from queue import Queue
 from sys import exit
 from threading import Thread
 from time import sleep
+from typing import List
 
 import serial
 import serial.tools.list_ports
@@ -84,7 +85,7 @@ DEFAULT_BAUD = 115200
 nrfVID = "239A"
 nrfPIDs = ["8029", "810B", "8051"]
 devName = "NONE"
-devList = []
+devList: List[str] = []
 RETRY_TIMEOUT = 10
 QUEUE_TIMEOUT = 3
 

@@ -6,7 +6,6 @@ This script creates the actual JSON keymap files from the layout definitions.
 """
 
 import sys
-import json
 from pathlib import Path
 
 # Add the tools directory to the path so we can import our modules
@@ -93,7 +92,7 @@ def generate_specific_layout(layout_name: str):
         # Validate
         is_valid, errors = converter.validate_layout(layout)
         if not is_valid:
-            print(f"❌ Layout has validation errors:")
+            print("❌ Layout has validation errors:")
             for error in errors:
                 print(f"  - {error}")
             return False

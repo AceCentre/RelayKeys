@@ -1,7 +1,7 @@
 # win32 service impl
+import os
 import socket
 import sys
-import os
 from sys import argv
 
 import servicemanager

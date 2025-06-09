@@ -12,10 +12,11 @@ from queue import Queue
 from sys import exit
 from threading import Thread, Timer
 from time import sleep, time
+from typing import List
 
 from pynput import keyboard, mouse
 from PyQt6.QtCore import QObject, QSize, Qt, QThread, QTimer, QUrl, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QDesktopServices, QIcon, QAction
+from PyQt6.QtGui import QAction, QDesktopServices, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
@@ -60,7 +61,7 @@ parser.add_argument(
     help="rpc http url, default: http://127.0.0.1:5383/",
 )
 
-devList = []
+devList: List[str] = []
 
 macros_folder = str(Path(__file__).resolve().parent.parent.parent.parent / "macros")
 

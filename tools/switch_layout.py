@@ -132,7 +132,7 @@ class LayoutSwitcher:
         # Try to load and show some stats
         try:
             import json
-            with open(layout_path, 'r', encoding='utf-8') as f:
+            with open(layout_path, encoding='utf-8') as f:
                 layout_data = json.load(f)
             
             total_chars = len(layout_data)
@@ -171,8 +171,7 @@ class LayoutSwitcher:
             from layout_converter import KeyboardLayoutConverter
             
             converter = KeyboardLayoutConverter()
-            layout_path = self.keymaps_dir / layout_file
-            
+
             # Load the layout
             layout_data = converter.load_layout(layout_file)
             if layout_data is None:

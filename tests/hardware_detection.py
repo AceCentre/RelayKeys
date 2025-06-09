@@ -4,9 +4,10 @@ Hardware detection utilities for RelayKeys testing
 Automatically detects if RelayKeys hardware is connected
 """
 
-import serial.tools.list_ports
-from typing import Optional, List, Dict, Any
 import logging
+from typing import Any, Dict, List, Optional
+
+import serial.tools.list_ports
 
 
 class HardwareDetector:

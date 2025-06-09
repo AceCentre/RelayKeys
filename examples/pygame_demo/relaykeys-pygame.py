@@ -1,6 +1,5 @@
 import pygame
 from pygame.locals import *
-
 from relaykeysclient import RelayKeysClient
 
 url = "http://localhost:5383/"

@@ -7,4 +7,6 @@ This module provides utility functions for:
 - Configuration helpers
 """
 
-__all__ = []
+from typing import List
+
+__all__: List[str] = []

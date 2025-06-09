@@ -4,11 +4,12 @@ Pytest configuration for RelayKeys
 Automatically configures tests based on hardware availability
 """
 
-import pytest
 import subprocess
-import time
 import sys
+import time
 from pathlib import Path
+
+import pytest
 
 # Add the project root to the path
 project_root = Path(__file__).parent.parent
@@ -46,7 +47,7 @@ def pytest_collection_modifyitems(config, items):
         print(f"🎯 Primary Device: {primary_device}")
     
     skip_hardware = pytest.mark.skip(reason="Hardware not connected")
-    skip_no_hardware = pytest.mark.skip(reason="Hardware is connected, skipping dummy tests")
+    # skip_no_hardware = pytest.mark.skip(reason="Hardware is connected, skipping dummy tests")
     
     for item in items:
         # Skip hardware tests if no hardware
@@ -184,7 +185,7 @@ def pytest_report_header(config):
     hardware_info = detector.get_hardware_info()
     
     header = [
-        f"RelayKeys Test Suite",
+        "RelayKeys Test Suite",
         f"Hardware Status: {'✅ Connected' if hardware_info['hardware_connected'] else '❌ Not Connected'}",
     ]
     

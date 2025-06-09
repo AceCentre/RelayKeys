@@ -4,16 +4,14 @@ Synthetic stress tests for RelayKeys
 Push the system to its limits without requiring hardware
 """
 
-import pytest
-import time
-import threading
-import subprocess
-import requests
-import json
 import concurrent.futures
 import random
 import string
-from unittest.mock import patch
+import subprocess
+import time
+
+import pytest
+import requests
 
 
 @pytest.mark.no_hardware
@@ -381,8 +379,9 @@ class TestSyntheticStressMemory:
     
     def test_memory_leak_detection(self):
         """Test for memory leaks during extended operation"""
-        from tests.enhanced_dummy_serial import EnhancedDummySerial
         import gc
+
+        from tests.enhanced_dummy_serial import EnhancedDummySerial
         
         # Force garbage collection
         gc.collect()

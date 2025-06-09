@@ -12,12 +12,11 @@ Usage:
     python layout_converter.py --test-layout fr_keymap.json
 """
 
-import json
 import argparse
+import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
-import unicodedata
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class KeyboardLayoutConverter:
@@ -257,7 +256,7 @@ class KeyboardLayoutConverter:
         """Load layout from JSON file."""
         try:
             filepath = self.keymaps_dir / filename
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
             print(f"Error loading layout: {e}")

@@ -141,7 +141,7 @@ def get_french_azerty_layout() -> Dict[str, List]:
         "|": ["6", ["RALT"]],
         "`": ["7", ["RALT"]],
         "\\": ["8", ["RALT"]],
-        "^": ["9", ["RALT"]],
+        # "^": ["9", ["RALT"]],  # Removed duplicate - "^" already defined as unshifted LEFTBRACKET
         "@": ["0", ["RALT"]],
         "]": ["MINUS", ["RALT"]],
         "}": ["EQUALS", ["RALT"]],

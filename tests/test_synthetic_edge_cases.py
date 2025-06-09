@@ -4,17 +4,15 @@ Synthetic edge case tests for RelayKeys
 Test unusual, boundary, and corner cases without hardware
 """
 
-import pytest
-import time
-import threading
-import subprocess
-import requests
-import json
-import tempfile
 import os
-import string
-import random
-from unittest.mock import patch, MagicMock
+import subprocess
+import tempfile
+import threading
+import time
+
+import pytest
+import requests
+
 from tests.enhanced_dummy_serial import EnhancedDummySerial
 
 

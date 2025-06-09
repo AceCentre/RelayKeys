@@ -183,7 +183,7 @@ class TestKeymapFiles:
         if keymap_dir.exists():
             for keymap_file in keymap_dir.glob("*.json"):
                 # Test each JSON file is valid
-                with open(keymap_file, 'r', encoding='utf-8') as f:
+                with open(keymap_file, encoding='utf-8') as f:
                     try:
                         data = json.load(f)
                         assert isinstance(data, dict)
@@ -207,7 +207,7 @@ class TestKeyboardLayouts:
 
             # Test each layout file
             for layout_file in json_files:
-                with open(layout_file, 'r', encoding='utf-8') as f:
+                with open(layout_file, encoding='utf-8') as f:
                     try:
                         layout_data = json.load(f)
                         assert isinstance(layout_data, dict)
@@ -278,7 +278,7 @@ class TestKeyboardLayouts:
         for layout_file in expected_layouts:
             layout_path = keymap_dir / layout_file
             if layout_path.exists():
-                with open(layout_path, 'r', encoding='utf-8') as f:
+                with open(layout_path, encoding='utf-8') as f:
                     layout_data = json.load(f)
 
                 # Test basic structure
@@ -305,7 +305,7 @@ class TestKeyboardLayouts:
         ]
 
         for json_file in keymap_dir.glob("*.json"):
-            with open(json_file, 'r', encoding='utf-8') as f:
+            with open(json_file, encoding='utf-8') as f:
                 layout_data = json.load(f)
 
             # Count different types of characters
@@ -330,7 +330,7 @@ class TestKeyboardLayouts:
         keymap_dir = Path("src/relaykeys/cli/keymaps")
 
         for json_file in keymap_dir.glob("*.json"):
-            with open(json_file, 'r', encoding='utf-8') as f:
+            with open(json_file, encoding='utf-8') as f:
                 layout_data = json.load(f)
 
             # Check that uppercase/lowercase pairs are consistent

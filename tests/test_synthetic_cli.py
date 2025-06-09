@@ -4,13 +4,14 @@ Comprehensive synthetic CLI tests for RelayKeys
 Tests all CLI functionality without requiring hardware
 """
 
-import pytest
-import subprocess
-import time
-import tempfile
 import os
+import subprocess
+import tempfile
+import time
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
+import pytest
 
 
 @pytest.mark.no_hardware
@@ -378,7 +379,7 @@ keymap_file = us_keymap.json
             for keymap_file in keymap_files:
                 try:
                     import json
-                    with open(keymap_file, 'r') as f:
+                    with open(keymap_file) as f:
                         keymap_data = json.load(f)
                     assert isinstance(keymap_data, dict)
                 except json.JSONDecodeError:
@@ -409,16 +410,15 @@ class TestSyntheticCLIPerformance:
     
     def test_cli_rapid_commands(self, daemon_process):
         """Test rapid CLI command execution"""
-        time.sleep(2)
-        
         import time
+        time.sleep(2)
         start_time = time.time()
         
         # Execute 20 rapid commands
         for i in range(20):
             try:
                 result = subprocess.run([
-                    "uv", "run", "python", "relaykeys-cli.py", f"keypress:A"
+                    "uv", "run", "python", "relaykeys-cli.py", "keypress:A"
                 ], capture_output=True, text=True, timeout=5)
                 
                 # Don't assert success, just that it doesn't crash

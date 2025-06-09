@@ -4,11 +4,10 @@ Enhanced DummySerial for comprehensive synthetic testing
 Simulates realistic RelayKeys hardware behavior
 """
 
-import time
-import threading
 import queue
 import random
-from typing import Dict, List, Optional, Any
+import threading
+import time
 
 
 class EnhancedDummySerial:

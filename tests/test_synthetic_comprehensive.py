@@ -4,13 +4,14 @@ Comprehensive synthetic tests for RelayKeys
 Tests every possible scenario without requiring hardware
 """
 
-import pytest
-import time
-import threading
 import subprocess
+import threading
+import time
+from unittest.mock import patch
+
+import pytest
 import requests
-import json
-from unittest.mock import patch, MagicMock
+
 from tests.enhanced_dummy_serial import EnhancedDummySerial
 
 

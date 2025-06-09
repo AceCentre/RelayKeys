@@ -54,6 +54,7 @@ dev = [
     "black",
     "flake8",
     "mypy",
+    "types-requests",  # Type stubs for requests library
     "pre-commit",
     "ruff",
     "bandit",
