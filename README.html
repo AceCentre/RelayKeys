@@ -1,0 +1,70 @@
+<h1>RelayKeys</h1>
+<p>Allow a Computer to mimic a Bluetooth Keyboard (&amp; Mouse). 
+Using some hardware (a couple of different options currently) and a piece of software running on the 'Server' machine - any devices which support Bluetooth LE HID can then receive the keystrokes. <strong>For full documentation (and updated docs!) see https://docs.acecentre.org.uk/products/v/relaykeys/</strong></p>
+<p align="center">
+  <img src="https://github.com/acecentre/relaykeys/actions/workflows/build.yml/badge.svg?branch=master" alt="Github Action Build workflow status" />
+  <img alt="GitHub" src="https://img.shields.io/github/license/acecentre/relaykeys">
+  <img alt="GitHub issues" src="https://img.shields.io/github/issues-raw/acecentre/relaykeys">
+  <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/acecentre/relaykeys">
+  <img alt="GitHub all releases" src="https://img.shields.io/github/downloads/acecentre/relaykeys/total">
+  <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/relaykeys/eyecommander">
+</p>
+
+<!--ts-->
+<ul>
+<li><a href="#relaykeys">RelayKeys</a><ul>
+<li><a href="#why">Why?</a></li>
+<li><a href="#getting-started">Getting Started</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#credits">Credits</a></li>
+</ul>
+</li>
+</ul>
+<!-- Added by: willwade, at:  -->
+
+<!--te-->
+
+<h2>Why?</h2>
+<p>Well a range of purposes. For some - its just a convenient way of saving some money on a <a href="https://en.wikipedia.org/wiki/KVM_switch">KVM switch</a> - or replacing now hard to find <a href="https://docs.acecentre.org.uk/products/v/relaykeys/developers/other-projects">commercial solutions</a>. </p>
+<p>For the <a href="http://acecentre.org.uk">AceCentre</a> we want people with disabilities who are forced to use one system (e.g. a dedicated Eyegaze system) to be able to access other computers and systems they may need to use for work or leisure. This has only been available on a couple of commercial AAC systems - and often need to be on the same network which is sadly often impossible in schools or government workplaces - Or they do work over bluetooth but for only one system in the field exists like this (see <a href="https://docs.acecentre.org.uk/products/v/relaykeys/developers/other-projects#aac-projects">here for more details on these</a>). Some people may also want to jyst control their tablet or phone using this technique rather than rely on computer control functions - for example to control music software or photo editing software which usually demands the full screen. Or others want to make custom full screen custom keyboards using their specialist software. </p>
+<p><strong>Why not just rely on other solutions?</strong> Some commercial solutions are great. We advocate using them over our solution when you can. When you can't (e.g. no alternative or restrictions to what devices you can control) then this may be a solution. </p>
+<p><strong>We are a commercial developer.. I like it but I think I could do it differently</strong>. Thats great! But please consider the end user. If you as a commercial supplier dont want to continue making this hardware/software solution in the future consider a route to how a user could use a open solution. Please consider either replicating our command set at a serial or CLI level. Are we missing something that your solution provides? Please let us know so we can improve it. </p>
+<p><strong>Why not just do this in software alone?</strong> Sure. If you can. On windows - its not possible.. Yet. Maybe in Windows 11. In MacOS it <em>should</em> be - and iOS &amp; Android its definitely possible. But our solution kind of offloads the problem. If you work in one of the mobile environments and want to replicate the functionality go for it - just please consider following some similarity in command structure (take a look at the macros for example)</p>
+<p><img alt="Image of Person Using AAC" src="https://acecentre.org.uk/wp-content/uploads/2017/05/Helping-children-with-AAC-needs-1280x492.jpg" /></p>
+<h2>Getting Started</h2>
+<p>If you are a developer start <a href="https://docs.acecentre.org.uk/products/v/relaykeys/developers/architecture">here</a>. If you are a end user who just wants to get going start <a href="https://docs.acecentre.org.uk/products/v/relaykeys/installation">here</a>.</p>
+<h3>Development Setup</h3>
+<p>RelayKeys now uses a modern Python package structure with UV package manager support:</p>
+<p>```bash</p>
+<h1>Clone the repository</h1>
+<p>git clone https://github.com/AceCentre/RelayKeys.git
+cd RelayKeys</p>
+<h1>Install in development mode with UV</h1>
+<p>uv pip install -e .</p>
+<h1>Run the CLI</h1>
+<p>uv run relaykeys-cli --help</p>
+<h1>Run the daemon</h1>
+<p>uv run relaykeys-daemon --help</p>
+<h1>Run tests</h1>
+<p>uv run python -m pytest
+```</p>
+<h3>Package Structure</h3>
+<p>The codebase is now organized as a proper Python package:
+- <code>src/relaykeys/core/</code> - Core daemon and client functionality
+- <code>src/relaykeys/cli/</code> - Command-line interface tools
+- <code>src/relaykeys/gui/</code> - Graphical user interface
+- <code>src/relaykeys/utils/</code> - Utility functions
+- <code>scripts/</code> - Build and deployment scripts
+- <code>examples/</code> - Example configurations and demos
+- <code>assets/</code> - Static assets (icons, reference files)</p>
+<h2>License</h2>
+<p>This project is licensed under the MIT License - see the <a href="LICENSE.md">LICENSE.md</a> file for details</p>
+<h2>Credits</h2>
+<ul>
+<li><a href="https://forums.adafruit.com/viewtopic.php?f=53&amp;t=145081&amp;start=15">bbx10</a> on the Adafruit forums who got this up and running. Awesome. </li>
+<li><a href="https://thenounproject.com/search/?q=keyboard&amp;i=1442359">Keyboard</a> by Atif Arshad from the Noun Project</li>
+<li><a href="https://thenounproject.com/search/?q=bluetooth&amp;i=1678456">Bluetooth</a> by Adrien Coquet from the Noun Project</li>
+</ul>
+<p><a href = "https://github.com/AceCentre/RelayKeys/graphs/contributors">
+<img src = "https://contrib.rocks/image?repo=AceCentre/RelayKeys"/>
+</a></p>

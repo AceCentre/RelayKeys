@@ -3,7 +3,7 @@ import logging
 import operator
 from functools import reduce
 
-from serial_wrappers import BLESerialWrapper
+from .serial_wrappers import BLESerialWrapper
 
 # keys source http://www.freebsddiary.org/APC/usb_hid_usages.php
 keymap = dict(

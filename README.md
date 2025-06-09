@@ -42,6 +42,39 @@ For the [AceCentre](http://acecentre.org.uk) we want people with disabilities wh
 
 If you are a developer start [here](https://docs.acecentre.org.uk/products/v/relaykeys/developers/architecture). If you are a end user who just wants to get going start [here](https://docs.acecentre.org.uk/products/v/relaykeys/installation).
 
+### Development Setup
+
+RelayKeys now uses a modern Python package structure with UV package manager support:
+
+```bash
+# Clone the repository
+git clone https://github.com/AceCentre/RelayKeys.git
+cd RelayKeys
+
+# Install in development mode with UV
+uv pip install -e .
+
+# Run the CLI
+uv run relaykeys-cli --help
+
+# Run the daemon
+uv run relaykeys-daemon --help
+
+# Run tests
+uv run python -m pytest
+```
+
+### Package Structure
+
+The codebase is now organized as a proper Python package:
+- `src/relaykeys/core/` - Core daemon and client functionality
+- `src/relaykeys/cli/` - Command-line interface tools
+- `src/relaykeys/gui/` - Graphical user interface
+- `src/relaykeys/utils/` - Utility functions
+- `scripts/` - Build and deployment scripts
+- `examples/` - Example configurations and demos
+- `assets/` - Static assets (icons, reference files)
+
 
 ## License
 

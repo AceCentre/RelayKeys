@@ -104,3 +104,12 @@ class DummySerial:
 
     def read_all(self):
         return b"Dummy Device 1\nDummy Device 2\nDummy Device 3\n"
+
+
+def get_serial(device_path, baud_rate, use_dummy=False):
+    """Get a serial connection, either real or dummy"""
+    if use_dummy:
+        return DummySerial(device_path, baud_rate)
+    else:
+        import serial
+        return serial.Serial(device_path, baud_rate, timeout=1)

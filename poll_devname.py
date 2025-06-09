@@ -1,35 +1,17 @@
-from pathlib import Path
-from time import sleep, time
+#!/usr/bin/env python3
+"""
+Entry point wrapper for device polling utility.
+This script provides backward compatibility for the build system.
+"""
 
-from notifypy import Notify
+import sys
+import os
 
-from relaykeysclient import RelayKeysClient
+# Add the src directory to the Python path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-client = RelayKeysClient(url="http://127.0.0.1:5383/")
+from relaykeys.utils.device_poller import *
 
-
-def send_devname_notification(device_name):
-    notification = Notify()
-    notification.application_name = "Relaykeys"
-    notification.title = ""
-    notification.icon = str(Path(__file__).resolve().parent / "resources" / "logo.png")
-    notification.message = f"Connected to {device_name}."
-
-    notification.send()
-
-
-polling_start_timestamp = time()
-timeout_sec = 40
-
-while True:
-    if time() - polling_start_timestamp > timeout_sec:
-        break  # timeout
-
-    ret = client.ble_cmd("devname")
-    if "result" in ret:
-        devname = ret["result"]
-        if devname != "NONE":
-            send_devname_notification(devname)
-            break
-
-    sleep(2)
+if __name__ == "__main__":
+    # The device_poller module runs its main logic when imported
+    pass

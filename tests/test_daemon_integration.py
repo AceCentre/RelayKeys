@@ -213,25 +213,27 @@ class TestModuleImports:
 
     def test_import_relaykeysclient(self):
         """Test importing relaykeysclient"""
-        import relaykeysclient
+        from relaykeys.core import client
 
-        assert hasattr(relaykeysclient, "RelayKeysClient")
+        assert hasattr(client, "RelayKeysClient")
 
     def test_import_serial_wrappers(self):
         """Test importing serial_wrappers"""
-        import serial_wrappers
+        from relaykeys.core import serial_wrappers
 
         assert hasattr(serial_wrappers, "DummySerial")
 
     def test_import_cli_keymap(self):
         """Test importing cli_keymap"""
-        import cli_keymap
+        from relaykeys.cli import keymap
 
-        assert hasattr(cli_keymap, "load_keymap")
+        assert hasattr(keymap, "load_keymap_file")
 
     def test_import_blehid(self):
         """Test importing blehid"""
+        from relaykeys.core import blehid
         # Should import without error
+        assert hasattr(blehid, "blehid_init_serial")
 
 
 class TestErrorHandling:

@@ -31,6 +31,41 @@ Feel free to change any of the settings but **Be careful that you make the usern
 
 Note the keymap file. This is found in the sub directory **cli\_keymaps**. You can have multiple keymaps in here if you wish and switch between them using the[ cli using -c](../using-relaykeys/relaykeys-cli.md#defining-a-keymap-c)
 
+## Available Keyboard Layouts
+
+RelayKeys now supports multiple keyboard layouts for different languages and regions:
+
+- **us_keymap.json** - US English QWERTY layout
+- **uk_keymap.json** - UK English QWERTY layout
+- **de_keymap.json** - German QWERTZ layout
+- **fr_azerty_keymap.json** - French AZERTY layout (NEW!)
+- **es_qwerty_keymap.json** - Spanish QWERTY layout (NEW!)
+- **it_qwerty_keymap.json** - Italian QWERTY layout (NEW!)
+
+To use a different layout, simply change the `keymap_file` setting:
+
+```ini
+[cli]
+keymap_file = fr_azerty_keymap.json
+```
+
+### Language-Specific Features
+
+**French AZERTY:**
+- Accented characters: é, è, à, ç, ù
+- Special symbols: €, £, ², ³, °
+- Proper AZERTY key positioning
+
+**Spanish QWERTY:**
+- Special characters: ñ, Ñ
+- Inverted punctuation: ¿, ¡
+- Accented vowels: á, é, í, ó, ú
+- Euro symbol: €
+
+**Italian QWERTY:**
+- Accented vowels: à, è, ì, ò, ù
+- Special symbols: €, £, °, §
+
 Each file is a json file (tip - using [jsonlint](https://jsonlint.com) to check its formatted ok) looks something like the below where the string is sent dependent on the characters sent. eg. on a UK keyboard **! is sent by presing shift and 1.**
 
 ```

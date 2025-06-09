@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import relaykeysclient
+from relaykeys.core import client as relaykeysclient
 
 
 class TestRelayKeysClient:
@@ -68,7 +68,7 @@ class TestRelayKeysClient:
         request_data = json.loads(call_args[1]["data"])
 
         assert request_data["method"] == "keyevent"
-        assert request_data["params"] == ["A", ["LSHIFT"], True]
+        assert request_data["params"] == [["A", ["LSHIFT"], True]]
         assert result == "SUCCESS"
 
     @patch("requests.post")
@@ -87,7 +87,7 @@ class TestRelayKeysClient:
         request_data = json.loads(call_args[1]["data"])
 
         assert request_data["method"] == "mousemove"
-        assert request_data["params"] == [10, 20, 0, 0]
+        assert request_data["params"] == [[10, 20, 0, 0]]
         assert result == "SUCCESS"
 
     @patch("requests.post")
@@ -106,7 +106,7 @@ class TestRelayKeysClient:
         request_data = json.loads(call_args[1]["data"])
 
         assert request_data["method"] == "mousebutton"
-        assert request_data["params"] == ["l", "click"]
+        assert request_data["params"] == [["l", "click"]]
         assert result == "SUCCESS"
 
     @patch("requests.post")
@@ -125,7 +125,7 @@ class TestRelayKeysClient:
         request_data = json.loads(call_args[1]["data"])
 
         assert request_data["method"] == "daemon"
-        assert request_data["params"] == ["dongle_status"]
+        assert request_data["params"] == [["dongle_status"]]
         assert result == "daemon_running"
 
     @patch("requests.post")
@@ -144,7 +144,7 @@ class TestRelayKeysClient:
         request_data = json.loads(call_args[1]["data"])
 
         assert request_data["method"] == "ble_cmd"
-        assert request_data["params"] == ["devlist"]
+        assert request_data["params"] == [["devlist"]]
         assert "Device1" in result
 
     @patch("requests.post")

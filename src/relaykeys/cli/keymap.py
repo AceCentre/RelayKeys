@@ -9,7 +9,7 @@ def load_keymap_file(config):
 
     keymap_file = (
         Path(__file__).resolve().parent
-        / "cli_keymaps"
+        / "keymaps"
         / config.get("keymap_file", "us_keymap.json")
     )
     if keymap_file.exists() and keymap_file.is_file():

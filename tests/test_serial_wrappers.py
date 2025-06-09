@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import serial_wrappers
+from relaykeys.core import serial_wrappers
 
 
 class TestDummySerial:

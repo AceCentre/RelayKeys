@@ -1,7 +1,5 @@
 # win32 service impl
 import socket
-import sys
-import os
 from sys import argv
 
 import servicemanager
@@ -9,10 +7,7 @@ from win32event import WAIT_OBJECT_0, CreateEvent, SetEvent, WaitForSingleObject
 from win32service import SERVICE_STOP_PENDING
 from win32serviceutil import HandleCommandLine, ServiceFramework
 
-# Add the src directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-
-from relaykeys.core import daemon as relaykeysd
+import relaykeysd
 
 
 class RelayKeysService(ServiceFramework):

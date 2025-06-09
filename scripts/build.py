@@ -32,7 +32,7 @@ def moveTree(sourceRoot, destRoot):
 
 
 # Copy the example relaykeys example. This is hacky.
-with open("relaykeys-example.cfg") as f:
+with open("examples/relaykeys-example.cfg") as f:
     with open("relaykeys.cfg", "w") as wf:
         wf.write(f.read())
 
@@ -83,8 +83,8 @@ if os.name == "nt":
             "--distpath",
             "dist/relaykeysd/",
             "-i",
-            "resources/logo.ico",
-            "./resources/mouserepeat.py",
+            "assets/icons/logo.ico",
+            "./assets/mouserepeat.py",
         ]
     )
 
@@ -126,7 +126,6 @@ for item in [
     "logfile.txt",
     "LICENSE",
     "README.html",
-    "cli_keymaps",
     "macros",
 ]:
     if os.path.isdir(item):
@@ -134,9 +133,13 @@ for item in [
     else:
         shutil.copy(item, r"dist/relaykeysd")
 
+# Copy keymaps from the new location
+if os.path.isdir("src/relaykeys/cli/keymaps"):
+    shutil.copytree("src/relaykeys/cli/keymaps", r"dist/relaykeysd/cli_keymaps", dirs_exist_ok=True)
+
 # Bit messy this.. but cant figure out a neater way. Logo needs to go to resources dir for notifications
-os.mkdir(r"dist/relaykeysd/resources")
-shutil.copy(r"resources/logo.png", r"dist/relaykeysd/resources")
+os.makedirs(r"dist/relaykeysd/resources", exist_ok=True)
+shutil.copy(r"assets/icons/logo.png", r"dist/relaykeysd/resources")
 
 # Run the nsis
 if os.name == "nt":
