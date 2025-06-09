@@ -7,19 +7,26 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest      
+    runs-on: windows-latest
     steps:
     - name: Install SCService Plugin
       run:  |
         Invoke-Webrequest -Uri 'https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip' -OutFile ss.zip
         Expand-Archive ss.zip -DestinationPath .\ss
-        move ss\SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\"      
-    - uses: actions/checkout@v3
-    - name: Install Python
+        move ss\SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\"
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Install UV
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: "latest"
+    - name: Install dependencies and build
       run:  |
-        pip install -r requirements.txt 
-        pip install -r requirements-build.txt
-        python build.py
+        uv sync --group build
+        uv run python scripts/build.py
     #- name: Dump cert
     #  if: github.repository == 'acecentre/relaykeys'
     #  run:  |

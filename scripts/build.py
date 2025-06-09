@@ -6,6 +6,10 @@ import shutil
 import subprocess
 from pathlib import Path
 
+# Change to the project root directory (parent of scripts)
+project_root = Path(__file__).parent.parent
+os.chdir(project_root)
+
 
 def moveTree(sourceRoot, destRoot):
     if not os.path.exists(destRoot):
@@ -143,7 +147,7 @@ shutil.copy(r"assets/icons/logo.png", r"dist/relaykeysd/resources")
 
 # Run the nsis
 if os.name == "nt":
-    subprocess.run([r"C:\Program Files (x86)\NSIS\makensis.exe", "build-installer.nsi"])
+    subprocess.run([r"C:\Program Files (x86)\NSIS\makensis.exe", "scripts/build-installer.nsi"])
 if os.name == "posix":
     plist = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

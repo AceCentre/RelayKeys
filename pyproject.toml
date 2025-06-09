@@ -184,6 +184,7 @@ ignore_missing_imports = true
 build = [
     "markdown>=3.7",
     "pyinstaller>=6.14.0",
+    "pywin32; platform_system == 'Windows'",
 ]
 gui = [
     "pyqt6>=6.0.0",
