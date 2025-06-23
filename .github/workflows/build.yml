@@ -40,4 +40,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: 'Windows Release'
-        path: 'RelayKeys setup.exe'
+        path: 'scripts\RelayKeys setup.exe'
