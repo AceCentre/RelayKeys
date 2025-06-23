@@ -26,7 +26,7 @@ jobs:
     - name: Install dependencies and build
       run:  |
         uv sync --group build
-        uv run python scripts/build.py
+        uv run scripts/build.py
     #- name: Dump cert
     #  if: github.repository == 'acecentre/relaykeys'
     #  run:  |

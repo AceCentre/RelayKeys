@@ -133,8 +133,8 @@ Section
     ${EndIf}
     
     SetOutPath "$InstDir"
-    File "scripts\relaykeysd-service-restart.bat"
-    File /r dist\relaykeysd\*
+    File "relaykeysd-service-restart.bat"
+    File /r ..\dist\relaykeysd\*
     SetShellVarContext all
     ;create start-menu items
       CreateDirectory "$SMPROGRAMS\Ace Centre\RelayKeys"
