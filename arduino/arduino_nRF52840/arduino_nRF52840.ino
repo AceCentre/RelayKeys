@@ -1,991 +1,912 @@
+
 /*********************************************************************
- This file was forked from https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/libraries/Bluefruit52Lib/examples/Peripheral/hid_keyboard/hid_keyboard.ino
-
- Its quite different now as we have added connection commands, mouse commands and other bits
-
- Work is copyright Ace Centre 2020 - MIT Licence. If you go and use this in a commercial project - thats great. But we'd appreciate even an email thanks :) 
-
- Note: What follows is the original Adafruit comment code. 
-
- Adafruit invests time and resources providing this open source code,
- please support Adafruit and open-source hardware by purchasing
- products from Adafruit!
- MIT license, check LICENSE for more information
- All text above, and the splash screen below must be included in
- any redistribution
+ RelayKeys nRF52840 Implementation v2
+ 
+ Updated nRF52840 implementation for RelayKeys using common header
+ This is a refactored version of the original nRF52840 code that uses
+ the shared common header for consistency across platforms.
+ 
+ Copyright Ace Centre 2024 - MIT Licence
+ 
+ Hardware Requirements:
+ - Adafruit nRF52840 Express, ItsyBitsy, or compatible board
+ - Built-in NeoPixel or DotStar LED for status
+ - User button for mode switching
+ 
+ This implementation maintains full compatibility with the original
+ RelayKeys AT command protocol while using the new common header
+ structure for better code organization.
 *********************************************************************/
+
 #include <bluefruit.h>
 #include <Adafruit_LittleFS.h>
 #include <InternalFileSystem.h>
-
-/*
- * Implement the Bluefruit command AT+BLEKEYBOARDCODE command.
- * Nothing else useful. Useful for testing a Python program designed to work
- * with a BF LE UART Friend. Lots of this code is from an Adafruit example.
- */
+#include "relaykeys_common.h"
 
 //#define DEBUG // uncomment this line to see additional prints in Serial monitor
 
-#define BLE_NAME "AceRK"
-#define ADD_NEW_DEV_PROCESS_TIMEOUT 30000 // in millseconds
-#define SWAP_CONN_PROCESS_TIMEOUT 30000   // in millseconds
-
-
-// The following defines which pin for the User button to go into BLE mode. 
-// NB: using this neat trick: https://electronics.stackexchange.com/a/280379
+// Hardware-specific pin definitions
 #if defined(_VARIANT_ITSY52840_)
-//Adafruit itsybitsy 
+  // Adafruit ItsyBitsy nRF52840
   #define USER_SW 4
   #include <Adafruit_DotStar.h>
   Adafruit_DotStar statusLED(1, 8, 6, DOTSTAR_BGR);
 #elif defined(_VARIANT_FEATHER52840_)
-//Adafruit feather nrf52840
-    #define USER_SW 7
-    #include <Adafruit_NeoPixel.h>
-    Adafruit_NeoPixel statusLED = Adafruit_NeoPixel(1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
+  // Adafruit Feather nRF52840
+  #define USER_SW 7
+  #include <Adafruit_NeoPixel.h>
+  Adafruit_NeoPixel statusLED = Adafruit_NeoPixel(1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 #elif defined(_VARIANT_MDBT50Q_RX_)
-// https://www.adafruit.com/product/5199 = Warning that variant name coukd be wrong. Im guessing
-    #define USER_SW PIN_BUTTON1
-    #include <TimedBlink.h>
-    TimedBlink monitor(LED_BLUE);
+  // Raytac MDBT50Q-RX Dongle
+  #define USER_SW PIN_BUTTON1
+  #include <TimedBlink.h>
+  TimedBlink monitor(LED_BLUE);
 #else
-	#define UNKNOWN_BOARD
-	// lazy - but going to pretend its a itsybitsy. Its the one with a wierd board name. 
-	#define USER_SW 4
-	// Default definition for statusLED
-	#include <Adafruit_NeoPixel.h>
-	Adafruit_NeoPixel statusLED = Adafruit_NeoPixel(1, 8, NEO_GRB + NEO_KHZ800);
+  // Unknown board - default to ItsyBitsy-like configuration
+  #define UNKNOWN_BOARD
+  #define USER_SW 4
+  #include <Adafruit_NeoPixel.h>
+  Adafruit_NeoPixel statusLED = Adafruit_NeoPixel(1, 8, NEO_GRB + NEO_KHZ800);
 #endif
 
-
+// BLE objects
 BLEDis bledis;
 BLEHidAdafruit blehid;
 BLEUart bleuart;
 
-volatile uint32_t addDevProsStartTicks = 0;
-volatile uint8_t flag_addDevProsStarted = 0;
-char bleDeviceNameList[15][32] = {0};
-volatile uint8_t bleDeviceNameListIndex = 0;
-volatile uint8_t flag_bleSwapConnProsStarted = 0;
-volatile uint32_t swapConnProsStartTicks = 0;
-volatile uint8_t maxBleDevListSize = 3;
-volatile uint8_t switchBleConnStartIndex = 0;
-volatile uint8_t switchBleConnCurrIndex = 0;
+// Device state
+device_state_t deviceState = {0};
+uint8_t keys[HID_KEYBOARD_REPORT_SIZE] = {0}; // Current keyboard state
+uint8_t max_prph_connection = 1;
+uint8_t connection_count = 0;
+uint16_t target_ble_conn = 0;
+uint16_t response_ble_conn = 0;
 
-///
+// File system
 using namespace Adafruit_LittleFS_Namespace;
 #define FILENAME "/devNameList.txt"
 #define MODE_FILENAME "/config.txt"
 #define TMP_FILENAME "/tmp.txt"
-
 File file(InternalFS);
 
-volatile bool flag_saveListToFile = false;
-///
+// Mouse button constants for nRF52840 (Bluefruit library)
+#define MOUSE_BUTTON_LEFT     0x01
+#define MOUSE_BUTTON_RIGHT    0x02
+#define MOUSE_BUTTON_MIDDLE   0x04
+#define MOUSE_BUTTON_BACKWARD 0x08
+#define MOUSE_BUTTON_FORWARD  0x10
 
-uint8_t max_prph_connection;
-uint8_t connection_count;
+// Mouse button mapping for nRF52840
+const mouse_button_map_t mouse_buttons_map[] = {
+    {MOUSE_BUTTON_LEFT_CHAR, MOUSE_BUTTON_LEFT},
+    {MOUSE_BUTTON_RIGHT_CHAR, MOUSE_BUTTON_RIGHT},
+    {MOUSE_BUTTON_MIDDLE_CHAR, MOUSE_BUTTON_MIDDLE},
+    {MOUSE_BUTTON_BACKWARD_CHAR, MOUSE_BUTTON_BACKWARD},
+    {MOUSE_BUTTON_FORWARD_CHAR, MOUSE_BUTTON_FORWARD},
+    {MOUSE_BUTTON_RELEASE_CHAR, 0},
+};
 
-bool ble_mode = false;
+// Forward declarations
+void startAdv(void);
+void bleConnectCallback(uint16_t conn_handle);
+void disconnect_callback(uint16_t conn_handle, uint8_t reason);
+void prph_bleuart_rx_callback(uint16_t conn_handle);
+void set_keyboard_led(uint16_t conn_handle, uint8_t led_bitmap);
 
-uint16_t target_ble_conn = 0;
-uint16_t response_ble_conn = 0;
+// Number of AT commands (defined here for use in execute function)
+#define NUM_COMMANDS 12
 
-void set_keyboard_led(uint8_t led_bitmap);
-
-void updateStatusLED() {
-  #if defined(_VARIANT_MDBT50Q_RX_)
-    if(flag_addDevProsStarted) {
-      monitor.blink(150,50); // LED on for 150 ms and off for 50 ms.
-    } else if(ble_mode) {
-      monitor.blink(300,50); // LED on for 150 ms and off for 50 ms.
+void setup() {
+    Serial.begin(115200);
+    #if defined(UNKNOWN_BOARD) && defined(DEBUG)
+    Serial.println("Unsupported hardware. Possibly not critical unless you want to initiate BLE mode with a button");
+    #endif
+    
+    // Initialize Internal File System
+    InternalFS.begin();
+    
+    // Load configuration
+    load_mode_file();
+    load_tmp_file();
+    load_devList_fromFile();
+    
+    // Initialize pins
+    pinMode(USER_SW, INPUT_PULLUP);
+    
+    // Initialize status LED
+    #ifdef _VARIANT_MDBT50Q_RX_
+    monitor.blink(800, 10);
+    #else
+    statusLED.begin();
+    updateStatusLED();
+    #endif
+    
+    // Initialize device state
+    deviceState.maxBleDevListSize = MAX_BLE_DEV_LIST_SIZE_DEFAULT;
+    
+    // Set connection limits based on mode
+    if (deviceState.ble_mode) {
+        max_prph_connection = 2;
     } else {
-      digitalWrite(LED_BLUE,HIGH); // On
+        max_prph_connection = 1;
     }
-  #else
-    if(flag_addDevProsStarted) {
-      statusLED.setPixelColor(0, 16, 16, 0);  // set yellow color
-    } else if(ble_mode) {
-      statusLED.setPixelColor(0, 0, 0, 16);    // set blue color
+    
+    // Initialize Bluefruit
+    Bluefruit.configPrphBandwidth(BANDWIDTH_MAX);
+    Bluefruit.begin(max_prph_connection, 0);
+    Bluefruit.setTxPower(4);
+    Bluefruit.setName(BLE_NAME);
+    Bluefruit.Periph.setConnectCallback(bleConnectCallback);
+    Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
+    
+    // Configure Device Information Service
+    bledis.setManufacturer(BLE_MANUFACTURER);
+    bledis.setModel(BLE_NAME);
+    bledis.begin();
+    
+    // Configure BLE UART Service
+    bleuart.begin();
+    bleuart.setRxCallback(prph_bleuart_rx_callback);
+    
+    // Start BLE HID
+    blehid.begin();
+    blehid.setKeyboardLedCallback(set_keyboard_led);
+    
+    // Start advertising
+    startAdv();
+    
+    DEBUG_PRINTLN("RelayKeys nRF52840 v2 Ready");
+}
+
+void startAdv(void) {
+    // Advertising packet
+    Bluefruit.Advertising.addFlags(BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE);
+    Bluefruit.Advertising.addTxPower();
+    Bluefruit.Advertising.addAppearance(BLE_APPEARANCE_HID_KEYBOARD);
+    
+    // Include BLE HID service
+    Bluefruit.Advertising.addService(blehid);
+    
+    // Add device name
+    Bluefruit.Advertising.addName();
+    
+    // Start advertising
+    Bluefruit.Advertising.restartOnDisconnect(true);
+    Bluefruit.Advertising.setInterval(32, 244); // in unit of 0.625 ms
+    Bluefruit.Advertising.setFastTimeout(30);   // number of seconds in fast mode
+    Bluefruit.Advertising.start(0);             // 0 = Don't stop advertising after n seconds
+    
+    DEBUG_PRINTLN("RelayKeys UP & Running");
+}
+
+void loop() {
+    // Handle serial input when not in BLE mode
+    if (!deviceState.ble_mode && Serial.available() > 0) {
+        receive_char(0, Serial.read());
+    }
+    
+    // Handle button press
+    if (digitalRead(USER_SW) == false) {
+        uint8_t clicks = detect_click();
+        if (clicks == 1) {
+            char empty_str[] = "";
+            addNewBleDevice(empty_str);
+        } else if (clicks >= 2) {
+            char empty_str[] = "";
+            change_mode(empty_str);
+        }
+    }
+    
+    // Handle file saving
+    if (deviceState.flag_saveListToFile) {
+        deviceState.flag_saveListToFile = false;
+        save_devList_toFile();
+    }
+    
+    // Handle add device timeout
+    if (deviceState.flag_addDevProsStarted) {
+        if (millis() - deviceState.addDevProsStartTicks >= ADD_NEW_DEV_PROCESS_TIMEOUT) {
+            deviceState.flag_addDevProsStarted = false;
+            updateStatusLED();
+            DEBUG_PRINTLN("Add device timeout");
+        }
+    }
+    
+    // Handle connection switching
+    if (deviceState.flag_bleSwapConnProsStarted == 1) {
+        if (millis() - deviceState.swapConnProsStartTicks >= SWAP_CONN_PROCESS_TIMEOUT) {
+            DEBUG_PRINTLN("Connection switch timeout");
+            deviceState.switchBleConnCurrIndex++;
+            if (deviceState.switchBleConnCurrIndex > deviceState.bleDeviceNameListIndex) {
+                deviceState.switchBleConnCurrIndex = 1;
+            }
+            if (deviceState.switchBleConnCurrIndex == deviceState.switchBleConnStartIndex) {
+                deviceState.flag_bleSwapConnProsStarted = 2;
+            }
+            deviceState.swapConnProsStartTicks = millis();
+        }
+    } else if (deviceState.flag_bleSwapConnProsStarted == 2) {
+        if (millis() - deviceState.swapConnProsStartTicks >= SWAP_CONN_PROCESS_TIMEOUT) {
+            deviceState.flag_bleSwapConnProsStarted = 0;
+            DEBUG_PRINTLN("Connection switch final timeout");
+        }
+    }
+    
+    // Request CPU to enter low-power mode until an event/interrupt occurs
+    waitForEvent();
+}
+
+// Utility functions
+void updateStatusLED() {
+    #if defined(_VARIANT_MDBT50Q_RX_)
+    if (deviceState.flag_addDevProsStarted) {
+        monitor.blink(150, 50); // Fast blink for pairing
+    } else if (deviceState.ble_mode) {
+        monitor.blink(300, 50); // Slow blink for BLE mode
     } else {
-      statusLED.setPixelColor(0, 0, 16, 0);    // set green color
+        digitalWrite(LED_BLUE, HIGH); // Solid on for serial mode
+    }
+    #else
+    if (deviceState.flag_addDevProsStarted) {
+        statusLED.setPixelColor(0, 16, 16, 0);  // Yellow for pairing
+    } else if (deviceState.ble_mode) {
+        statusLED.setPixelColor(0, 0, 0, 16);   // Blue for BLE mode
+    } else {
+        statusLED.setPixelColor(0, 0, 16, 0);   // Green for serial mode
     }
     statusLED.show();
-  #endif
+    #endif
 }
 
 uint8_t detect_click() {
-  uint32_t press_time = millis();
-  uint8_t click_counter = 0;
-  
-  while((millis() - press_time) < 500) {
-    if(digitalRead(USER_SW) == false && (millis() - press_time) < 500) {
-        click_counter++;
-        delay(100);      
-        while(digitalRead(USER_SW) == false) {
-          delay(100); // wait until button released
+    uint32_t press_time = millis();
+    uint8_t click_counter = 0;
+
+    while ((millis() - press_time) < BUTTON_CLICK_TIMEOUT) {
+        if (digitalRead(USER_SW) == false && (millis() - press_time) < BUTTON_CLICK_TIMEOUT) {
+            click_counter++;
+            delay(BUTTON_DEBOUNCE_TIME);
+            while (digitalRead(USER_SW) == false) {
+                delay(BUTTON_DEBOUNCE_TIME);
+            }
+            press_time = millis();
         }
-        press_time = millis();
     }
-  }
-  
-  return click_counter;
-    
+
+    return click_counter;
 }
 
-void save_devList_toFile(void)
-{
-  file.open(FILENAME, FILE_O_WRITE);
-
-  // file existed
-  if (file)
-  {
-    #ifdef DEBUG
-    Serial.print("List has ");
-    Serial.print(bleDeviceNameListIndex);
-    Serial.println(" devices");
-
-    for (int i = 0; i < bleDeviceNameListIndex; i++)
-    {
-      Serial.print(i);
-      Serial.print(". ");
-      Serial.print(bleDeviceNameList[i]);
-      Serial.println();
-    }
-    #endif
-    
-    // file.truncate(file.size());
-    file.seek(0);
-    file.write((const uint8_t *)bleDeviceNameList, sizeof(bleDeviceNameList));
-    file.write((const uint8_t *)&bleDeviceNameListIndex, 1);
-
-    #ifdef DEBUG
-    Serial.print("Saving Device List to file ");
-    Serial.print(file.size());
-    Serial.println();
-    #endif
-    file.close();
-  }
-  else
-  {
-    #ifdef DEBUG
-    Serial.print(FILENAME " Write Failed");
-    #endif
-  }
+void toLower(char *s) {
+    toLowerCommon(s);
 }
 
-void load_devList_fromFile(void)
-{
-  file.open(FILENAME, FILE_O_READ);
-
-  // file existed
-  if (file)
-  {
-    #ifdef DEBUG
-    Serial.print("Loading Device List from file ");
-    Serial.print(file.size());
-    Serial.println();
-    #endif
-    
-    bleDeviceNameListIndex = 0;
-    memset(bleDeviceNameList, 0, sizeof(bleDeviceNameList));
-
-    file.read((void *)bleDeviceNameList, sizeof(bleDeviceNameList));
-    file.read((void *)&bleDeviceNameListIndex, 1);
-
-    if(bleDeviceNameListIndex > 15){
-      bleDeviceNameListIndex = 0;
-    }
-    
-    #ifdef DEBUG
-    Serial.print("List has ");
-    Serial.print(bleDeviceNameListIndex);
-    Serial.println(" devices");
-    
-    for (int i = 0; i < bleDeviceNameListIndex; i++)
-    {
-      Serial.print(i);
-      Serial.print(". ");
-      Serial.print(bleDeviceNameList[i]);
-      Serial.println();
-    }
-    #endif
-    
-    file.close();
-  }
-  else
-  {
-    #ifdef DEBUG
-    Serial.print(FILENAME " Read Failed");
-    #endif
-  }
-}
-
-void load_mode_file(){
-  file.open(MODE_FILENAME, FILE_O_READ);
-  // file existed
-  if (file)
-  {
-    file.read((void *)&ble_mode, 1);
-    file.close();
-  } else {
-    #ifdef DEBUG
-    Serial.println(MODE_FILENAME " Read Failed");
-    #endif
-  }
-}
-
-void get_mode(char* myLine) {
-  if(ble_mode) {
-    at_response("BLE\n");  
-  } else {
-    at_response("Serial\n");
-  }
-}
-
-void change_mode(char* myLine) {
-  #ifdef DEBUG
-    Serial.print("Changing operating mode");
-  #endif
-  
-  at_response("OK\n");
-  
-  ble_mode = !ble_mode;
-
-  file.open(MODE_FILENAME, FILE_O_WRITE);
-  if(file) {
-    file.seek(0);
-    file.write((const uint8_t *)&ble_mode, 1);
-    file.close();
-  } else {
-    #ifdef DEBUG
-    Serial.print(MODE_FILENAME " Write Failed");
-    #endif
-  }
-
-  BLEConnection *connection = NULL;
-  for(int i=0;i<max_prph_connection;i++) {
-    connection = Bluefruit.Connection(i);
-    connection->disconnect();
-  }
-  
-  delay(1000);
-  NVIC_SystemReset();  
-}
-
-void save_tmp_file() {
-  file.open(TMP_FILENAME, FILE_O_WRITE);
-  if(file) {
-    file.seek(0);
-    file.write((const uint8_t *)&flag_bleSwapConnProsStarted, 1);
-    file.write((const uint8_t *)&switchBleConnStartIndex, 1);
-    file.write((const uint8_t *)&switchBleConnCurrIndex, 1);
-    file.close();
-
-    #ifdef DEBUG
-      Serial.println("Temp parameters saved");
-      Serial.print("Previous connection index");
-      Serial.println(switchBleConnStartIndex);
-      Serial.print("Previous connection name");
-      Serial.println( bleDeviceNameList[switchBleConnStartIndex - 1]);
-      Serial.print("Target connection index");
-      Serial.println(switchBleConnCurrIndex);
-      Serial.print("Target connection name");
-      Serial.println( bleDeviceNameList[switchBleConnCurrIndex - 1]); 
-    #endif
-  } else {
-    #ifdef DEBUG
-    Serial.print(MODE_FILENAME " Write Failed");
-    #endif
-  }
-}
-
-void load_tmp_file() {
-  file.open(TMP_FILENAME, FILE_O_READ);
-  // file existed
-  if (file)
-  {
-    file.read((void *)&flag_bleSwapConnProsStarted, 1);
-    file.read((void *)&switchBleConnStartIndex, 1);  
-    file.read((void *)&switchBleConnCurrIndex, 1);  
-    file.close();
-
-    #ifdef DEBUG
-      Serial.println("Temp parameters loaded");
-      Serial.print("Previous connection index");
-      Serial.println(switchBleConnStartIndex);
-      Serial.print("Previous connection name");
-      Serial.println( bleDeviceNameList[switchBleConnStartIndex - 1]);
-      Serial.print("Target connection index");
-      Serial.println(switchBleConnCurrIndex);
-      Serial.print("Target connection name");
-      Serial.println( bleDeviceNameList[switchBleConnCurrIndex - 1]); 
-    #endif
-
-    InternalFS.remove(TMP_FILENAME);
-  } else {
-    #ifdef DEBUG
-    Serial.println(TMP_FILENAME " Read Failed");
-    #endif
-  }
-}
-
-void setup()
-{
-  Serial.begin(115200);
-  #if defined(UNKNOWN_BOARD) && defined(DEBUG)
-  	Serial.print("Unsupported hardware. Possibly not critical unless you want to initiate BLE mode with a button");
-  #endif
-  //while ( !Serial && millis() < 2000) delay(10);   // for nrf52840 with native usb
-
-  // Initialize Internal File System
-  InternalFS.begin();
-
-  load_mode_file();
-  
-  load_tmp_file();
-
-  pinMode(USER_SW, INPUT_PULLUP);
-
-  #ifdef _VARIANT_MDBT50Q_RX_
-    monitor.blink(800,10); // LED on for 150 ms and off for 50 ms.
-  #else
-    statusLED.begin();
-    updateStatusLED();
-  #endif
-  if(ble_mode) {
-    max_prph_connection = 2;    
-  } else {
-    max_prph_connection = 1;
-  }
-  
-  Bluefruit.configPrphBandwidth(BANDWIDTH_MAX);
-
-  Bluefruit.begin(max_prph_connection, 0);
-  Bluefruit.setTxPower(4); // Check bluefruit.h for supported values
-  //..Setting this means it isnt seen by TobiiDynavox i13+ devices. https://github.com/AceCentre/RelayKeys/issues/125
-  Bluefruit.setName(BLE_NAME);
-  Bluefruit.Periph.setConnectCallback(bleConnectCallback);
-  Bluefruit.Periph.setDisconnectCallback(disconnect_callback);
-
-  // Configure and Start Device Information Service
-  bledis.setManufacturer("Ace Centre");
-  bledis.setModel(BLE_NAME);
-  bledis.begin();
-
-  // Configure and Start BLE Uart Service
-  bleuart.begin();
-  bleuart.setRxCallback(prph_bleuart_rx_callback);
-
-  /* Start BLE HID
-   * Note: Apple requires BLE device must have min connection interval >= 20m
-   * ( The smaller the connection interval the faster we could send data).
-   * However for HID and MIDI device, Apple could accept min connection interval 
-   * up to 11.25 ms. Therefore BLEHidAdafruit::begin() will try to set the min and max
-   * connection interval to 11.25  ms and 15 ms respectively for best performance.
-   */
-  blehid.begin();
-
-  // Set callback for set LED from central
-  blehid.setKeyboardLedCallback(set_keyboard_led);
-
-  /* Set connection interval (min, max) to your perferred value.
-   * Note: It is already set by BLEHidAdafruit::begin() to 11.25ms - 15ms
-   * min = 9*1.25=11.25 ms, max = 12*1.25= 15 ms 
-   */
-  /* Bluefruit.setConnInterval(9, 12); */
-
-  // Set up and start advertising
-  startAdv();
-
-  //
-  load_devList_fromFile();
-}
-
-void startAdv(void)
-{
-  // Advertising packet
-  Bluefruit.Advertising.addFlags(BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE);
-  Bluefruit.Advertising.addTxPower();
-  Bluefruit.Advertising.addAppearance(BLE_APPEARANCE_HID_KEYBOARD);
-
-  // Include BLE UART service
-  //Bluefruit.Advertising.addService(bleuart);
-  
-  // Include BLE HID service
-  Bluefruit.Advertising.addService(blehid);
-
-  // There is enough room for the dev name in the advertising packet
-  Bluefruit.Advertising.addName();
-
-  /* Start Advertising
-   * - Enable auto advertising if disconnected
-   * - Interval:  fast mode = 20 ms, slow mode = 152.5 ms
-   * - Timeout for fast mode is 30 seconds
-   * - Start(timeout) with timeout = 0 will advertise forever (until connected)
-   * 
-   * For recommended advertising interval
-   * https://developer.apple.com/library/content/qa/qa1931/_index.html   
-   */
-  Bluefruit.Advertising.restartOnDisconnect(true);
-  Bluefruit.Advertising.setInterval(32, 244); // in unit of 0.625 ms
-  Bluefruit.Advertising.setFastTimeout(30);   // number of seconds in fast mode
-  Bluefruit.Advertising.start(0);             // 0 = Don't stop advertising after n seconds
-
-  #ifdef DEBUG
-  Serial.println("RelayKeys UP & Running");
-  #endif
-}
-
-typedef void (*action_func_t)(char *myLine);
-
-typedef struct
-{
-  char command[32 + 1]; // max 32 characters plus '\0' terminator
-  action_func_t action;
-} command_action_t;
-
-// force lower case
-void toLower(char *s)
-{
-  while (*s)
-  {
-    if (isupper(*s))
-    {
-      *s += 0x20;
-    }
-    s++;
-  }
-}
-
-void deleteDevList(char *myLine)
-{
-  at_response("at+deletedevlist\n");
-  
-  InternalFS.remove(FILENAME);
-  bleDeviceNameListIndex = 0;
-  memset(bleDeviceNameList, 0, sizeof(bleDeviceNameList));
-
-  BLEConnection *connection = NULL;
-  for(int i=0;i<max_prph_connection;i++) {
-    connection = Bluefruit.Connection(i);
-    connection->disconnect();
-  }
-  
-  at_response("SUCCESS.\n");
-}
-
-void sendBLEMouseMove(char *line)
-{
-  char buff[256];
-  err_t ret = 1;
-  int32_t x = 0;
-  int32_t y = 0;
-  int32_t wy = 0;
-  int32_t wx = 0;
-  // expected input, X,Y,WY,WX
-  char *p = strtok(line, "=");
-  p = strtok(NULL, ",");
-  for (size_t i = 0; p != NULL; i++)
-  {
-    if (i == 0)
-    { // X
-      x = strtol(p, NULL, 10);
-    }
-    else if (i == 1)
-    { // Y
-      y = strtol(p, NULL, 10);
-    }
-    else if (i == 2)
-    {
-      wy = strtol(p, NULL, 10);
-    }
-    else if (i == 3)
-    {
-      wx = strtol(p, NULL, 10);
-    }
-    else
-    {
-      // Invalid input
-      at_response("INVALID_INPUT\n");
-      return;
-    }
-    p = strtok(NULL, ",");
-  }
-  if (x != 0 || y != 0)
-  {
-    ret = blehid.mouseMove(target_ble_conn, x, y);
-  }
-  if ((int)ret != 1)
-  {
-    snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
-    at_response(buff);
-  }
-  else
-  {
-    if (wy != 0)
-    {
-      ret = blehid.mouseScroll(target_ble_conn, wy);
-    }
-    if ((int)ret != 1)
-    {
-      snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
-      at_response(buff);
-      return;
-    }
-    if (wx != 0)
-    {
-      ret = blehid.mousePan(target_ble_conn, wx);
-    }
-    if ((int)ret != 1)
-    {
-      snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
-      at_response(buff);
-      return;
-    }
-    at_response("OK\n");
-  }
-}
-
-typedef struct
-{
-  char thechar;
-  uint8_t button;
-} mouse_button_map_t;
-
-const mouse_button_map_t mouse_buttons_map[] = {
-    {'l', MOUSE_BUTTON_LEFT},
-    {'r', MOUSE_BUTTON_RIGHT},
-    {'m', MOUSE_BUTTON_MIDDLE},
-    {'b', MOUSE_BUTTON_BACKWARD},
-    {'f', MOUSE_BUTTON_FORWARD},
-    {'0', 0},
-};
-
-void sendBLEMouseButton(char *line)
-{
-  char buff[256];
-  err_t ret;
-  int b = 0;
-  int mode = 0;
-  // expected input, Button[,Action]
-  char *p = strtok(line, "=");
-  p = strtok(NULL, ",");
-  for (size_t i = 0; p != NULL; i++)
-  {
-    if (i == 0)
-    { // Button
-      for (int c = 0; c < sizeof(mouse_buttons_map) / sizeof(mouse_buttons_map[0]);
-           c++)
-      {
-        if (mouse_buttons_map[c].thechar == p[0])
-        {
-          b = mouse_buttons_map[c].button;
-          break;
-        }
-      }
-    }
-    else if (i == 1)
-    { // Action
-      toLower(p);
-      if (strcmp(p, "click") == 0)
-      {
-        mode = 1;
-      }
-      else if (strcmp(p, "doubleclick") == 0)
-      {
-        mode = 2;
-      }
-      // PRESS/HOLD and no action all are PRESS action
-    }
-    else
-    {
-      // Invalid input
-      at_response("INVALID_INPUT\n");
-      return;
-    }
-    p = strtok(NULL, ",");
-  }
-  if (b != 0 && mode == 1)
-  { // CLICK
-    ret = blehid.mouseButtonPress(target_ble_conn, b);
-    if (ret == 1)
-    {
-      delay(40);
-      ret = blehid.mouseButtonRelease(target_ble_conn);
-    }
-  }
-  else if (b != 0 && mode == 2)
-  { // DOUBLECLICK
-    ret = blehid.mouseButtonPress(target_ble_conn, b);
-    if (ret == 1)
-    {
-      delay(40);
-      ret = blehid.mouseButtonRelease(target_ble_conn);
-    }
-    if (ret == 1)
-    {
-      ret = blehid.mouseButtonPress(target_ble_conn, b);
-    }
-    if (ret == 1)
-    {
-      delay(40);
-      ret = blehid.mouseButtonRelease(target_ble_conn);
-    }
-  }
-  else
-  { // PRESS/RELEASE
-    if (b == 0)
-    {
-      ret = blehid.mouseButtonRelease(target_ble_conn);
-    }
-    else
-    {
-      ret = blehid.mouseButtonPress(target_ble_conn, b);
-    }
-  }
-  if ((int)ret != 1)
-  {
-    snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
-    at_response(buff);
-  }
-  else
-  {
-    at_response("OK\n");
-  }
-}
-
-void sendBLEKeyboardCode(char *myLine)
-{
-  char buff[256];
-  err_t ret;
-  uint8_t keys[8]; // USB keyboard HID report
-
-  memset(keys, 0, sizeof(keys));
-
-  // myLine example: "00-00-04-00-00-00-00-00"
-  char *p = strtok(myLine, "=");
-  p = strtok(NULL, "-");
-  for (size_t i = 0; p && (i < sizeof(keys)); i++)
-  {
-    keys[i] = strtoul(p, NULL, 16);
-    p = strtok(NULL, "-");
-  }
-  switch(keys[2]) {
-    // MUTE
-    case 0x7F:
-      ret = blehid.consumerKeyPress(target_ble_conn, 0xE2);
-      blehid.consumerKeyRelease(target_ble_conn);
-      break;
-    // VOLUME UP
-    case 0x80:
-      ret = blehid.consumerKeyPress(target_ble_conn, 0xE9);
-      blehid.consumerKeyRelease(target_ble_conn);
-      break;
-    // VOLUME DOWN
-    case 0x81:
-      ret = blehid.consumerKeyPress(target_ble_conn, 0xEA);
-      blehid.consumerKeyRelease(target_ble_conn);
-      break;
-    // Regular keycodes
-    default:
-      ret = blehid.keyboardReport(target_ble_conn, keys[0], &keys[2]);
-  }
-  
-  if ((int)ret != 1)
-  {
-    snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
-    at_response(buff);
-  }
-  else
-  {
-    at_response("OK\n");
-  }
-}
-
-void sendBleSendCurrentDeviceName(char *myLine)
-{
-  char buff[256];
-  at_response("at+blecurrentdevicename\n");
-  if (!Bluefruit.connected())
-  {
-    at_response("NONE\n");
-  }
-  else
-  {
-    BLEConnection *connection = NULL;
-    char bleDeviceName[32] = {0};
-
-    connection = Bluefruit.Connection(target_ble_conn);
-    connection->getPeerName(bleDeviceName, sizeof(bleDeviceName));
-        if (strlen(bleDeviceName) == 0)
-    {
-      at_response("NONE\n");
-    }else {
-      snprintf(buff, sizeof(buff), "%s\n", bleDeviceName);
-      at_response(buff);
-    } 
-  }
-}
-
-void addNewBleDevice(char *myLine)
-{
-  char buff[256];
-  at_response("at+bleaddnewdevice\n");
-
-  if (bleDeviceNameListIndex >= maxBleDevListSize)
-  {
-    at_response("ERROR: Device list is full\n");
-  }
-  else
-  {
-    BLEConnection *connection = NULL;
-    char bleDeviceName[32] = {0};
-
-    connection = Bluefruit.Connection(target_ble_conn);
-    connection->getPeerName(bleDeviceName, sizeof(bleDeviceName));
-
-    delay(500);
-    connection->disconnect();
-    //Serial.println("Disconnected from " + String(bleDeviceName));
-
-    flag_addDevProsStarted = 1;
-    updateStatusLED();
-    addDevProsStartTicks = millis();
-
-    snprintf(buff, sizeof(buff), "Connect your device with %s\n", BLE_NAME);
-    at_response(buff);  
-  }
-}
-
-void removeBleDevice(char *myLine)
-{
-  at_response("at+bleremovedevice\n");
-  char tempName[32] = {0};
-  char tempNameIndex = 0;
-  char flag_start = 0;
-  char i = 0;
-  BLEConnection *connection = NULL;
-  char bleDeviceName[32] = {0};
-  char centralBleDeviceName[32] = {0};
-  
-  if (strlen(myLine) == 0)
-  {
-    at_response("ERROR: Syntax\n");
-    return;
-  }
-
-  connection = Bluefruit.Connection(target_ble_conn);
-  connection->getPeerName(bleDeviceName, sizeof(bleDeviceName));
-
-  for (char i = 0; i < strlen(myLine); i++)
-  {
-    if (myLine[i] == '"')
-    {
-      flag_start = 1;
-    }
-    else
-    {
-      if (flag_start)
-      {
-        if (myLine[i] == '"')
-        {
-          flag_start = 0;
-          break;
-        }
-        else
-        {
-          tempName[tempNameIndex++] = myLine[i];
-        }
-      }
-    }
-  }
-
-  if (strlen(tempName) == 0)
-  {
-    at_response("ERROR: Syntax\n");
-    return;
-  }
-
-  //Serial.println("Remove Device: " + String(tempName));
-
-  if (!strcmp((char *)tempName, (char *)bleDeviceName))
-  {
-    connection->disconnect();
-  }
-
-  if(ble_mode) {    
-    connection = Bluefruit.Connection(response_ble_conn);
-    connection->getPeerName(centralBleDeviceName, sizeof(centralBleDeviceName));
-    if (!strcmp((char *)tempName, (char *)centralBleDeviceName))
-    {
-      at_response("ERROR: Can't remove central device\n");
-      return;
-    }
-  }
-
-  flag_start = 0;
-
-  for (i = 0; i < maxBleDevListSize; i++)
-  {
-    if (!strcmp((char *)tempName, (char *)bleDeviceNameList[i]))
-    {
-      //Serial.println("Device found in list - " + String(tempName));
-      at_response("SUCCESS\n");
-      flag_start = 1;
-      bleDeviceNameListIndex--;
-      flag_saveListToFile = true;
-    }
-    if (flag_start)
-    {
-      if (i < (maxBleDevListSize - 1))
-      {
-        memset(bleDeviceNameList[i], NULL, sizeof(bleDeviceNameList[i]));
-        strcpy(bleDeviceNameList[i], bleDeviceNameList[i + 1]);
-      }
-      else
-      {
-        memset(bleDeviceNameList[maxBleDevListSize - 1], NULL, sizeof(bleDeviceNameList[maxBleDevListSize - 1]));
-      }
-    }
-  }
-
-  if (!flag_start)
-  {
-    at_response("ERROR: Name not found in the list\n");
-  }
-}
-
-void switchBleConnection(char *myLine)
-{
-  char buff[256];
-  char tempBleDevName[32] = {0};
-
-  BLEConnection *connection = NULL;
-  connection = Bluefruit.Connection(target_ble_conn);
-  
-  at_response("at+switchconn\n");
-
-  if (!Bluefruit.connected()) {
-    at_response("ERROR: No device connected now\n");
-    return;
-  }
-  
-  if (bleDeviceNameListIndex < 2)  {          
-    at_response("ERROR: No other device present in list\n");
-    return;
-  }
-
-  Serial.print("Received line: "); // temp
-  Serial.println(myLine); // temp
-
-  char * start_dev_p = strstr(myLine, "=\""); // search device argument
-  if (start_dev_p != NULL) {
-    // if device argument present, switch to next device
-    char * end_dev_p = strrchr(myLine, '\"');
-    if(end_dev_p != NULL && end_dev_p != (start_dev_p+1)) {
-      start_dev_p += 2; // move pointer to start of device name
-      
-      if((end_dev_p-start_dev_p) <= 31) {
-        strncpy(tempBleDevName, start_dev_p, (end_dev_p-start_dev_p));
-      }
-    }
-
-    if(strlen(tempBleDevName) != 0) {
-      Serial.print("Device argument: "); // temp
-      Serial.println(tempBleDevName);         // temp
-
-      for (int i = 0; i < bleDeviceNameListIndex; i++) {
-        if (!strcmp((char *)tempBleDevName, (char *)bleDeviceNameList[i])) {
-          switchBleConnCurrIndex = i+1;
-          flag_bleSwapConnProsStarted = 1;
-          swapConnProsStartTicks = millis();        
-        
-          snprintf(buff, sizeof(buff), "Trying to connect with -  %s\n", bleDeviceNameList[switchBleConnCurrIndex - 1]);
-          at_response(buff);
-
-          connection->disconnect();
-
-          return;
-        }
-      }
-      at_response("ERROR: Device not found in list\n");
-      return;
+void at_response(const char *msg) {
+    int len = strlen(msg);
+
+    if (deviceState.ble_mode) {
+        bleuart.write(response_ble_conn, (const uint8_t*)msg, len);
     } else {
-      at_response("ERROR: Syntax\n");
-      return;
+        Serial.write(msg, len);
     }
-  } else {
-    // if no device argument, switch to next device    
-    connection->getPeerName(tempBleDevName, sizeof(tempBleDevName));
+}
 
-    //Serial.println("Current Dev Name: " + String(tempBleDevName));
+void update_connections(uint16_t conn_handle) {
+    target_ble_conn = 1;
+    response_ble_conn = 0;
+    if (conn_handle == 1) {
+        target_ble_conn = 0;
+        response_ble_conn = 1;
+    }
+}
 
-    for (char i = 0; i < maxBleDevListSize; i++)
-    {
-      if (!strcmp((char *)tempBleDevName, (char *)bleDeviceNameList[i]))
-      {
-        switchBleConnStartIndex = i + 1;
-        //Serial.println("Current Dev Index: " + String(switchBleConnStartIndex));
-        
-        if (switchBleConnStartIndex >= bleDeviceNameListIndex)
-        {
-          switchBleConnCurrIndex = 1;
+void execute(uint16_t conn_handle, char *myLine) {
+    if (myLine == NULL || *myLine == '\0')
+        return;
+
+    char cmdTemp[100];
+    memcpy(cmdTemp, myLine, 100);
+
+    char *cmd = strtok(cmdTemp, "=");
+    if (cmd == NULL || *cmd == '\0')
+        return;
+
+    toLower(cmd);
+
+    if (deviceState.ble_mode) {
+        update_connections(conn_handle);
+    }
+
+    // Find and execute command
+    for (size_t i = 0; i < NUM_COMMANDS; i++) {
+        if (strcmp(cmd, commands[i].command) == 0) {
+            commands[i].action(myLine);
+            if (!deviceState.ble_mode) {
+                delay(30);
+            }
+            return;
         }
-        else
-        {
-          switchBleConnCurrIndex = switchBleConnStartIndex + 1;
-        }
+    }
 
-        flag_bleSwapConnProsStarted = 1;
-        swapConnProsStartTicks = millis();        
-        
-        snprintf(buff, sizeof(buff), "Trying to connect with -  %s\n", bleDeviceNameList[switchBleConnCurrIndex - 1]);
+    // Command not found
+    at_response(AT_RESPONSE_OK);
+}
+
+void receive_char(uint16_t conn_handle, char receive_char) {
+    static uint8_t bytesIn = 0;
+    static char receive_buffer[256];
+
+    switch (receive_char) {
+        case '\n':
+            break;
+        case '\r':
+            receive_buffer[bytesIn] = '\0';
+            execute(conn_handle, receive_buffer);
+            bytesIn = 0;
+            break;
+        case '\b': // backspace
+            if (bytesIn > 0) {
+                bytesIn--;
+            }
+            break;
+        default:
+            receive_buffer[bytesIn++] = receive_char;
+            if (bytesIn >= sizeof(receive_buffer) - 1) {
+                receive_buffer[bytesIn] = '\0';
+                execute(conn_handle, receive_buffer);
+                bytesIn = 0;
+            }
+            break;
+    }
+}
+
+// BLE callbacks
+void prph_bleuart_rx_callback(uint16_t conn_handle) {
+    if (deviceState.ble_mode) {
+        while (bleuart.available()) {
+            receive_char(conn_handle, bleuart.read());
+        }
+    }
+}
+
+// AT Command implementations
+void sendBLEKeyboardCode(char *myLine) {
+    char buff[256];
+    err_t ret;
+    uint8_t report[HID_KEYBOARD_REPORT_SIZE];
+
+    memset(report, 0, sizeof(report));
+
+    // Parse keyboard report: "XX-XX-XX-XX-XX-XX-XX-XX"
+    char *p = strtok(myLine, "=");
+    p = strtok(NULL, "-");
+
+    for (size_t i = 0; p && (i < sizeof(report)); i++) {
+        report[i] = strtoul(p, NULL, 16);
+        p = strtok(NULL, "-");
+    }
+
+    // Handle special consumer keys
+    switch (report[2]) {
+        case KEYCODE_MUTE:
+            ret = blehid.consumerKeyPress(target_ble_conn, CONSUMER_KEY_MUTE);
+            blehid.consumerKeyRelease(target_ble_conn);
+            break;
+        case KEYCODE_VOLUME_UP:
+            ret = blehid.consumerKeyPress(target_ble_conn, CONSUMER_KEY_VOLUME_UP);
+            blehid.consumerKeyRelease(target_ble_conn);
+            break;
+        case KEYCODE_VOLUME_DOWN:
+            ret = blehid.consumerKeyPress(target_ble_conn, CONSUMER_KEY_VOLUME_DOWN);
+            blehid.consumerKeyRelease(target_ble_conn);
+            break;
+        default:
+            // Regular keyboard report
+            ret = blehid.keyboardReport(target_ble_conn, report[0], &report[2]);
+            break;
+    }
+
+    if ((int)ret != 1) {
+        snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
         at_response(buff);
-
-        connection->disconnect();
-        
-        break;
-      }
+    } else {
+        at_response(AT_RESPONSE_OK);
     }
-  }
-
 }
 
-void printBleDevList(char *myLine)
-{
-  char buff[256];
-  at_response("at+printdevlist\n");
-  for (char j = 0; j < bleDeviceNameListIndex; j++)
-  {
-    snprintf(buff, sizeof(buff), "%d:%s\n", (j+1), bleDeviceNameList[j]);
-    at_response(buff);
-  }
-  //Serial.println("Index:" + String(bleDeviceNameListIndex));
+void sendBLEMouseMove(char *line) {
+    char buff[256];
+    err_t ret = 1;
+    int32_t x = 0, y = 0, wy = 0, wx = 0;
+
+    // Parse: X,Y,WY,WX
+    char *p = strtok(line, "=");
+    p = strtok(NULL, ",");
+
+    for (size_t i = 0; p != NULL; i++) {
+        if (i == 0) x = strtol(p, NULL, 10);
+        else if (i == 1) y = strtol(p, NULL, 10);
+        else if (i == 2) wy = strtol(p, NULL, 10);
+        else if (i == 3) wx = strtol(p, NULL, 10);
+        else {
+            at_response(AT_RESPONSE_INVALID_INPUT);
+            return;
+        }
+        p = strtok(NULL, ",");
+    }
+
+    if (x != 0 || y != 0) {
+        ret = blehid.mouseMove(target_ble_conn, x, y);
+    }
+
+    if ((int)ret != 1) {
+        snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
+        at_response(buff);
+        return;
+    }
+
+    if (wy != 0) {
+        ret = blehid.mouseScroll(target_ble_conn, wy);
+    }
+
+    if ((int)ret != 1) {
+        snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
+        at_response(buff);
+        return;
+    }
+
+    if (wx != 0) {
+        ret = blehid.mousePan(target_ble_conn, wx);
+    }
+
+    if ((int)ret != 1) {
+        snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
+        at_response(buff);
+        return;
+    }
+
+    at_response(AT_RESPONSE_OK);
 }
 
-void setBleMaxDevListSize(char *myLine)
-{
-  at_response("at+blemaxdevlistsize\n");
-  
-  char *p = strtok(myLine, "=");
-  p = strtok(NULL, "\0"); 
-  uint8_t tempNum = atoi(p);  
-  if (tempNum > 15 || tempNum < 1)
-  {
-    maxBleDevListSize = 3;
-    at_response("ERROR: Invalid Value\n");
-  }
-  else
-  {
-    maxBleDevListSize = tempNum;
-    at_response("SUCCESS\n");
-  }
+void sendBLEMouseButton(char *line) {
+    char buff[256];
+    err_t ret;
+    uint8_t button = 0;
+    int mode = 0; // 0=press/release, 1=click, 2=doubleclick
+
+    // Parse: Button[,Action]
+    char *p = strtok(line, "=");
+    p = strtok(NULL, ",");
+
+    for (size_t i = 0; p != NULL; i++) {
+        if (i == 0) {
+            // Find button
+            for (int c = 0; c < sizeof(mouse_buttons_map) / sizeof(mouse_buttons_map[0]); c++) {
+                if (mouse_buttons_map[c].thechar == p[0]) {
+                    button = mouse_buttons_map[c].button;
+                    break;
+                }
+            }
+        } else if (i == 1) {
+            toLower(p);
+            if (strcmp(p, "click") == 0) mode = 1;
+            else if (strcmp(p, "doubleclick") == 0) mode = 2;
+        } else {
+            at_response(AT_RESPONSE_INVALID_INPUT);
+            return;
+        }
+        p = strtok(NULL, ",");
+    }
+
+    if (button != 0 && mode == 1) { // Click
+        ret = blehid.mouseButtonPress(target_ble_conn, button);
+        if (ret == 1) {
+            delay(40);
+            ret = blehid.mouseButtonRelease(target_ble_conn);
+        }
+    } else if (button != 0 && mode == 2) { // Double click
+        ret = blehid.mouseButtonPress(target_ble_conn, button);
+        if (ret == 1) {
+            delay(40);
+            ret = blehid.mouseButtonRelease(target_ble_conn);
+        }
+        if (ret == 1) {
+            ret = blehid.mouseButtonPress(target_ble_conn, button);
+        }
+        if (ret == 1) {
+            delay(40);
+            ret = blehid.mouseButtonRelease(target_ble_conn);
+        }
+    } else { // Press/Release
+        if (button == 0) {
+            ret = blehid.mouseButtonRelease(target_ble_conn);
+        } else {
+            ret = blehid.mouseButtonPress(target_ble_conn, button);
+        }
+    }
+
+    if ((int)ret != 1) {
+        snprintf(buff, sizeof(buff), "ERROR %d\n", (int)ret);
+        at_response(buff);
+    } else {
+        at_response(AT_RESPONSE_OK);
+    }
 }
 
+void sendBleSendCurrentDeviceName(char *myLine) {
+    char buff[256];
+    at_response("at+blecurrentdevicename\n");
+
+    if (!Bluefruit.connected()) {
+        at_response("NONE\n");
+    } else {
+        BLEConnection *connection = Bluefruit.Connection(target_ble_conn);
+        char bleDeviceName[BLE_DEVICE_NAME_LENGTH] = {0};
+
+        connection->getPeerName(bleDeviceName, sizeof(bleDeviceName));
+        if (strlen(bleDeviceName) == 0) {
+            at_response("NONE\n");
+        } else {
+            snprintf(buff, sizeof(buff), "%s\n", bleDeviceName);
+            at_response(buff);
+        }
+    }
+}
+
+void addNewBleDevice(char *myLine) {
+    char buff[256];
+    at_response("at+bleaddnewdevice\n");
+
+    if (deviceState.bleDeviceNameListIndex >= deviceState.maxBleDevListSize) {
+        at_response("ERROR: Device list is full\n");
+    } else {
+        BLEConnection *connection = Bluefruit.Connection(target_ble_conn);
+        char bleDeviceName[BLE_DEVICE_NAME_LENGTH] = {0};
+
+        connection->getPeerName(bleDeviceName, sizeof(bleDeviceName));
+
+        delay(500);
+        connection->disconnect();
+
+        deviceState.flag_addDevProsStarted = true;
+        updateStatusLED();
+        deviceState.addDevProsStartTicks = millis();
+
+        snprintf(buff, sizeof(buff), "Connect your device with %s\n", BLE_NAME);
+        at_response(buff);
+    }
+}
+
+void removeBleDevice(char *myLine) {
+    at_response("at+bleremovedevice\n");
+
+    char tempName[BLE_DEVICE_NAME_LENGTH] = {0};
+    char tempNameIndex = 0;
+    char flag_start = 0;
+
+    if (strlen(myLine) == 0) {
+        at_response("ERROR: Syntax\n");
+        return;
+    }
+
+    // Parse device name from quotes
+    for (char i = 0; i < strlen(myLine); i++) {
+        if (myLine[i] == '"') {
+            flag_start = 1;
+        } else {
+            if (flag_start) {
+                if (myLine[i] == '"') {
+                    flag_start = 0;
+                    break;
+                } else {
+                    tempName[tempNameIndex++] = myLine[i];
+                }
+            }
+        }
+    }
+
+    if (strlen(tempName) == 0) {
+        at_response("ERROR: Syntax\n");
+        return;
+    }
+
+    // Check if trying to remove current device
+    BLEConnection *connection = Bluefruit.Connection(target_ble_conn);
+    char bleDeviceName[BLE_DEVICE_NAME_LENGTH] = {0};
+    connection->getPeerName(bleDeviceName, sizeof(bleDeviceName));
+
+    if (!strcmp((char *)tempName, (char *)bleDeviceName)) {
+        connection->disconnect();
+    }
+
+    // Check if trying to remove central device in BLE mode
+    if (deviceState.ble_mode) {
+        connection = Bluefruit.Connection(response_ble_conn);
+        char centralBleDeviceName[BLE_DEVICE_NAME_LENGTH] = {0};
+        connection->getPeerName(centralBleDeviceName, sizeof(centralBleDeviceName));
+        if (!strcmp((char *)tempName, (char *)centralBleDeviceName)) {
+            at_response("ERROR: Can't remove central device\n");
+            return;
+        }
+    }
+
+    // Find and remove device from list
+    bool found = false;
+    for (uint8_t i = 0; i < deviceState.maxBleDevListSize; i++) {
+        if (!strcmp((char *)tempName, (char *)deviceState.bleDeviceNameList[i])) {
+            found = true;
+            deviceState.bleDeviceNameListIndex--;
+            deviceState.flag_saveListToFile = true;
+
+            // Shift remaining devices down
+            for (uint8_t j = i; j < deviceState.maxBleDevListSize - 1; j++) {
+                if (j < (deviceState.maxBleDevListSize - 1)) {
+                    memset(deviceState.bleDeviceNameList[j], 0, sizeof(deviceState.bleDeviceNameList[j]));
+                    strcpy(deviceState.bleDeviceNameList[j], deviceState.bleDeviceNameList[j + 1]);
+                } else {
+                    memset(deviceState.bleDeviceNameList[deviceState.maxBleDevListSize - 1], 0,
+                           sizeof(deviceState.bleDeviceNameList[deviceState.maxBleDevListSize - 1]));
+                }
+            }
+            break;
+        }
+    }
+
+    if (found) {
+        at_response(AT_RESPONSE_SUCCESS);
+    } else {
+        at_response("ERROR: Name not found in the list\n");
+    }
+}
+
+void switchBleConnection(char *myLine) {
+    char buff[256];
+    char tempBleDevName[BLE_DEVICE_NAME_LENGTH] = {0};
+
+    BLEConnection *connection = Bluefruit.Connection(target_ble_conn);
+    at_response("at+switchconn\n");
+
+    if (!Bluefruit.connected()) {
+        at_response("ERROR: No device connected now\n");
+        return;
+    }
+
+    if (deviceState.bleDeviceNameListIndex < 2) {
+        at_response("ERROR: No other device present in list\n");
+        return;
+    }
+
+    // Parse device argument if present
+    char *start_dev_p = strstr(myLine, "=\"");
+    if (start_dev_p != NULL) {
+        char *end_dev_p = strrchr(myLine, '"');
+        if (end_dev_p != NULL && end_dev_p != (start_dev_p + 1)) {
+            start_dev_p += 2; // Move pointer to start of device name
+
+            if ((end_dev_p - start_dev_p) <= 31) {
+                strncpy(tempBleDevName, start_dev_p, (end_dev_p - start_dev_p));
+            }
+        }
+
+        if (strlen(tempBleDevName) != 0) {
+            for (int i = 0; i < deviceState.bleDeviceNameListIndex; i++) {
+                if (!strcmp((char *)tempBleDevName, (char *)deviceState.bleDeviceNameList[i])) {
+                    deviceState.switchBleConnCurrIndex = i + 1;
+                    deviceState.flag_bleSwapConnProsStarted = 1;
+                    deviceState.swapConnProsStartTicks = millis();
+
+                    snprintf(buff, sizeof(buff), "Trying to connect with - %s\n",
+                             deviceState.bleDeviceNameList[deviceState.switchBleConnCurrIndex - 1]);
+                    at_response(buff);
+
+                    connection->disconnect();
+                    return;
+                }
+            }
+            at_response("ERROR: Device not found in list\n");
+            return;
+        } else {
+            at_response("ERROR: Syntax\n");
+            return;
+        }
+    } else {
+        // Switch to next device
+        connection->getPeerName(tempBleDevName, sizeof(tempBleDevName));
+
+        for (char i = 0; i < deviceState.maxBleDevListSize; i++) {
+            if (!strcmp((char *)tempBleDevName, (char *)deviceState.bleDeviceNameList[i])) {
+                deviceState.switchBleConnStartIndex = i + 1;
+
+                if (deviceState.switchBleConnStartIndex >= deviceState.bleDeviceNameListIndex) {
+                    deviceState.switchBleConnCurrIndex = 1;
+                } else {
+                    deviceState.switchBleConnCurrIndex = deviceState.switchBleConnStartIndex + 1;
+                }
+
+                deviceState.flag_bleSwapConnProsStarted = 1;
+                deviceState.swapConnProsStartTicks = millis();
+
+                snprintf(buff, sizeof(buff), "Trying to connect with - %s\n",
+                         deviceState.bleDeviceNameList[deviceState.switchBleConnCurrIndex - 1]);
+                at_response(buff);
+
+                connection->disconnect();
+                break;
+            }
+        }
+    }
+}
+
+void printBleDevList(char *myLine) {
+    char buff[256];
+    at_response("at+printdevlist\n");
+
+    for (char j = 0; j < deviceState.bleDeviceNameListIndex; j++) {
+        snprintf(buff, sizeof(buff), "%d:%s\n", (j + 1), deviceState.bleDeviceNameList[j]);
+        at_response(buff);
+    }
+}
+
+void setBleMaxDevListSize(char *myLine) {
+    at_response("at+blemaxdevlistsize\n");
+
+    char *p = strtok(myLine, "=");
+    p = strtok(NULL, "\0");
+    uint8_t tempNum = atoi(p);
+
+    if (tempNum > MAX_BLE_DEVICES || tempNum < 1) {
+        deviceState.maxBleDevListSize = MAX_BLE_DEV_LIST_SIZE_DEFAULT;
+        at_response("ERROR: Invalid Value\n");
+    } else {
+        deviceState.maxBleDevListSize = tempNum;
+        at_response(AT_RESPONSE_SUCCESS);
+    }
+}
+
+void deleteDevList(char *myLine) {
+    at_response("at+deletedevlist\n");
+
+    InternalFS.remove(FILENAME);
+    deviceState.bleDeviceNameListIndex = 0;
+    memset(deviceState.bleDeviceNameList, 0, sizeof(deviceState.bleDeviceNameList));
+
+    BLEConnection *connection = NULL;
+    for (int i = 0; i < max_prph_connection; i++) {
+        connection = Bluefruit.Connection(i);
+        connection->disconnect();
+    }
+
+    at_response(AT_RESPONSE_SUCCESS);
+}
+
+void change_mode(char *myLine) {
+    DEBUG_PRINTLN("Changing operating mode");
+
+    at_response(AT_RESPONSE_OK);
+
+    deviceState.ble_mode = !deviceState.ble_mode;
+
+    file.open(MODE_FILENAME, FILE_O_WRITE);
+    if (file) {
+        file.seek(0);
+        file.write((const uint8_t *)&deviceState.ble_mode, 1);
+        file.close();
+    } else {
+        DEBUG_PRINTLN("Mode file write failed");
+    }
+
+    BLEConnection *connection = NULL;
+    for (int i = 0; i < max_prph_connection; i++) {
+        connection = Bluefruit.Connection(i);
+        connection->disconnect();
+    }
+
+    delay(1000);
+    NVIC_SystemReset();
+}
+
+void get_mode(char *myLine) {
+    if (deviceState.ble_mode) {
+        at_response("BLE\n");
+    } else {
+        at_response("Serial\n");
+    }
+}
+
+// File system functions
+void save_devList_toFile(void) {
+    file.open(FILENAME, FILE_O_WRITE);
+
+    if (file) {
+        DEBUG_PRINT("List has ");
+        DEBUG_PRINT(deviceState.bleDeviceNameListIndex);
+        DEBUG_PRINTLN(" devices");
+
+        file.seek(0);
+        file.write((const uint8_t *)deviceState.bleDeviceNameList, sizeof(deviceState.bleDeviceNameList));
+        file.write((const uint8_t *)&deviceState.bleDeviceNameListIndex, 1);
+
+        DEBUG_PRINT("Saving Device List to file ");
+        DEBUG_PRINT(file.size());
+        DEBUG_PRINTLN();
+        file.close();
+    } else {
+        DEBUG_PRINTLN("Device list write failed");
+    }
+}
+
+void load_devList_fromFile(void) {
+    file.open(FILENAME, FILE_O_READ);
+
+    if (file) {
+        DEBUG_PRINT("Loading Device List from file ");
+        DEBUG_PRINT(file.size());
+        DEBUG_PRINTLN();
+
+        deviceState.bleDeviceNameListIndex = 0;
+        memset(deviceState.bleDeviceNameList, 0, sizeof(deviceState.bleDeviceNameList));
+
+        file.read((void *)deviceState.bleDeviceNameList, sizeof(deviceState.bleDeviceNameList));
+        file.read((void *)&deviceState.bleDeviceNameListIndex, 1);
+
+        if (deviceState.bleDeviceNameListIndex > MAX_BLE_DEVICES) {
+            deviceState.bleDeviceNameListIndex = 0;
+        }
+
+        DEBUG_PRINT("List has ");
+        DEBUG_PRINT(deviceState.bleDeviceNameListIndex);
+        DEBUG_PRINTLN(" devices");
+
+        file.close();
+    } else {
+        DEBUG_PRINTLN("Device list read failed");
+    }
+}
+
+void load_mode_file(void) {
+    file.open(MODE_FILENAME, FILE_O_READ);
+
+    if (file) {
+        file.read((void *)&deviceState.ble_mode, 1);
+        file.close();
+    } else {
+        DEBUG_PRINTLN("Mode file read failed");
+    }
+}
+
+void save_tmp_file(void) {
+    file.open(TMP_FILENAME, FILE_O_WRITE);
+
+    if (file) {
+        file.seek(0);
+        file.write((const uint8_t *)&deviceState.flag_bleSwapConnProsStarted, 1);
+        file.write((const uint8_t *)&deviceState.switchBleConnStartIndex, 1);
+        file.write((const uint8_t *)&deviceState.switchBleConnCurrIndex, 1);
+        file.close();
+
+        DEBUG_PRINTLN("Temp parameters saved");
+    } else {
+        DEBUG_PRINTLN("Temp file write failed");
+    }
+}
+
+void load_tmp_file(void) {
+    file.open(TMP_FILENAME, FILE_O_READ);
+
+    if (file) {
+        file.read((void *)&deviceState.flag_bleSwapConnProsStarted, 1);
+        file.read((void *)&deviceState.switchBleConnStartIndex, 1);
+        file.read((void *)&deviceState.switchBleConnCurrIndex, 1);
+        file.close();
+
+        DEBUG_PRINTLN("Temp parameters loaded");
+        InternalFS.remove(TMP_FILENAME);
+    } else {
+        DEBUG_PRINTLN("Temp file read failed");
+    }
+}
+
+// AT Command table
 const command_action_t commands[] = {
-    // Name of command user types, function that implements the command.
-    // TODO add other commands, some day
     {"at+blekeyboardcode", sendBLEKeyboardCode},
     {"at+blehidmousemove", sendBLEMouseMove},
     {"at+blehidmousebutton", sendBLEMouseButton},
@@ -1000,367 +921,121 @@ const command_action_t commands[] = {
     {"at+getmode", get_mode},
 };
 
-void update_connections(uint16_t conn_handle){
-    target_ble_conn = 1;
-    response_ble_conn = 0;
-    if(conn_handle == 1) {
-      target_ble_conn = 0;      
-      response_ble_conn = 1;
-    }
-}
+// BLE connection callbacks
+void bleConnectCallback(uint16_t conn_handle) {
+    static int i;
+    BLEConnection *connection = Bluefruit.Connection(conn_handle);
+    char central_name[BLE_DEVICE_NAME_LENGTH] = {0};
+    uint8_t timeout_counter = 10;
 
-void execute(uint16_t conn_handle, char *myLine)
-{
-  if (myLine == NULL || *myLine == '\0')
-    return;
+    connection->getPeerName(central_name, sizeof(central_name));
 
-  char cmdTemp[100];
-  
-  memcpy(cmdTemp, myLine, 100);
-  
-  char *cmd = strtok(cmdTemp, "=");
-  
-  if (cmd == NULL || *cmd == '\0')
-    return;
-
-  toLower(cmd);
-
-  if(ble_mode) {
-    update_connections(conn_handle);
-  }
-  
-  for (size_t i = 0; i < sizeof(commands) / sizeof(commands[0]); i++)
-  {
-    if (strcmp(cmd, commands[i].command) == 0)
-    {
-      commands[i].action(myLine); //strtok(NULL, "=")
-      if(!ble_mode) {
-        delay(30);
-      }
-      return;
-    }
-  }
-
-  // Command not found so just send OK. Should send ERROR at some point.
-  at_response("OK\n");
-}
-
-void receive_char(uint16_t conn_handle, char receive_char)
-{
-  static uint8_t bytesIn;
-  static char receive_buffer[256];
-
-      switch (receive_char)
-    {
-    case '\n':      
-      break;
-    case '\r':     
-      receive_buffer[bytesIn] = '\0';
-      execute(conn_handle, receive_buffer);
-      bytesIn = 0;
-    case '\b': // backspace
-      if (bytesIn > 0)
-      {
-        bytesIn--;
-      }
-      break;
-    default:      
-      receive_buffer[bytesIn++] = receive_char;
-      if (bytesIn >= sizeof(receive_buffer) - 1)
-      {
-        receive_buffer[bytesIn] = '\0';
-        execute(conn_handle, receive_buffer);
-        bytesIn = 0;
-      }
-      break;
-    }    
-}
-
-void at_response(char *msg) {
-  int len = strlen(msg);
-
-  if(ble_mode) {
-    bleuart.write(response_ble_conn, (const uint8_t*)msg, len);
-  } else {
-    Serial.write(msg, len);
-  }
-}
-
-void prph_bleuart_rx_callback(uint16_t conn_handle)
-{  
-  if(ble_mode) {  
-    while (bleuart.available())
-    {
-      receive_char(conn_handle, bleuart.read());
-    }
-  }
-}
-
-void loop()
-{
-
-  if(!ble_mode) {    
-    if(Serial.available() > 0) {
-      receive_char(0, Serial.read());
-    }
-  }
-
-  if(digitalRead(USER_SW) == false) {
-    if(detect_click() == 1){
-      addNewBleDevice("");
-    } else {
-      change_mode("");
-    }
-  }
-
-  if (flag_saveListToFile)
-  {
-    flag_saveListToFile = false;
-    save_devList_toFile();
-  }
-
-  if (flag_addDevProsStarted)
-  {
-    if (millis() - addDevProsStartTicks >= ADD_NEW_DEV_PROCESS_TIMEOUT)
-    {
-      flag_addDevProsStarted = 0;
-      updateStatusLED();
-      #ifdef DEBUG
-      Serial.println("ERROR: Timeout");
-      #endif
-    }
-  }
-
-  if (flag_bleSwapConnProsStarted == 1)
-  {
-    if (millis() - swapConnProsStartTicks >= SWAP_CONN_PROCESS_TIMEOUT)
-    {
-      #ifdef DEBUG
-      Serial.println("ERROR: Timeout");
-      #endif
-
-      switchBleConnCurrIndex++;
-      if (switchBleConnCurrIndex > bleDeviceNameListIndex)
-      {
-        switchBleConnCurrIndex = 1;
-      }
-      if (switchBleConnCurrIndex == switchBleConnStartIndex)
-      {
-        flag_bleSwapConnProsStarted = 2;
-      }
-
-      swapConnProsStartTicks = millis();
-
-      #ifdef DEBUG
-      Serial.println("Trying to connect with - " + String(bleDeviceNameList[switchBleConnCurrIndex - 1]));
-      #endif
-    }
-  }
-  else if (flag_bleSwapConnProsStarted == 2)
-  {
-    if (millis() - swapConnProsStartTicks >= SWAP_CONN_PROCESS_TIMEOUT)
-    {
-      flag_bleSwapConnProsStarted = 0;
-
-      #ifdef DEBUG
-      Serial.println("ERROR: Timeout");
-      #endif
-    }
-  }
-
-  // Request CPU to enter low-power mode until an event/interrupt occurs
-  waitForEvent();
-}
-
-void bleConnectCallback(uint16_t conn_handle)
-{
-  static int i;
-  uint16_t connectionHandle = 0;
-  BLEConnection *connection = NULL;
-  char central_name[32] = {0};
-  uint8_t timeout_counter = 10;
-  
-  connection = Bluefruit.Connection(conn_handle);
-  connection->getPeerName(central_name, sizeof(central_name));
-  
-  // when unpaired iPhone/iPad connects wait in while until it will pair and give its full device name
-  while(!strcmp((char *)central_name, "iPhone") || !strcmp((char *)central_name, "iPad")){
-    if(connection->connected() && timeout_counter > 0) {
-      delay(1000);
-      connection->getPeerName(central_name, sizeof(central_name));
-      timeout_counter--;            
-    } else {
-      connection->disconnect();
-      return;
-    }    
-  }
-    
-  connection_count++;
-
-  if (flag_bleSwapConnProsStarted == 1)
-  {
-    if (!strcmp((char *)central_name, (char *)bleDeviceNameList[switchBleConnCurrIndex - 1]))
-    {
-      flag_bleSwapConnProsStarted = 0;
-
-      #ifdef DEBUG
-      Serial.println("SUCCESS");
-      #endif
-    }
-    else
-    {
-      connection->disconnect();
-
-      #ifdef DEBUG
-      Serial.print("Disconnected - Other device: ");
-      Serial.println(central_name);
-      #endif
-    }
-  }
-  else if (flag_bleSwapConnProsStarted == 2)
-  {
-    if (!strcmp((char *)central_name, (char *)bleDeviceNameList[switchBleConnStartIndex - 1]))
-    {
-      flag_bleSwapConnProsStarted = 0;
-      
-      #ifdef DEBUG
-      Serial.print("Reconnected to last device: ");
-      Serial.println(central_name);
-      #endif
-    }
-    else
-    {
-      connection->disconnect();
-
-      #ifdef DEBUG
-      Serial.println("Disconnected - Other device: ");
-      Serial.println(central_name);
-      #endif
-    }
-  }
-  else
-  {
-    if(bleDeviceNameListIndex == 0 && !strcmp((char *)central_name, "AceRK receiver")) {
-      // Adding receiver dongle automatically since dev list is empty
-      strcpy(bleDeviceNameList[bleDeviceNameListIndex++], central_name);
-      flag_saveListToFile = true;
-    } else{
-      i = 0;
-  
-      for (i = 0; i < maxBleDevListSize; i++)
-      {
-        if (!strcmp((char *)central_name, (char *)bleDeviceNameList[i]))
-        {
-          #ifdef DEBUG
-          Serial.println("Device found in list - " + String(central_name));
-          #endif
-          
-          if (flag_addDevProsStarted)
-          {
+    // Wait for unpaired iPhone/iPad to provide full device name
+    while (!strcmp((char *)central_name, "iPhone") || !strcmp((char *)central_name, "iPad")) {
+        if (connection->connected() && timeout_counter > 0) {
+            delay(1000);
+            connection->getPeerName(central_name, sizeof(central_name));
+            timeout_counter--;
+        } else {
             connection->disconnect();
-  
-            #ifdef DEBUG
-            Serial.print("Disconnected - Device already present in list");
-            Serial.println(central_name);
-            #endif
-          }
-          else
-          {
-          }
-          break;
+            return;
         }
-      }
-  
-      if (i >= maxBleDevListSize)
-      {
-        if (flag_addDevProsStarted)
-        {
-          flag_addDevProsStarted = 0;
-          updateStatusLED();
-          if (bleDeviceNameListIndex > maxBleDevListSize)
-          {
-            connection->disconnect();
-  
-            #ifdef DEBUG
-            Serial.println("ERROR: Device list is full");
-            #endif
-          }
-          else
-          {
-            #ifdef DEBUG
-            Serial.println("SUCCESS");
-            Serial.println(String(central_name) + " Connected and Name added into list");
-            #endif
-            
-            strcpy(bleDeviceNameList[bleDeviceNameListIndex++], central_name);
-            flag_saveListToFile = true;
-          }
-        }
-        else
-        {
-          connection->disconnect();
-  
-          #ifdef DEBUG
-          Serial.println(String(central_name) + " Disconnected - Not present in the list");
-          #endif
-        }
-      }
     }
-  }
-  
-  // Keep advertising if not reaching max
-  if (connection_count < max_prph_connection)
-  {
-    //Serial.println("Keep advertising");
-    Bluefruit.Advertising.start(0);
-  }
-  
+
+    connection_count++;
+
+    // Handle connection switching
+    if (deviceState.flag_bleSwapConnProsStarted == 1) {
+        if (!strcmp((char *)central_name, (char *)deviceState.bleDeviceNameList[deviceState.switchBleConnCurrIndex - 1])) {
+            deviceState.flag_bleSwapConnProsStarted = 0;
+            DEBUG_PRINTLN("Connection switch success");
+        } else {
+            connection->disconnect();
+            DEBUG_PRINT("Disconnected - Other device: ");
+            DEBUG_PRINTLN(central_name);
+        }
+    } else if (deviceState.flag_bleSwapConnProsStarted == 2) {
+        if (!strcmp((char *)central_name, (char *)deviceState.bleDeviceNameList[deviceState.switchBleConnStartIndex - 1])) {
+            deviceState.flag_bleSwapConnProsStarted = 0;
+            DEBUG_PRINT("Reconnected to last device: ");
+            DEBUG_PRINTLN(central_name);
+        } else {
+            connection->disconnect();
+            DEBUG_PRINTLN("Disconnected - Other device");
+        }
+    } else {
+        // Handle new device addition
+        if (deviceState.bleDeviceNameListIndex == 0 && !strcmp((char *)central_name, "AceRK receiver")) {
+            // Auto-add receiver dongle
+            strcpy(deviceState.bleDeviceNameList[deviceState.bleDeviceNameListIndex++], central_name);
+            deviceState.flag_saveListToFile = true;
+        } else {
+            // Check if device is in list
+            for (i = 0; i < deviceState.maxBleDevListSize; i++) {
+                if (!strcmp((char *)central_name, (char *)deviceState.bleDeviceNameList[i])) {
+                    DEBUG_PRINTLN("Device found in list");
+                    if (deviceState.flag_addDevProsStarted) {
+                        connection->disconnect();
+                        DEBUG_PRINTLN("Disconnected - Device already in list");
+                    }
+                    break;
+                }
+            }
+
+            if (i >= deviceState.maxBleDevListSize) {
+                if (deviceState.flag_addDevProsStarted) {
+                    deviceState.flag_addDevProsStarted = false;
+                    updateStatusLED();
+
+                    if (deviceState.bleDeviceNameListIndex >= deviceState.maxBleDevListSize) {
+                        connection->disconnect();
+                        DEBUG_PRINTLN("ERROR: Device list is full");
+                    } else {
+                        DEBUG_PRINTLN("SUCCESS - Device added to list");
+                        strcpy(deviceState.bleDeviceNameList[deviceState.bleDeviceNameListIndex++], central_name);
+                        deviceState.flag_saveListToFile = true;
+                    }
+                } else {
+                    connection->disconnect();
+                    DEBUG_PRINTLN("Disconnected - Not in list");
+                }
+            }
+        }
+    }
+
+    // Keep advertising if not at max connections
+    if (connection_count < max_prph_connection) {
+        Bluefruit.Advertising.start(0);
+    }
 }
 
-void disconnect_callback(uint16_t conn_handle, uint8_t reason)
-{
-  (void) conn_handle;
-  (void) reason;
+void disconnect_callback(uint16_t conn_handle, uint8_t reason) {
+    (void) conn_handle;
+    (void) reason;
 
-  //Serial.println();
-  //Serial.print("Disconnected, reason = 0x"); Serial.println(reason, HEX);
+    if (blehid.isBootMode()) {
+        save_tmp_file();
+        DEBUG_PRINTLN("Resetting HID mode");
+        delay(1000);
+        NVIC_SystemReset();
+    }
 
-  if(blehid.isBootMode()) {
-    save_tmp_file();
-    
-    #ifdef DEBUG
-    Serial.println("Resetting hid mode");
-    delay(1000);
-    #endif
-    
-    NVIC_SystemReset(); 
-  }
+    connection_count--;
 
-  connection_count--;
-  // Keep advertising if not reaching max
-  if (connection_count < max_prph_connection)
-  {
-    //Serial.println("Keep advertising");
-    Bluefruit.Advertising.start(0);
-  }
+    // Keep advertising if not at max connections
+    if (connection_count < max_prph_connection) {
+        Bluefruit.Advertising.start(0);
+    }
 }
 
-/**
- * Callback invoked when received Set LED from central.
- * Must be set previously with setKeyboardLedCallback()
- *
- * The LED bit map is as follows: (also defined by KEYBOARD_LED_* )
- *    Kana (4) | Compose (3) | ScrollLock (2) | CapsLock (1) | Numlock (0)
- */
-void set_keyboard_led(uint16_t conn_handle, uint8_t led_bitmap)
-{
-  // light up Red Led if any bits is set
-  if (led_bitmap)
-  {
-    ledOn(LED_RED);
-  }
-  else
-  {
-    ledOff(LED_RED);
-  }
+void set_keyboard_led(uint16_t conn_handle, uint8_t led_bitmap) {
+    // Light up red LED if any bits are set
+    if (led_bitmap) {
+        ledOn(LED_RED);
+    } else {
+        ledOff(LED_RED);
+    }
 }
+
+
+
