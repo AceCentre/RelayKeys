@@ -76,7 +76,8 @@ for spec in [
 
 # remaining files that dont fit the standard spec
 if os.name == "nt":
-    subprocess.run(["pyinstaller", "-y", "relaykeysd-service.spec"])
+    # Ensure clean rebuild of Windows service with pywin32 dependencies
+    subprocess.run(["pyinstaller", "-y", "--clean", "relaykeysd-service.spec"])
     subprocess.run(["pyinstaller", "-y", "relaykeysd-service-stop.spec"])
     subprocess.call(
         [

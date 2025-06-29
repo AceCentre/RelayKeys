@@ -43,6 +43,7 @@ dependencies = [
     "bleak",
     "pynput",
     "notify-py",
+    "pywin32>=310",
 ]
 
 [project.optional-dependencies]

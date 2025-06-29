@@ -2774,6 +2774,7 @@ dependencies = [
     { name = "pynput" },
     { name = "pyperclip" },
     { name = "pyserial" },
+    { name = "pywin32" },
     { name = "requests" },
     { name = "werkzeug" },
 ]
@@ -2853,6 +2854,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'" },
     { name = "pytest-mock", marker = "extra == 'dev'" },
     { name = "python-daemon", marker = "sys_platform != 'win32' and extra == 'posix'", specifier = ">=2.2.3,<3" },
+    { name = "pywin32", specifier = ">=310" },
     { name = "requests", specifier = ">=2.21.0,<3" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "safety", marker = "extra == 'dev'" },
