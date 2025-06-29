@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "relaykeys"
-version = "2.02"
+version = "2.04"
 description = "A simple app/hardware solution to send keystrokes from one computer to another over Bluetooth LE"
 readme = "README.md"
 license = {file = "LICENSE"}
