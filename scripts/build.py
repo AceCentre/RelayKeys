@@ -149,6 +149,12 @@ shutil.copy(r"assets/icons/logo.png", r"dist/relaykeysd/resources")
 # Run the nsis
 if os.name == "nt":
     subprocess.run([r"C:\Program Files (x86)\NSIS\makensis.exe", "scripts/build-installer.nsi"])
+    # Move the installer from scripts directory to project root for GitHub Actions
+    installer_source = "scripts/RelayKeys setup.exe"
+    installer_dest = "RelayKeys setup.exe"
+    if os.path.exists(installer_source):
+        shutil.move(installer_source, installer_dest)
+        print(f"Moved installer from {installer_source} to {installer_dest}")
 if os.name == "posix":
     plist = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
