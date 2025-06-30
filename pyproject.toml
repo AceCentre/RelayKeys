@@ -45,6 +45,7 @@ dependencies = [
     "notify-py",
     "pywin32>=310",
     "pyqt6",
+    "pyinstaller>=6.14.1",
 ]
 
 [project.optional-dependencies]
