@@ -1114,7 +1114,7 @@ resolution-markers = [
     "python_full_version >= '3.9' and python_full_version < '3.13'",
 ]
 dependencies = [
-    { name = "zipp", version = "3.23.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
+    { name = "zipp", version = "3.23.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9' and python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/76/66/650a33bd90f786193e4de4b3ad86ea60b53c89b669a5c7be931fac31cdb0/importlib_metadata-8.7.0.tar.gz", hash = "sha256:d13b81ad223b890aa16c5471f2ac3056cf76c5f10f82d6f9292f0b415f389000", size = 56641, upload-time = "2025-04-27T15:29:01.736Z" }
 wheels = [
@@ -2935,6 +2935,8 @@ dependencies = [
     { name = "notify-py" },
     { name = "pynput" },
     { name = "pyperclip" },
+    { name = "pyqt6", version = "6.7.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "pyqt6", version = "6.9.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
     { name = "pyserial" },
     { name = "pywin32" },
     { name = "requests" },
@@ -3009,6 +3011,7 @@ requires-dist = [
     { name = "pynput" },
     { name = "pyperclip", specifier = ">=1.7.0,<2" },
     { name = "pyqt5", marker = "sys_platform != 'win32' and extra == 'gui'", specifier = ">=5.14.0" },
+    { name = "pyqt6" },
     { name = "pyqt6", marker = "sys_platform == 'win32' and extra == 'gui'", specifier = ">=6.0.0" },
     { name = "pyserial", specifier = ">=3.4,<4" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },

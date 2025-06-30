@@ -44,6 +44,7 @@ dependencies = [
     "pynput",
     "notify-py",
     "pywin32>=310",
+    "pyqt6",
 ]
 
 [project.optional-dependencies]
