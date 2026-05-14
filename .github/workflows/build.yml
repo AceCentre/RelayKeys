@@ -114,7 +114,7 @@ jobs:
         arduino-cli config add board_manager.additional_urls https://adafruit.github.io/arduino-board-index/package_adafruit_index.json
         arduino-cli core update-index
         arduino-cli core install adafruit:nrf52
-        arduino-cli lib install TimedBlink
+        arduino-cli lib install TimedBlink "Adafruit NeoPixel" "Adafruit DotStar"
 
     - name: Copy common header into sketch dirs
       run: cp arduino/common/relaykeys_common.h arduino/arduino_nRF52840/
