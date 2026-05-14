@@ -1,9 +1,9 @@
+name: Build & Release
+
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
-      - go
+    branches: [main]
+    tags: ["v*"]
   pull_request:
 
 env:
@@ -21,6 +21,7 @@ jobs:
     - run: go test ./... -count=1
 
   build-windows:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
     needs: lint
     steps:
@@ -37,20 +38,20 @@ jobs:
         Copy-Item ss\SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\"
 
     - name: Build
+      env:
+        VERSION: ${{ github.ref_name }}
       run: powershell -ExecutionPolicy Bypass -File build-go.ps1
 
-    - uses: actions/upload-artifact@v5
-      with:
-        name: 'Windows Installer'
-        path: 'RelayKeys-*.exe'
-
-    - name: Upload binaries
+    - name: Upload artifacts
       uses: actions/upload-artifact@v5
       with:
-        name: 'Windows Binaries'
-        path: 'build-go/*.exe'
+        name: windows-binaries
+        path: |
+          build-go/*.exe
+          RelayKeys-*.exe
 
   build-macos:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-latest
     needs: lint
     steps:
@@ -59,12 +60,60 @@ jobs:
       with:
         go-version: '1.23'
 
-    - name: Build
+    - name: Build binaries
+      env:
+        VERSION: ${{ github.ref_name }}
       run: bash build-go.sh macos
 
-    - name: Upload binaries
+    - name: Build macOS app bundle
+      env:
+        VERSION: ${{ github.ref_name }}
+      run: bash build-macos-app.sh
+
+    - name: Create macOS ZIP archive
+      env:
+        VERSION: ${{ github.ref_name }}
+      run: |
+        VERSION=${VERSION#v}
+        STAGING="RelayKeys-macOS-staging"
+        rm -rf "$STAGING"
+        mkdir -p "$STAGING"
+        cp -r build-go/RelayKeys.app "$STAGING/"
+        cp build-go/relaykeys-daemon build-go/relaykeys-cli "$STAGING/"
+        cp -r keymaps macros "$STAGING/"
+        cp relaykeys.cfg "$STAGING/"
+        cp macos/com.acecentre.relaykeys.plist "$STAGING/"
+        zip -r "RelayKeys-${VERSION}-macOS.zip" "$STAGING"
+        rm -rf "$STAGING"
+
+    - name: Upload artifacts
       uses: actions/upload-artifact@v5
       with:
-        name: 'macOS Binaries'
+        name: macos-binaries
         path: |
-          build-go/*-darwin-*
+          build-go/relaykeys-daemon
+          build-go/relaykeys-cli
+          build-go/relaykeys-menubar
+          RelayKeys-*.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-macos]
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/download-artifact@v5
+      with:
+        path: artifacts
+
+    - name: List artifacts
+      run: find artifacts -type f | sort
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        generate_release_notes: true
+        files: |
+          artifacts/windows-binaries/*
+          artifacts/macos-binaries/*

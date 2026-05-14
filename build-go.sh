@@ -2,6 +2,7 @@
 set -e
 
 VERSION=${VERSION:-"2.0.0"}
+VERSION=${VERSION#v}
 LDFLAGS="-s -w -X main.version=$VERSION"
 OUTDIR="./build-go"
 

@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$VERSION = if ($env:VERSION) { $env:VERSION } else { "2.0.0" }
+$VERSION = if ($env:VERSION) { $env:VERSION.TrimStart('v') } else { "2.0.0" }
 $LDFLAGS = "-s -w -X main.version=$VERSION"
 $OUTDIR = ".\build-go"
 

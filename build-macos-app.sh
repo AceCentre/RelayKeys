@@ -2,6 +2,7 @@
 set -e
 
 VERSION=${VERSION:-"2.0.0"}
+VERSION=${VERSION#v}
 OUTDIR="./build-go"
 APPDIR="$OUTDIR/RelayKeys.app"
 
