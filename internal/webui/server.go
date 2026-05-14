@@ -546,9 +546,23 @@ func (s *Server) refreshDevices() {
 		})
 	}
 
+	currentDevice := strings.TrimSpace(name)
+	dongleConnected := true
+	if currentDevice == "" || currentDevice == "NONE" {
+		currentDevice = ""
+		dongleConnected = false
+	}
+
+	if currentDevice != "" && len(devices) == 0 {
+		devices = append(devices, DeviceInfo{
+			Name:      currentDevice,
+			Connected: true,
+		})
+	}
+
 	s.UpdateStatus(func(st *Status) {
-		st.CurrentDevice = strings.TrimSpace(name)
+		st.CurrentDevice = currentDevice
 		st.DeviceList = devices
-		st.DongleConnected = true
+		st.DongleConnected = dongleConnected
 	})
 }
