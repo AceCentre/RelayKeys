@@ -23,7 +23,7 @@ func TestLoadUSKeymap(t *testing.T) {
 		{'0', "0", nil},
 		{'9', "9", nil},
 		{' ', "SPACE", nil},
-		{'\n', "ENTER", []string{"LSHIFT"}},
+		{'\n', "ENTER", nil},
 		{'\t', "TAB", nil},
 		{'!', "1", []string{"LSHIFT"}},
 		{'@', "2", []string{"LSHIFT"}},

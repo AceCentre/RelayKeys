@@ -1,6 +1,12 @@
 # OS
 .DS_Store
 
+#Node dev scripts
+# Dependency directories
+node_modules/
+jspm_packages/
+
+
 # Go build output
 /relaykeys-daemon
 /relaykeys-cli
