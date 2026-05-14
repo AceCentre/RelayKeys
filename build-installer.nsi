@@ -13,13 +13,15 @@ SetCompressor LZMA
 !include FileFunc.nsh
 !include MUI2.nsh
 
+!define MUI_ABORTWARNING
+!define MUI_ICON "assets\icons\logo.ico"
+!define MUI_UNICON "assets\icons\logo.ico"
+
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_LANGUAGE English
-
-!define MUI_ABORTWARNING
 
 Var IsUpgrade
 
@@ -57,6 +59,9 @@ Section ""
 
     SetOutPath "$InstDir\macros"
     File /r "build-go\macros\*.*"
+
+    SetOutPath "$InstDir\assets\icons"
+    File /r "build-go\assets\icons\*.*"
 
     SetShellVarContext all
     CreateDirectory "$SMPROGRAMS\Ace Centre\RelayKeys"

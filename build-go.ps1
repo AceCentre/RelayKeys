@@ -44,12 +44,15 @@ Write-Host "  Running tests..."
 if ($LASTEXITCODE -ne 0) { throw "tests failed" }
 
 Write-Host ""
-Write-Host "Copying keymaps and macros..."
+Write-Host "Copying keymaps, macros, and assets..."
 if (-not (Test-Path "$OUTDIR\keymaps")) { Copy-Item -Path keymaps -Destination $OUTDIR -Recurse -Container }
 if (Test-Path macros) {
     if (-not (Test-Path "$OUTDIR\macros")) { Copy-Item -Path macros -Destination $OUTDIR -Recurse -Container }
 } else {
     New-Item -ItemType Directory -Path "$OUTDIR\macros" | Out-Null
+}
+if (Test-Path assets) {
+    Copy-Item -Path assets -Destination $OUTDIR -Recurse -Container
 }
 
 Write-Host ""
