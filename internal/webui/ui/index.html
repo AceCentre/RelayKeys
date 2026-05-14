@@ -443,9 +443,11 @@ function updateUI(s) {
     document.getElementById('macroRecordInfo').textContent = 'Start recording to capture keyboard events as a macro';
   }
 
-  document.getElementById('currentDeviceInfo').innerHTML = s.currentDevice && s.currentDevice !== 'NONE'
-    ? '<div class="info-row"><span class="label">Connected to</span><span class="value">' + esc(s.currentDevice) + '</span></div>'
-    : '<div class="empty">No device connected</div>';
+  document.getElementById('currentDeviceInfo').innerHTML = !s.dongleConnected
+    ? '<div class="empty">Dongle not connected — check USB</div>'
+    : s.currentDevice && s.currentDevice !== 'NONE'
+      ? '<div class="info-row"><span class="label">Connected to</span><span class="value">' + esc(s.currentDevice) + '</span></div>'
+      : '<div class="empty">No BLE device paired — add a device to get started</div>';
 
   const dl = document.getElementById('deviceList');
   if (s.deviceList && s.deviceList.length > 0) {
@@ -462,8 +464,8 @@ function updateUI(s) {
   }
 
   document.getElementById('connMode').textContent = s.daemonMode;
-  document.getElementById('connDongle').textContent = s.dongleConnected ? 'Connected' : 'Disconnected';
-  document.getElementById('connDevice').textContent = s.currentDevice || 'None';
+  document.getElementById('connDongle').textContent = s.dongleConnected ? 'Connected' : 'Not found — check USB';
+  document.getElementById('connDevice').textContent = !s.dongleConnected ? '—' : (s.currentDevice && s.currentDevice !== 'NONE' ? s.currentDevice : 'None paired');
 }
 
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }

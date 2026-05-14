@@ -3,7 +3,6 @@ package simulator_test
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -420,9 +419,4 @@ func TestRPCEmptyDongle(t *testing.T) {
 	if result != "NONE" {
 		t.Errorf("devname on empty: expected NONE, got %s", result)
 	}
-}
-
-// Helper to make the HandleRPC method accessible for httptest
-func init() {
-	_ = fmt.Sprintf // ensure fmt is imported
 }

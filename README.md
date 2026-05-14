@@ -40,40 +40,60 @@ For the [AceCentre](http://acecentre.org.uk) we want people with disabilities wh
 
 ## Getting Started
 
-If you are a developer start [here](https://docs.acecentre.org.uk/products/v/relaykeys/developers/architecture). If you are a end user who just wants to get going start [here](https://docs.acecentre.org.uk/products/v/relaykeys/installation).
+If you are a developer start [here](https://docs.acecentre.org.uk/products/v/relaykeys/developers/architecture). If you are an end user who just wants to get going start [here](https://docs.acecentre.org.uk/products/v/relaykeys/installation).
 
 ### Development Setup
 
-RelayKeys now uses a modern Python package structure with UV package manager support:
+RelayKeys is written in Go. The host software consists of a daemon (background service) and a CLI client.
 
 ```bash
 # Clone the repository
 git clone https://github.com/AceCentre/RelayKeys.git
 cd RelayKeys
 
-# Install in development mode with UV
-uv pip install -e .
+# Build (Windows)
+powershell -ExecutionPolicy Bypass -File build-go.ps1
 
-# Run the CLI
-uv run relaykeys-cli --help
-
-# Run the daemon
-uv run relaykeys-daemon --help
+# Or build manually
+go build -o relaykeys-daemon.exe ./cmd/relaykeys-daemon
+go build -o relaykeys-cli.exe ./cmd/relaykeys-cli
 
 # Run tests
-uv run python -m pytest
+go test ./... -count=1
+
+# Cross-compile (macOS/Linux from any platform)
+bash build-go.sh
 ```
 
-### Package Structure
+### Architecture
 
-The codebase is now organized as a proper Python package:
-- `src/relaykeys/core/` - Core daemon and client functionality
-- `src/relaykeys/cli/` - Command-line interface tools
-- `src/relaykeys/gui/` - Graphical user interface
-- `src/relaykeys/utils/` - Utility functions
-- `scripts/` - Build and deployment scripts
-- `examples/` - Example configurations and demos
-- `assets/` - Static assets (icons, reference files)
+| Component | Description |
+|-----------|-------------|
+| `cmd/relaykeys-daemon/` | Background service — serial, RPC, web UI, Windows service support |
+| `cmd/relaykeys-cli/` | CLI client — used by AAC software (Grid 3, Communicator 5, etc.) |
+| `internal/blehid/` | AT command protocol over serial + HID keycode map |
+| `internal/config/` | INI config loading |
+| `internal/keymap/` | JSON keymap loading (US, UK, DE, FR, ES, IT) |
+| `internal/macro/` | Macro save/load/record/replay |
+| `internal/rpc/` | JSON-RPC server (port 5383) + client |
+| `internal/serial/` | Hardware serial via `go.bug.st/serial`, auto-detect by VID/PID |
+| `internal/simulator/` | Full firmware simulator for testing |
+| `internal/webui/` | Embedded web UI + WebSocket hub |
+
+The daemon listens on `127.0.0.1:5383` for JSON-RPC over HTTP, serves a web UI at `/ui/`, and communicates with the nRF52840 dongle via AT commands over serial at 115200 baud.
+
+### CLI Commands
+
+```bash
+relaykeys-cli "type:Hello World"          # Type text on target BLE device
+relaykeys-cli "keypress:ENTER"            # Press a key
+relaykeys-cli "keypress:H,LMETA"          # Win+H (modifier)
+relaykeys-cli "mousemove:100,100"         # Move mouse
+relaykeys-cli "mousebutton:l,click"       # Left click
+relaykeys-cli "ble_cmd:devlist"           # List paired BLE devices
+relaykeys-cli "ble_cmd:devadd"            # Enter pairing mode
+relaykeys-cli -f macrofile.txt            # Run macro file
+```
 
 
 ## License
