@@ -50,9 +50,11 @@ Section ""
     SetOutPath "$InstDir"
     File "build-go\relaykeys-daemon-windows-amd64.exe"
     File "build-go\relaykeys-cli-windows-amd64.exe"
+    File "build-go\relaykeys-tray-windows-amd64.exe"
 
     Rename "$InstDir\relaykeys-daemon-windows-amd64.exe" "$InstDir\relaykeys-daemon.exe"
     Rename "$InstDir\relaykeys-cli-windows-amd64.exe" "$InstDir\relaykeys-cli.exe"
+    Rename "$InstDir\relaykeys-tray-windows-amd64.exe" "$InstDir\relaykeys-tray.exe"
 
     SetOutPath "$InstDir\keymaps"
     File /r "build-go\keymaps\*.*"
@@ -70,6 +72,8 @@ Section ""
     CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Restart Service.lnk" "net.exe" 'stop RelayKeys && net start RelayKeys' "" 0
     CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Uninstall.lnk" "$InstDir\uninstall.exe" "" "$InstDir\uninstall.exe" 0
     CreateShortcut "$DESKTOP\RelayKeys.lnk" "http://127.0.0.1:5383/ui/" "$InstDir\assets\icons\logo.ico" "$InstDir\assets\icons\logo.ico" 0
+    CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys Tray.lnk" "$InstDir\relaykeys-tray.exe" "" "$InstDir\assets\icons\logo.ico" 0
+    CreateShortcut "$SMSTARTUP\RelayKeys Tray.lnk" "$InstDir\relaykeys-tray.exe" "" "$InstDir\assets\icons\logo.ico" 0
 
     DetailPrint "Installing RelayKeys service..."
     SimpleSC::InstallService "RelayKeys" "RelayKeys Daemon" 16 2 '"$InstDir\relaykeys-daemon.exe"'
@@ -115,10 +119,12 @@ Section "Uninstall"
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys Web UI.lnk"
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys CLI.lnk"
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Restart Service.lnk"
+    Delete "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys Tray.lnk"
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Uninstall.lnk"
     RMDir "$SMPROGRAMS\Ace Centre\RelayKeys"
     RMDir "$SMPROGRAMS\Ace Centre"
     Delete "$DESKTOP\RelayKeys.lnk"
+    Delete "$SMSTARTUP\RelayKeys Tray.lnk"
 
     Delete "$InstDir\uninstall.exe"
     RMDir /r "$InstDIR"

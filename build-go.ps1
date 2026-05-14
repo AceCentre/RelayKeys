@@ -39,6 +39,9 @@ if ($gccPath) {
 & $goExe build -ldflags $LDFLAGS -o "$OUTDIR\relaykeys-cli-windows-amd64.exe" .\cmd\relaykeys-cli
 if ($LASTEXITCODE -ne 0) { throw "cli build failed" }
 
+& $goExe build -ldflags $LDFLAGS -o "$OUTDIR\relaykeys-tray-windows-amd64.exe" .\cmd\relaykeys-tray
+if ($LASTEXITCODE -ne 0) { throw "tray build failed" }
+
 Write-Host "  Running tests..."
 & $goExe test ./... -count=1
 if ($LASTEXITCODE -ne 0) { throw "tests failed" }
