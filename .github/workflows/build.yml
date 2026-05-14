@@ -115,6 +115,7 @@ jobs:
         arduino-cli core update-index
         arduino-cli core install adafruit:nrf52
         arduino-cli lib install TimedBlink "Adafruit NeoPixel" "Adafruit DotStar"
+        pip3 install adafruit-nrfutil
 
     - name: Copy common header into sketch dirs
       run: cp arduino/common/relaykeys_common.h arduino/arduino_nRF52840/
