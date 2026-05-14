@@ -2,11 +2,11 @@
 .DS_Store
 
 # Go build output
-relaykeys-daemon
-relaykeys-cli
-relaykeys-daemon-*
-relaykeys-cli-*
-build-go/
+/relaykeys-daemon
+/relaykeys-cli
+/relaykeys-daemon-*
+/relaykeys-cli-*
+/build-go/
 *.exe
 
 # Config (user-specific)
