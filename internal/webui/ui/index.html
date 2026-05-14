@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RelayKeys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f5f5f5;color:#333}
+.header{background:#2c3e50;color:#fff;padding:16px 20px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:20px;font-weight:600}
+.header .status-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.header .status-dot.on{background:#2ecc71}
+.header .status-dot.off{background:#e74c3c}
+.header .rec-dot{width:10px;height:10px;border-radius:50%;background:#e74c3c;display:none;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.header .rec-dot.on{display:inline-block}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #ddd;overflow-x:auto}
+.tab{padding:12px 20px;cursor:pointer;font-weight:500;border-bottom:3px solid transparent;white-space:nowrap}
+.tab.active{border-bottom-color:#3498db;color:#3498db}
+.tab:hover{background:#f8f8f8}
+.content{max-width:700px;margin:20px auto;padding:0 16px}
+.content.wide{max-width:920px}
+.card{background:#fff;border-radius:8px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.card h2{font-size:16px;margin-bottom:12px;color:#555}
+.device{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #eee}
+.device:last-child{border-bottom:none}
+.device .name{flex:1;font-size:15px}
+.device .badge{font-size:11px;background:#2ecc71;color:#fff;padding:2px 8px;border-radius:10px;margin-right:8px}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500}
+.btn-primary{background:#3498db;color:#fff}
+.btn-primary:hover{background:#2980b9}
+.btn-danger{background:#e74c3c;color:#fff}
+.btn-danger:hover{background:#c0392b}
+.btn-success{background:#2ecc71;color:#fff}
+.btn-success:hover{background:#27ae60}
+.btn-outline{background:#fff;color:#555;border:1px solid #ddd}
+.btn-outline:hover{background:#f5f5f5}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:15px}
+.toggle{position:relative;width:48px;height:26px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:26px;cursor:pointer;transition:.3s}
+.toggle .slider:before{content:"";position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.slider{background:#3498db}
+.toggle input:checked+.slider:before{transform:translateX(22px)}
+.info-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px}
+.info-row .label{color:#888}
+.info-row .value{font-weight:500}
+.empty{text-align:center;padding:30px;color:#999;font-size:14px}
+.input-row{display:flex;gap:8px;margin-top:8px}
+.input-row input{flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+.macro-item{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #eee}
+.macro-item:last-child{border-bottom:none}
+.macro-item .name{flex:1;font-size:15px}
+.macro-item .running{font-size:11px;background:#f39c12;color:#fff;padding:2px 8px;border-radius:10px;margin-right:8px}
+
+/* Keyboard */
+.kb{display:flex;flex-direction:column;gap:4px;user-select:none}
+.kb-row{display:flex;gap:4px;justify-content:center}
+.kb-key{background:#fff;border:1px solid #ccc;border-radius:4px;min-width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#555;transition:background .1s,color .1s,border-color .1s;cursor:default;flex-shrink:0}
+.kb-key.active{background:#3498db;color:#fff;border-color:#2980b9}
+.kb-key.mod-active{background:#e67e22;color:#fff;border-color:#d35400}
+.kb-key.w-backspace{min-width:68px}
+.kb-key.w-tab{min-width:56px}
+.kb-key.w-caps{min-width:66px}
+.kb-key.w-enter{min-width:82px}
+.kb-key.w-lshift{min-width:82px}
+.kb-key.w-rshift{min-width:104px}
+.kb-key.w-backslash{min-width:56px}
+.kb-key.w-space{min-width:250px}
+.kb-key.w-ctrl{min-width:56px}
+.kb-key.w-alt{min-width:52px}
+.kb-key.w-fn{min-width:42px}
+.kb-mods{display:flex;gap:12px;margin-top:12px;justify-content:center}
+.kb-mod-indicator{padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600;background:#eee;color:#999;transition:background .1s,color .1s}
+.kb-mod-indicator.active{background:#e67e22;color:#fff}
+.kb-event-log{margin-top:12px;max-height:120px;overflow-y:auto;font-family:monospace;font-size:12px;color:#666;background:#f8f8f8;border-radius:4px;padding:8px}
+.kb-event-log div{padding:1px 0}
+.kb-event-log .down{color:#27ae60}
+.kb-event-log .up{color:#999}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>RelayKeys</h1>
+  <span class="status-dot" id="dongleDot"></span>
+  <span id="daemonMode" style="font-size:13px;opacity:0.8"></span>
+  <span class="rec-dot" id="recDot"></span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="capture">Capture</div>
+  <div class="tab" data-tab="keyboard">Keyboard</div>
+  <div class="tab" data-tab="devices">Devices</div>
+  <div class="tab" data-tab="macros">Macros</div>
+  <div class="tab" data-tab="connection">Connection</div>
+</div>
+
+<div class="content" id="contentWrap">
+  <!-- Capture Tab -->
+  <div id="tab-capture" class="tab-content">
+    <div class="card">
+      <h2>Input Capture</h2>
+      <div class="toggle-row">
+        <span class="toggle-label">Keyboard capture</span>
+        <label class="toggle">
+          <input type="checkbox" id="keyboardToggle" onchange="toggleKeyboard()">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Mouse capture</span>
+        <label class="toggle">
+          <input type="checkbox" id="mouseToggle" onchange="toggleMouse()">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Active capture session</span>
+        <label class="toggle">
+          <input type="checkbox" id="captureToggle" onchange="toggleCapture()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Current Device</h2>
+      <div id="currentDeviceInfo" class="empty">No device connected</div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="sendCmd('switch')">Switch Device</button>
+        <button class="btn btn-outline" onclick="sendCmd('refresh')">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Tab -->
+  <div id="tab-keyboard" class="tab-content" style="display:none">
+    <div class="card">
+      <h2>Keyboard State</h2>
+      <div class="kb" id="keyboard"></div>
+      <div class="kb-mods">
+        <span class="kb-mod-indicator" id="mod-LCTRL">Ctrl</span>
+        <span class="kb-mod-indicator" id="mod-LSHIFT">Shift</span>
+        <span class="kb-mod-indicator" id="mod-LALT">Alt</span>
+        <span class="kb-mod-indicator" id="mod-LMETA">Win</span>
+        <span class="kb-mod-indicator" id="mod-RCTRL">RCtrl</span>
+        <span class="kb-mod-indicator" id="mod-RSHIFT">RShift</span>
+        <span class="kb-mod-indicator" id="mod-RALT">RAlt</span>
+        <span class="kb-mod-indicator" id="mod-RMETA">RWin</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Event Log</h2>
+      <div class="kb-event-log" id="eventLog"><div style="color:#999">Enable capture to see events here</div></div>
+    </div>
+  </div>
+
+  <!-- Devices Tab -->
+  <div id="tab-devices" class="tab-content" style="display:none">
+    <div class="card">
+      <h2>Paired Devices</h2>
+      <div id="deviceList" class="empty">Loading...</div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="sendCmd('devadd')">Add Device</button>
+        <button class="btn btn-outline" onclick="sendCmd('devlist')">Refresh</button>
+        <button class="btn btn-danger" onclick="sendCmd('devreset')">Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Macros Tab -->
+  <div id="tab-macros" class="tab-content" style="display:none">
+    <div class="card">
+      <h2>Record Macro</h2>
+      <div id="macroRecordInfo" style="font-size:14px;color:#888;margin-bottom:8px">Start recording to capture keyboard/mouse events as a macro</div>
+      <div class="input-row">
+        <input type="text" id="macroName" placeholder="Macro name">
+        <button class="btn btn-danger" id="recordBtn" onclick="toggleRecord()">Record</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Saved Macros</h2>
+      <div id="macroList" class="empty">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Connection Tab -->
+  <div id="tab-connection" class="tab-content" style="display:none">
+    <div class="card">
+      <h2>Daemon</h2>
+      <div class="info-row"><span class="label">Mode</span><span class="value" id="connMode">-</span></div>
+      <div class="info-row"><span class="label">Dongle</span><span class="value" id="connDongle">-</span></div>
+      <div class="info-row"><span class="label">Current device</span><span class="value" id="connDevice">-</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KB_LAYOUT = [
+  [{k:'ESC',c:'ESCAPE'},{k:'F1'},{k:'F2'},{k:'F3'},{k:'F4'},{k:'F5'},{k:'F6'},{k:'F7'},{k:'F8'},{k:'F9'},{k:'F10'},{k:'F11'},{k:'F12'}],
+  [{k:'`'},{k:'1'},{k:'2'},{k:'3'},{k:'4'},{k:'5'},{k:'6'},{k:'7'},{k:'8'},{k:'9'},{k:'0'},{k:'-'},{k:'='},{k:'Bksp',c:'BACKSPACE',w:'w-backspace'}],
+  [{k:'Tab',c:'TAB',w:'w-tab'},{k:'Q'},{k:'W'},{k:'E'},{k:'R'},{k:'T'},{k:'Y'},{k:'U'},{k:'I'},{k:'O'},{k:'P'},{k:'['},{k:']'},{k:'\\',w:'w-backslash'}],
+  [{k:'Caps',c:'CAPSLOCK',w:'w-caps'},{k:'A'},{k:'S'},{k:'D'},{k:'F'},{k:'G'},{k:'H'},{k:'J'},{k:'K'},{k:'L'},{k:';'},{k:"'"},{k:'Enter',c:'ENTER',w:'w-enter'}],
+  [{k:'Shift',c:'LSHIFT',w:'w-lshift',m:1},{k:'Z'},{k:'X'},{k:'C'},{k:'V'},{k:'B'},{k:'N'},{k:'M'},{k:','},{k:'.'},{k:'/'},{k:'Shift',c:'RSHIFT',w:'w-rshift',m:1}],
+  [{k:'Ctrl',c:'LCTRL',w:'w-ctrl',m:1},{k:'Win',c:'LMETA',w:'w-fn',m:1},{k:'Alt',c:'LALT',w:'w-alt',m:1},{k:'',c:'SPACE',w:'w-space'},{k:'Alt',c:'RALT',w:'w-alt',m:1},{k:'Win',c:'RMETA',w:'w-fn',m:1},{k:'Ctrl',c:'RCTRL',w:'w-ctrl',m:1}]
+];
+
+const MODS = ['LCTRL','LSHIFT','LALT','LMETA','RCTRL','RSHIFT','RALT','RMETA'];
+let activeKeys = {};
+let eventLogEntries = [];
+
+function buildKeyboard() {
+  const kb = document.getElementById('keyboard');
+  kb.innerHTML = '';
+  KB_LAYOUT.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'kb-row';
+    row.forEach(key => {
+      const el = document.createElement('div');
+      const code = key.c || key.k;
+      el.className = 'kb-key' + (key.w ? ' ' + key.w : '');
+      el.textContent = key.k;
+      el.dataset.code = code;
+      if (key.m) el.dataset.mod = '1';
+      rowEl.appendChild(el);
+    });
+    kb.appendChild(rowEl);
+  });
+}
+
+function setKeyActive(code, active) {
+  const el = document.querySelector(`.kb-key[data-code="${code}"]`);
+  if (!el) return;
+  if (active) {
+    el.classList.add(el.dataset.mod ? 'mod-active' : 'active');
+    activeKeys[code] = true;
+  } else {
+    el.classList.remove('active','mod-active');
+    delete activeKeys[code];
+  }
+  const modEl = document.getElementById('mod-' + code);
+  if (modEl) {
+    if (active) modEl.classList.add('active');
+    else modEl.classList.remove('active');
+  }
+}
+
+function clearAllKeys() {
+  document.querySelectorAll('.kb-key.active,.kb-key.mod-active').forEach(el => {
+    el.classList.remove('active','mod-active');
+  });
+  activeKeys = {};
+  MODS.forEach(m => {
+    const el = document.getElementById('mod-' + m);
+    if (el) el.classList.remove('active');
+  });
+}
+
+function addLogEntry(evt) {
+  const log = document.getElementById('eventLog');
+  const cls = evt.down ? 'down' : 'up';
+  const arrow = evt.down ? '\u25BC' : '\u25B2';
+  const keyName = evt.key || evt.button || '?';
+  const mods = evt.modifiers && evt.modifiers.length ? ' [' + evt.modifiers.join('+') + ']' : '';
+  const entry = document.createElement('div');
+  entry.className = cls;
+  entry.textContent = arrow + ' ' + keyName + mods + (evt.down ? ' down' : ' up');
+  eventLogEntries.unshift(entry);
+  if (eventLogEntries.length > 100) eventLogEntries.pop();
+  log.innerHTML = '';
+  eventLogEntries.forEach(e => log.appendChild(e));
+}
+
+buildKeyboard();
+
+let ws;
+let reconnectDelay = 1000;
+let isRecording = false;
+let runningMacros = {};
+
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(proto + '//' + location.host + '/ws');
+
+  ws.onopen = () => {
+    reconnectDelay = 1000;
+    sendCmd('refresh');
+    sendCmd('macro_list');
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'status') updateUI(msg.status);
+    else if (msg.type === 'macro_list') updateMacroList(msg.macros);
+    else if (msg.type === 'macro_status') updateMacroStatus(msg.name, msg.running);
+    else if (msg.type === 'capture_event') handleCaptureEvent(msg.event);
+  };
+
+  ws.onclose = () => {
+    setTimeout(() => { reconnectDelay = Math.min(reconnectDelay * 2, 10000); connect(); }, reconnectDelay);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+function sendCmd(command, extra) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(Object.assign({command}, extra || {})));
+  }
+}
+
+function toggleKeyboard() { sendCmd('toggle_keyboard'); }
+function toggleMouse() { sendCmd('toggle_mouse'); }
+function toggleCapture() { sendCmd('toggle_capture'); }
+
+function handleCaptureEvent(evt) {
+  if (evt.type === 'keyevent') {
+    setKeyActive(evt.key, evt.down);
+    addLogEntry(evt);
+    if (!evt.down && MODS.indexOf(evt.key) === -1) {
+      setTimeout(() => { if (!activeKeys[evt.key]) return; }, 200);
+    }
+  } else if (evt.type === 'mousebutton') {
+    const label = evt.button === 'l' ? 'Left' : evt.button === 'r' ? 'Right' : 'Middle';
+    addLogEntry({key: label + ' click', down: evt.down});
+  }
+}
+
+function toggleRecord() {
+  if (isRecording) {
+    const name = document.getElementById('macroName').value.trim() || '';
+    sendCmd('macro_record_stop', {name: name});
+    isRecording = false;
+    document.getElementById('recordBtn').textContent = 'Record';
+    document.getElementById('recordBtn').className = 'btn btn-danger';
+    document.getElementById('macroName').disabled = false;
+    document.getElementById('macroRecordInfo').textContent = 'Start recording to capture keyboard/mouse events as a macro';
+  } else {
+    sendCmd('macro_record_start');
+    isRecording = true;
+    document.getElementById('recordBtn').textContent = 'Stop';
+    document.getElementById('recordBtn').className = 'btn btn-success';
+    document.getElementById('macroName').disabled = true;
+    document.getElementById('macroRecordInfo').textContent = 'Recording... press Stop to save';
+  }
+}
+
+function updateMacroList(macros) {
+  const el = document.getElementById('macroList');
+  if (!macros || macros.length === 0) {
+    el.innerHTML = '<div class="empty">No saved macros</div>';
+    return;
+  }
+  el.innerHTML = macros.map(m =>
+    '<div class="macro-item" id="macro-' + esc(m) + '">' +
+      '<span class="name">' + esc(m) + '</span>' +
+      '<button class="btn btn-primary btn-sm" id="run-' + esc(m) + '" onclick="runMacro(\'' + esc(m) + '\')">Run</button> ' +
+      '<button class="btn btn-danger btn-sm" onclick="deleteMacro(\'' + esc(m) + '\')">Delete</button>' +
+    '</div>'
+  ).join('');
+}
+
+function runMacro(name) { sendCmd('macro_run', {name: name}); }
+function deleteMacro(name) { sendCmd('macro_delete', {name: name}); }
+
+function updateMacroStatus(name, running) {
+  if (running) {
+    runningMacros[name] = true;
+  } else {
+    delete runningMacros[name];
+    sendCmd('macro_list');
+  }
+  const el = document.getElementById('run-' + name);
+  if (el) {
+    el.disabled = running;
+    el.textContent = running ? 'Running...' : 'Run';
+  }
+}
+
+function updateUI(s) {
+  document.getElementById('dongleDot').className = 'status-dot ' + (s.dongleConnected ? 'on' : 'off');
+  document.getElementById('daemonMode').textContent = s.daemonMode;
+  document.getElementById('keyboardToggle').checked = s.keyboardEnabled;
+  document.getElementById('mouseToggle').checked = s.mouseEnabled;
+  document.getElementById('captureToggle').checked = s.captureActive;
+  document.getElementById('recDot').className = 'rec-dot ' + (s.recordingMacro ? 'on' : '');
+
+  if (s.recordingMacro && !isRecording) {
+    isRecording = true;
+    document.getElementById('recordBtn').textContent = 'Stop';
+    document.getElementById('recordBtn').className = 'btn btn-success';
+    document.getElementById('macroName').disabled = true;
+    document.getElementById('macroRecordInfo').textContent = 'Recording... press Stop to save';
+  } else if (!s.recordingMacro && isRecording) {
+    isRecording = false;
+    document.getElementById('recordBtn').textContent = 'Record';
+    document.getElementById('recordBtn').className = 'btn btn-danger';
+    document.getElementById('macroName').disabled = false;
+    document.getElementById('macroRecordInfo').textContent = 'Start recording to capture keyboard/mouse events as a macro';
+  }
+
+  document.getElementById('currentDeviceInfo').innerHTML = s.currentDevice && s.currentDevice !== 'NONE'
+    ? '<div class="info-row"><span class="label">Connected to</span><span class="value">' + esc(s.currentDevice) + '</span></div>'
+    : '<div class="empty">No device connected</div>';
+
+  const dl = document.getElementById('deviceList');
+  if (s.deviceList && s.deviceList.length > 0) {
+    dl.innerHTML = s.deviceList.map(d =>
+      '<div class="device">' +
+        '<span class="name">' + esc(d.name) + '</span>' +
+        (d.connected ? '<span class="badge">connected</span>' : '') +
+        '<button class="btn btn-outline btn-sm" onclick="sendCmd(\'switch_to\',{name:\'' + esc(d.name) + '\'})">Connect</button>' +
+        ' <button class="btn btn-danger btn-sm" onclick="sendCmd(\'devremove\',{name:\'' + esc(d.name) + '\'})">Remove</button>' +
+      '</div>'
+    ).join('');
+  } else {
+    dl.innerHTML = '<div class="empty">No paired devices</div>';
+  }
+
+  document.getElementById('connMode').textContent = s.daemonMode;
+  document.getElementById('connDongle').textContent = s.dongleConnected ? 'Connected' : 'Disconnected';
+  document.getElementById('connDevice').textContent = s.currentDevice || 'None';
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x => x.style.display = 'none');
+    t.classList.add('active');
+    document.getElementById('tab-' + t.dataset.tab).style.display = 'block';
+    const wrap = document.getElementById('contentWrap');
+    wrap.classList.toggle('wide', t.dataset.tab === 'keyboard');
+    if (t.dataset.tab === 'macros') sendCmd('macro_list');
+  };
+});
+
+connect();
+</script>
+</body>
+</html>

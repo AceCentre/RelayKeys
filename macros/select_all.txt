@@ -1,0 +1,5 @@
+keypress:A,LMETA
+delay:100
+keypress:A,LMETA
+delay:100
+keypress:A,LMETA

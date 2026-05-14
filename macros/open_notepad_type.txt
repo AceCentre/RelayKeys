@@ -1,0 +1,8 @@
+keypress:H,LMETA
+delay:300
+type:notepad
+delay:300
+keypress:ENTER
+delay:1000
+type:Hello from RelayKeys!
+keypress:ENTER
