@@ -1,28 +1,45 @@
 # Contributing
 
-> Our small team truly appreciates every contribution made by our community: user stories, feature requests, bug reports, and especially pull requests!. If you have _any_ questions please reach out to our Core team at [AceCentre](https://acecentre.org.uk).
+> Our small team truly appreciates every contribution made by our community: user stories, feature requests, bug reports, and especially pull requests! If you have _any_ questions please reach out to our Core team at [AceCentre](https://acecentre.org.uk).
 
 ## User stories
 
-So you use RelayKeys? Like what we are doing? Got a real problem that needs fixing but don't understand all this code stuff? Please [get in touch](https://acecentre.org.uk/contact/). We will try and help - but please note; **this is very much a open source, and fundraised project**. If you can please consider donating the project
+So you use RelayKeys? Like what we are doing? Got a real problem that needs fixing but don't understand all this code stuff? Please [get in touch](https://acecentre.org.uk/contact/). We will try and help — but please note: **this is very much an open source, fundraised project**. If you can, please consider donating to the project.
 
 ## RelayKeys Repository
 
 ### [acecentre/relaykeys](https://github.com/acecentre/relaykeys)
 
-This is the home to the project. Please fork and make changes on this project going forward. A quick overview of the contents:
+The project is written in Go. A quick overview of the contents:
 
-* **arduino/** contains sketches to make the board work. A massive thanks to Adafruit as the nrf52840 is _their_ board with _their_ firmware and this code is largley _their_ example code. We have added mouse functionality
-* **docs/** The folder containing the docs (these docs that you are reading!). Its all made with gitbook&#x20;
-* **resources/** a dumping ground of resources/tools that may be useful in development. Of Note is [demoSerial.py](../../../resources/demoSerial.py) - a way of programming this without the board to hand on Linux/Mac. Also see [viewComPorts.py](../../../resources/viewComPorts.py) to debug your COM Ports
-* blehid.py - this is the module used in relaykeysclient and relaykeysd. If you want to view things like keycode conversion and the like - see here.
-* buildinstaller.py - this is a script that "builds" the pyinstaller binaries - and the NSIS setup.exe.
-* relaykeys-cli.py - the CLI programme
-* relaykeys.py - the original code we used to test this. Redundant largely now - but if you want to get your head around how all this works look here first
+- **cmd/relaykeys-daemon/** — daemon entry point + Windows service support (`kardianos/service`)
+- **cmd/relaykeys-cli/** — CLI client for AAC software (Grid 3, Communicator 5, etc.)
+- **cmd/relaykeys-tray/** — Windows system tray app (`getlantern/systray`)
+- **cmd/relaykeys-menubar/** — macOS menu bar app (Cocoa, requires CGo)
+- **internal/blehid/** — AT command protocol over serial + HID keycode map
+- **internal/capture/** — Event type and `IsModifier()` helper
+- **internal/config/** — INI config file loading
+- **internal/keymap/** — JSON keymap loading (US, UK, DE, FR, ES, IT)
+- **internal/macro/** — Macro save/load/record/replay
+- **internal/rpc/** — JSON-RPC server (port 5383) + client
+- **internal/serial/** — Hardware serial via `go.bug.st/serial`, auto-detect by VID/PID
+- **internal/simulator/** — Full firmware simulator for testing
+- **internal/webui/** — Embedded web UI (HTML/JS/CSS) + WebSocket hub
+- **keymaps/** — JSON keyboard layout files
+- **docs/** — Documentation (GitBook)
+- **archive/** — Old Python source (reference only)
+
+## Development Setup
+
+1. Install [Go 1.21+](https://go.dev/dl/)
+2. Clone the repo: `git clone https://github.com/acecentre/relaykeys.git`
+3. Build: `go build ./...`
+4. Test: `go test ./... -count=1`
+5. See [building-a-binary.md](building-a-binary.md) for full build instructions
 
 ## Simple Pull Requests
 
-Before we get into the full-blown "proper" way to do a pull request, let's quickly cover an easier method you can use for _small_ fixes. This way is especailly useful for fixing quick typos in the docs, but is not as safe for code changes since it bypasses validation and linting.
+Before we get into the full-blown "proper" way to do a pull request, let's quickly cover an easier method you can use for _small_ fixes. This way is especially useful for fixing quick typos in the docs, but is not as safe for code changes since it bypasses validation and linting.
 
 1. Sign in to GitHub
 2. Go to the file you want to edit (eg: [this page](https://github.com/acecentre/relaykeys/docs/blob/master/feature-requests.md))
@@ -42,7 +59,7 @@ To help you out in your Git(Hub) adventures, we've put together the (fairly stan
 
 ### Forking the repo
 
-Whether you're working on the API or the App, you will need to have your own copy of the codebase to work on. Head to the repo of the project you want to help out with and hit the Fork button. This will create a full copy of the whole project for you on your own account.
+Whether you're working on the daemon, CLI, or web UI, you will need to have your own copy of the codebase to work on. Head to the repo of the project you want to help out with and hit the Fork button. This will create a full copy of the whole project for you on your own account.
 
 To work on this copy, you can install the project locally according to the normal installation instructions, substituting the name `acecentre` with the name of your github account.
 
@@ -64,7 +81,7 @@ or
 git pull origin new-feature
 ```
 
-In this case, the word `origin` is refered to as a _remote_. It's basically nothing more than a name for the full git url you cloned the project from:
+In this case, the word `origin` is referred to as a _remote_. It's basically nothing more than a name for the full git url you cloned the project from:
 
 ```bash
 git push origin master
@@ -76,7 +93,7 @@ is equal to
 git push git@github.com:username/repo.git master
 ```
 
-A local git repo can have multiple remotes. While it's not very common to push your code to multiple repo's, it's very useful when working on open source projects. It allows you to add the upstream repo as another remote, making it possible to fetch the latest changes straight into your local project.
+A local git repo can have multiple remotes. While it's not very common to push your code to multiple repos, it's very useful when working on open source projects. It allows you to add the upstream repo as another remote, making it possible to fetch the latest changes straight into your local project.
 
 ```bash
 # Add 'upstream' to remotes
@@ -98,8 +115,6 @@ git rebase upstream/master
 
 If you haven't made any commits on the branch you're updating, git will update your branch without complaints. If you _have_ created commits in the meantime, git will step by step apply all the commits from _upstream_ and try to add in the commit you made in the meantime. It is very plausible that conflicts arise at this stage. When you've changed something that also changed on the upstream, git requires you to resolve the conflict yourself before being able to move on.
 
-::: danger Conflicts You should always favor changes on upstream over your local ones. :::
-
 ### Doing Work
 
 Whenever you begin working on a bugfix or new feature, make sure to create a new branch. This makes sure that your changes are organized and separated from the master branch, so you can submit and manage your pull requests for separate fixes/features more easily.
@@ -114,8 +129,6 @@ git branch newfeature
 # Switch to your new branch
 git checkout newfeature
 ```
-
-::: warning Up-to-date Make sure to update your master branch with the one from upstream, so you're certain you start with the latest version of the project! :::
 
 ### Submitting a Pull Request
 
@@ -132,13 +145,9 @@ git checkout newfeature
 git rebase master
 ```
 
-::: warning Make sure to check if your branch is up to date with the `master` branch of upstream. An outdated branch makes it near impossible for the maintainers of acecentre to check and review the pull request and will most likely result in a delayed merge. :::
-
-Once you've commited and pushed all the changes on your branch to your fork on GitHub, head over to GitHub, select your branch and hit the pull request button.
+Once you've committed and pushed all the changes on your branch to your fork on GitHub, head over to GitHub, select your branch and hit the pull request button.
 
 You can still push new commits to a pull request that already has been opened. This way, you can fix certain comments reviewers might have left.
-
-::: tip Please allow the maintainers of upstream to push commits to your fork by leaving the "Allow edits from maintainers" option turned on. This allows our Core Team to help out in your PR! :::
 
 ## Feature Requests
 
@@ -148,13 +157,13 @@ The main thing to be aware of when submitting a new acecentre feature request, i
 
 ### Browsing Existing Requests
 
-Before adding a new request, you should also first [search](https://github.com/acecentre/relaykeys/issues?q=is%3Aissue+is%3Aopen+sort%3Areactions-%2B1-desc) to see if it has already been submitted. All feature requests should include the `enhancement` label, so you can filter by that. And remember to also check _closed_ issues since your feature might have already been submitted in the past and either [rejected](contributing.md#Our-80/20-Rule) or already implemented.
+Before adding a new request, you should also first [search](https://github.com/acecentre/relaykeys/issues?q=is%3Aissue+is%3Aopen+sort%3Areactions-%2B1-desc) to see if it has already been submitted. All feature requests should include the `enhancement` label, so you can filter by that. And remember to also check _closed_ issues since your feature might have already been submitted in the past and either rejected or already implemented.
 
 Also, if you want to see the most highly requested features you can sort by `:+1:` (the thumbs-up emoji).
 
 ### Submitting a Request
 
-If your idea passes the 80/20 test and has not already been submitted, then we'd love to hear it! Submit a new issue using the Feature Request template and be sure to include the `enhancement` label. It's important to completely fill our the template with as much useful information as possible so that we can properly review your request. If you have screenshots, designs, code samples, or any other helpful assets be sure to include those too!
+If your idea passes the 80/20 test and has not already been submitted, then we'd love to hear it! Submit a new issue using the Feature Request template and be sure to include the `enhancement` label. It's important to completely fill out the template with as much useful information as possible so that we can properly review your request. If you have screenshots, designs, code samples, or any other helpful assets be sure to include those too!
 
 ### Voting on Requests
 

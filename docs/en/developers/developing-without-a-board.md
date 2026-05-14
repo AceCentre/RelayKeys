@@ -1,15 +1,40 @@
 # Developing without a board
 
-If you are developing the 'server' side of things and want to try out the code you can run this without any hardware by having a null serial terminal. To do this, in a terminal run:
+If you don't have an nRF52840 dongle connected, you can still develop and test RelayKeys.
 
-```
-python resources/demoSerial.py
+## Built-in simulator
+
+RelayKeys includes a full firmware simulator (`internal/simulator`) that responds to AT commands just like the real hardware. The test suite uses this simulator to verify RPC commands end-to-end.
+
+Run the tests:
+
+```bash
+go test ./... -count=1
 ```
 
-then in another terminal run
+## Running without serial
 
-```
-python relayekeysd.py --noserial
+Use the `--noserial` flag to start the daemon without attempting a serial connection:
+
+```bash
+relaykeys-daemon.exe --noserial --debug
 ```
 
-NB: Only tested on MacOS but should work on any posix system. For Windows simply give a COM port that doesn't exist.
+The web UI (`http://127.0.0.1:5383/ui/`) and JSON-RPC server will still work — they just won't be able to send commands to a BLE device.
+
+You can also point the daemon at a non-existent COM port:
+
+```bash
+relaykeys-daemon.exe --dev=COM99 --debug
+```
+
+## Testing with the CLI
+
+The CLI client works against the daemon's RPC server regardless of whether hardware is connected:
+
+```bash
+relaykeys-cli.exe daemon
+relaykeys-cli.exe devlist
+```
+
+Commands that require the dongle (type, keypress, mouse) will return errors when no hardware is connected, but the RPC communication path is still exercised.

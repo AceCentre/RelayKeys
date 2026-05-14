@@ -1,47 +1,73 @@
 # Server (Daemon) reference
 
-The _server_ (_RPC server_ or _daemon_ as we sometimes refer to it) is the component that opens up a connection to the COM port and sends the correct AT command to the board. You can control it with some arguments
+The _daemon_ (`relaykeys-daemon`) is the background service that manages the serial connection to the nRF52840 dongle and exposes a JSON-RPC server (port 5383) and a web UI for control and testing.
 
-When you use our installer it installs this as a service. If you run the code without installing (or you turn the service off for some reason) you can run it as `relaykeysd.py` or `relaykeysd.exe`&#x20;
+When installed via the NSIS installer, it runs as a Windows service. You can also run it directly:
 
-## --noserial
+```bash
+relaykeys-daemon.exe --debug
+```
 
-Run the daemon and dont try and connect to hardware. If you are on linux/MacOS you can fake a serial port [following these tips](../installation/supported-boards/#developing-without-a-board). If you are on Windows just fix a COM port in the config file or use the `--dev` option - just choose a non-existent COM port
+## Command-line flags
 
-## --dev
+### --config=path
 
-Force the daemon to use a COM port rather than auto detecting one.
+Path to the configuration file. See [relaykeys-cfg.md](relaykeys-cfg.md) for config file details.
 
-e.g.
+Search order when not specified: `~/.relaykeys.cfg` → `<exe_dir>/relaykeys.cfg` → `./relaykeys.cfg` → `%APPDATA%\RelayKeys\relaykeys.cfg`
 
-`python relaykeysd.py --noserial --dev=COM7`
+### --dev=port
 
-For more info see [here](../../../developers/relaykeys-cfg.html#dev-defining-your-port-of-the-relaykeys-hardware)
+Force a specific serial port instead of auto-detecting.
 
-## --debug
+```bash
+relaykeys-daemon.exe --dev=COM5
+```
 
-Sets a more verbose debugging output on the console.
+### --baud=rate
 
-## --pidfile=file
+Set the serial baud rate. Default: 115200.
 
-Give a pidfile for the daemon to crate - or link to one.
+### --noserial
 
-**Default: pidfile**
+Run without connecting to serial hardware. Useful for development or testing the web UI without a dongle.
 
-## --logfile=logfile
+### --debug
 
-File to use as a log file for the debugging messages.
+Enable verbose debug logging to the console.
 
-**Default: logfile**
+### --list-ports
 
-## --config=configfile
+List all detected serial ports and exit. Useful for debugging which COM port the dongle is on.
 
-File to use as a config file. For more info see [here](relaykeys-cfg.md)
+### --version
 
-**Default: relaykeys.cfg**
+Print the version and exit.
 
-## --**ble\_mode=True|False**
+### --service=action
 
-Use the daemon in wireless (ble\_mode) or wired mode.
+Manage the Windows service:
 
-**Default: false**
+```bash
+relaykeys-daemon.exe --service install
+relaykeys-daemon.exe --service start
+relaykeys-daemon.exe --service stop
+relaykeys-daemon.exe --service uninstall
+```
+
+## Architecture
+
+The daemon starts its HTTP server immediately and attempts serial connection in a background goroutine. If the dongle is not connected, the daemon keeps retrying every 3 seconds. The RPC server and web UI are available even without hardware.
+
+Key components:
+
+- **Serial auto-detect**: Scans for Adafruit nRF52840 boards (VID `239A`, PIDs `8029`, `810B`, `8051`)
+- **JSON-RPC server**: Port 5383, used by the CLI and AAC software
+- **Web UI**: Embedded HTML/JS/CSS served at `http://127.0.0.1:5383/ui/`
+- **WebSocket hub**: Real-time status updates to the web UI
+
+## Related
+
+- [Config file reference](relaykeys-cfg.md)
+- [Architecture overview](architecture.md)
+- [Developing without a board](developing-without-a-board.md)
