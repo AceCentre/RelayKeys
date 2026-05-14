@@ -65,9 +65,11 @@ Section ""
 
     SetShellVarContext all
     CreateDirectory "$SMPROGRAMS\Ace Centre\RelayKeys"
-    CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys Web UI.lnk" "http://127.0.0.1:5383/ui/" "" "" 0
+    CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys Web UI.lnk" "http://127.0.0.1:5383/ui/" "$InstDir\assets\icons\logo.ico" "$InstDir\assets\icons\logo.ico" 0
     CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys CLI.lnk" "cmd.exe" '/k "$InstDir\relaykeys-cli.exe"' "" 0
+    CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Restart Service.lnk" "net.exe" 'stop RelayKeys && net start RelayKeys' "" 0
     CreateShortCut "$SMPROGRAMS\Ace Centre\RelayKeys\Uninstall.lnk" "$InstDir\uninstall.exe" "" "$InstDir\uninstall.exe" 0
+    CreateShortcut "$DESKTOP\RelayKeys.lnk" "http://127.0.0.1:5383/ui/" "$InstDir\assets\icons\logo.ico" "$InstDir\assets\icons\logo.ico" 0
 
     DetailPrint "Installing RelayKeys service..."
     SimpleSC::InstallService "RelayKeys" "RelayKeys Daemon" 16 2 '"$InstDir\relaykeys-daemon.exe"'
@@ -112,9 +114,11 @@ Section "Uninstall"
     SetShellVarContext all
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys Web UI.lnk"
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\RelayKeys CLI.lnk"
+    Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Restart Service.lnk"
     Delete "$SMPROGRAMS\Ace Centre\RelayKeys\Uninstall.lnk"
     RMDir "$SMPROGRAMS\Ace Centre\RelayKeys"
     RMDir "$SMPROGRAMS\Ace Centre"
+    Delete "$DESKTOP\RelayKeys.lnk"
 
     Delete "$InstDir\uninstall.exe"
     RMDir /r "$InstDIR"

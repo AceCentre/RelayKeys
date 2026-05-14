@@ -3,41 +3,47 @@ on:
   push:
     branches:
       - main
+      - go
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+    - run: go vet ./...
+    - run: go test ./... -count=1
+
   build:
     runs-on: windows-latest
+    needs: lint
     steps:
-    - name: Install SCService Plugin
-      run:  |
-        Invoke-Webrequest -Uri 'https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip' -OutFile ss.zip
-        Expand-Archive ss.zip -DestinationPath .\ss
-        move ss\SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\"
     - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-go@v5
       with:
-        python-version: '3.12'
-    - name: Install UV
-      uses: astral-sh/setup-uv@v4
-      with:
-        version: "latest"
-    - name: Install dependencies and build
-      run:  |
-        uv sync --group build
-        uv run scripts/build.py
-    #- name: Dump cert
-    #  if: github.repository == 'acecentre/relaykeys'
-    #  run:  |
-    #    [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String( "${{ secrets.CERTP12B64 }}" )) > win-cert.p12
-    #    Get-Content -Tail 2 win-cert.p12
-    #- name: Sign Windows Binary
-    #  if: github.repository == 'acecentre/relaykeys'
-    #  run:  |
-    #    & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe' sign /a /td sha256 /fd sha256 /v /f "win-cert.p12" /p "${{ secrets.CERTPASSWORD }}" /v "RelayKeys setup.exe"
-    - name: Upload exe
+        go-version: '1.23'
+
+    - name: Install NSIS
+      run: |
+        choco install nsis -y
+        Invoke-WebRequest -Uri 'https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip' -OutFile ss.zip
+        Expand-Archive ss.zip -DestinationPath ss
+        Copy-Item ss\SimpleSC.dll "C:\Program Files (x86)\NSIS\Plugins\x86-unicode\"
+
+    - name: Build
+      run: powershell -ExecutionPolicy Bypass -File build-go.ps1
+
+    - name: Upload installer
       uses: actions/upload-artifact@v4
       with:
-        name: 'Windows Release'
-        path: 'RelayKeys setup.exe'
+        name: 'Windows Installer'
+        path: 'RelayKeys-*.exe'
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@v4
+      with:
+        name: 'Windows Binaries'
+        path: 'build-go/*.exe'
