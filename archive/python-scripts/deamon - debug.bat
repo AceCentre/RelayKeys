@@ -1,1 +1,0 @@
-python -Xfrozen_modules=off relaykeysd.py --debug --noserial
