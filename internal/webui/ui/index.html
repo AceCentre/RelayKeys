@@ -86,6 +86,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .capture-hint{font-size:13px;color:#888;margin-top:8px}
 .capture-area{border:2px dashed #ccc;border-radius:8px;padding:30px;text-align:center;margin-top:12px;cursor:pointer;transition:border-color .2s,background .2s}
 .capture-area:focus,.capture-area.listening{border-color:#3498db;background:#f0f8ff;outline:none}
+.mouse-pad{position:relative;width:100%;height:220px;background:#fafafa;border:2px solid #ddd;border-radius:8px;overflow:hidden;cursor:crosshair;user-select:none}
+.mouse-pad.active{border-color:#3498db}
+.mouse-cursor{position:absolute;width:8px;height:8px;background:#e74c3c;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);transition:left .05s,top .05s}
+.mouse-coords{position:absolute;top:4px;right:8px;font-size:11px;color:#999;font-family:monospace}
+.mouse-pad-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#ccc;font-size:14px;pointer-events:none}
+.mouse-controls{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:8px}
+.mouse-sensitivity{font-size:13px;color:#666;display:flex;align-items:center;gap:4px}
+.mouse-sensitivity input{width:80px}
+.mouse-buttons-row{display:flex;gap:4px}
+.mouse-scroll-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:#666}
+.mouse-scroll-row input{flex:1}
+.mouse-status{font-size:12px;color:#888;margin-top:4px;min-height:16px}
 </style>
 </head>
 <body>
@@ -120,6 +132,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
         <span class="kb-mod-indicator" id="mod-RSHIFT">RShift</span>
         <span class="kb-mod-indicator" id="mod-RALT">RAlt</span>
         <span class="kb-mod-indicator" id="mod-RMETA">RWin</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Mouse Capture</h2>
+      <p class="capture-hint">Click and drag in the pad below. Mouse movements and clicks will be sent to the connected BLE device. Use the scroll slider for vertical scroll.</p>
+      <div class="mouse-pad" id="mousePad" tabindex="0">
+        <div class="mouse-cursor" id="mouseCursor"></div>
+        <div class="mouse-coords" id="mouseCoords">0, 0</div>
+        <div class="mouse-pad-hint">Click &amp; drag here</div>
+      </div>
+      <div class="mouse-controls">
+        <label class="mouse-sensitivity">
+          Sensitivity: <span id="sensVal">3</span>x
+          <input type="range" id="mouseSens" min="1" max="10" value="3">
+        </label>
+        <div class="mouse-buttons-row">
+          <button class="btn btn-outline btn-sm" onmousedown="mouseBtn('left','hold')" onmouseup="mouseBtn('left','release')" onmouseleave="mouseBtn('left','release')">Left Click</button>
+          <button class="btn btn-outline btn-sm" onmousedown="mouseBtn('right','hold')" onmouseup="mouseBtn('right','release')" onmouseleave="mouseBtn('right','release')">Right Click</button>
+          <button class="btn btn-outline btn-sm" onmousedown="mouseBtn('middle','hold')" onmouseup="mouseBtn('middle','release')" onmouseleave="mouseBtn('middle','release')">Middle Click</button>
+        </div>
+      </div>
+      <div class="mouse-scroll-row">
+        <span>Scroll:</span>
+        <input type="range" id="scrollSlider" min="-10" max="10" value="0" step="1">
+        <span id="scrollVal">0</span>
       </div>
     </div>
     <div class="card">
@@ -336,6 +373,116 @@ captureArea.addEventListener('keyup', (e) => {
   const mods = getActiveMods();
   sendCmd('keyevent', {key: hidKey, down: false, modifiers: mods});
   addLogEntry({key: hidKey, down: false, modifiers: mods});
+});
+
+// --- Mouse capture ---
+const mousePad = document.getElementById('mousePad');
+const mouseCursor = document.getElementById('mouseCursor');
+const mouseCoords = document.getElementById('mouseCoords');
+const mouseSens = document.getElementById('mouseSens');
+const sensVal = document.getElementById('sensVal');
+const scrollSlider = document.getElementById('scrollSlider');
+const scrollVal = document.getElementById('scrollVal');
+let mouseDown = false;
+let mouseBtnType = '';
+let mouseLastX = 0;
+let mouseLastY = 0;
+let mouseThrottle = false;
+
+mouseSens.addEventListener('input', () => { sensVal.textContent = mouseSens.value; });
+
+scrollSlider.addEventListener('input', () => {
+  const v = parseInt(scrollSlider.value);
+  scrollVal.textContent = v;
+  if (v !== 0) {
+    sendCmd('mousemove', {dx: 0, dy: 0, wy: v, wx: 0});
+    addLogEntry({key: 'scroll ' + (v > 0 ? 'down' : 'up'), down: true, modifiers: []});
+  }
+  setTimeout(() => { scrollSlider.value = 0; scrollVal.textContent = '0'; }, 150);
+});
+
+function getSensitivity() { return parseInt(mouseSens.value) || 3; }
+
+function mouseBtn(btn, behavior) {
+  sendCmd('mousebutton', {button: btn, behavior: behavior});
+  addLogEntry({key: btn + ' ' + behavior, down: behavior === 'hold', modifiers: []});
+}
+
+mousePad.addEventListener('mouseenter', (e) => {
+  const r = mousePad.getBoundingClientRect();
+  mouseLastX = e.clientX - r.left;
+  mouseLastY = e.clientY - r.top;
+});
+
+mousePad.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  mouseDown = true;
+  mouseBtnType = e.button === 0 ? 'left' : e.button === 2 ? 'right' : 'middle';
+  mousePad.classList.add('active');
+  sendCmd('mousebutton', {button: mouseBtnType, behavior: 'hold'});
+  addLogEntry({key: mouseBtnType + ' hold', down: true, modifiers: []});
+});
+
+mousePad.addEventListener('mousemove', (e) => {
+  const r = mousePad.getBoundingClientRect();
+  const x = e.clientX - r.left;
+  const y = e.clientY - r.top;
+
+  const pctX = (x / r.width * 100).toFixed(1);
+  const pctY = (y / r.height * 100).toFixed(1);
+  mouseCursor.style.left = pctX + '%';
+  mouseCursor.style.top = pctY + '%';
+  mouseCoords.textContent = Math.round(x) + ', ' + Math.round(y);
+
+  if (mouseThrottle) return;
+  const dx = x - mouseLastX;
+  const dy = y - mouseLastY;
+  mouseLastX = x;
+  mouseLastY = y;
+
+  if (dx === 0 && dy === 0) return;
+
+  const sens = getSensitivity();
+  const sdx = Math.round(dx * sens);
+  const sdy = Math.round(dy * sens);
+  if (sdx === 0 && sdy === 0) return;
+
+  sendCmd('mousemove', {dx: sdx, dy: sdy, wy: 0, wx: 0});
+
+  if (mouseDown) {
+    addLogEntry({key: mouseBtnType + '-drag ' + sdx + ',' + sdy, down: true, modifiers: []});
+  }
+
+  mouseThrottle = true;
+  setTimeout(() => { mouseThrottle = false; }, 30);
+});
+
+mousePad.addEventListener('mouseup', (e) => {
+  if (!mouseDown) return;
+  sendCmd('mousebutton', {button: mouseBtnType, behavior: 'release'});
+  addLogEntry({key: mouseBtnType + ' release', down: false, modifiers: []});
+  mouseDown = false;
+  mouseBtnType = '';
+  mousePad.classList.remove('active');
+});
+
+mousePad.addEventListener('mouseleave', (e) => {
+  if (mouseDown) {
+    sendCmd('mousebutton', {button: mouseBtnType, behavior: 'release'});
+    addLogEntry({key: mouseBtnType + ' release (leave)', down: false, modifiers: []});
+    mouseDown = false;
+    mouseBtnType = '';
+    mousePad.classList.remove('active');
+  }
+});
+
+mousePad.addEventListener('contextmenu', (e) => e.preventDefault());
+
+mousePad.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = Math.sign(e.deltaY);
+  sendCmd('mousemove', {dx: 0, dy: 0, wy: delta, wx: 0});
+  addLogEntry({key: 'scroll ' + (delta > 0 ? 'down' : 'up'), down: true, modifiers: []});
 });
 
 buildKeyboard();

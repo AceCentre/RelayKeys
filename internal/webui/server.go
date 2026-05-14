@@ -228,6 +228,34 @@ func (s *Server) HandleWS(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+		case "mousemove":
+			dx, _ := req["dx"].(float64)
+			dy, _ := req["dy"].(float64)
+			wy, _ := req["wy"].(float64)
+			wx, _ := req["wx"].(float64)
+			if s.port != nil {
+				blehid.SendMouseMove(s.port, int(dx), int(dy), int(wy), int(wx))
+			}
+			if s.macros != nil && s.macros.IsRecording() {
+				parts := []string{strconv.Itoa(int(dx)), strconv.Itoa(int(dy))}
+				if int(wy) != 0 || int(wx) != 0 {
+					parts = append(parts, strconv.Itoa(int(wy)), strconv.Itoa(int(wx)))
+				}
+				s.macros.RecordCommand("mousemove:" + strings.Join(parts, ","))
+			}
+		case "mousebutton":
+			btn, _ := req["button"].(string)
+			beh, _ := req["behavior"].(string)
+			if s.port != nil {
+				blehid.SendMouseButton(s.port, btn, beh)
+			}
+			if s.macros != nil && s.macros.IsRecording() {
+				cmd := "mousebutton:" + btn
+				if beh != "" {
+					cmd += "," + beh
+				}
+				s.macros.RecordCommand(cmd)
+			}
 		case "macro_list":
 			s.sendMacroList(conn)
 		case "macro_run":
