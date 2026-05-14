@@ -81,7 +81,7 @@ jobs:
         cp -r build-go/RelayKeys.app "$STAGING/"
         cp build-go/relaykeys-daemon build-go/relaykeys-cli "$STAGING/"
         cp -r keymaps macros "$STAGING/"
-        cp relaykeys.cfg "$STAGING/"
+        cp examples/relaykeys-example.cfg "$STAGING/"
         cp macos/com.acecentre.relaykeys.plist "$STAGING/"
         zip -r "RelayKeys-${VERSION}-macOS.zip" "$STAGING"
         rm -rf "$STAGING"
