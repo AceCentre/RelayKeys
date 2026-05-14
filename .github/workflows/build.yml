@@ -121,7 +121,9 @@ jobs:
       run: cp arduino/common/relaykeys_common.h arduino/arduino_nRF52840/
 
     - name: Download uf2conv.py
-      run: curl -fsSL -o uf2conv.py https://raw.githubusercontent.com/microsoft/uf2/master/utils/uf2conv.py
+      run: |
+        curl -fsSL -o uf2conv.py https://raw.githubusercontent.com/microsoft/uf2/master/utils/uf2conv.py
+        curl -fsSL -o uf2families.json https://raw.githubusercontent.com/microsoft/uf2/master/utils/uf2families.json
 
     - name: Build all firmware variants
       run: bash build-firmware.sh
