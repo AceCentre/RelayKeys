@@ -26,9 +26,6 @@ type Status struct {
 	CurrentDevice    string       `json:"currentDevice"`
 	DeviceList       []DeviceInfo `json:"deviceList"`
 	DaemonMode       string       `json:"daemonMode"`
-	CaptureActive    bool         `json:"captureActive"`
-	KeyboardEnabled  bool         `json:"keyboardEnabled"`
-	MouseEnabled     bool         `json:"mouseEnabled"`
 	RecordingMacro   bool         `json:"recordingMacro"`
 	MacroList        []string     `json:"macroList"`
 }
@@ -38,7 +35,6 @@ type commandFunc func(string) string
 type Server struct {
 	port       blehid.Port
 	processBle commandFunc
-	cap        *capture.Capture
 	macros     *macro.Manager
 	keys       [8]byte
 	hub        *wsHub
@@ -86,16 +82,18 @@ func New(port blehid.Port, processBle func(string) string) *Server {
 		processBle: processBle,
 		hub:        newHub(),
 		status: Status{
-			DaemonMode:      "Hardware serial",
-			KeyboardEnabled: true,
-			MouseEnabled:    false,
+			DaemonMode: "Hardware serial",
 		},
 		upgrader: websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }},
 	}
 }
 
-func (s *Server) SetCapture(c *capture.Capture) {
-	s.cap = c
+func (s *Server) SetPort(p blehid.Port, processBle func(string) string) {
+	s.port = p
+	s.processBle = processBle
+	s.UpdateStatus(func(st *Status) {
+		st.DongleConnected = p != nil
+	})
 }
 
 func (s *Server) SetMacros(m *macro.Manager) {
@@ -201,39 +199,35 @@ func (s *Server) HandleWS(w http.ResponseWriter, r *http.Request) {
 		case "devreset":
 			s.processBle("devreset")
 			s.refreshDevices()
-		case "toggle_keyboard":
-			s.UpdateStatus(func(st *Status) {
-				st.KeyboardEnabled = !st.KeyboardEnabled
-				if s.cap != nil {
-					s.cap.SetKeyboardEnabled(st.KeyboardEnabled)
-				}
-			})
-		case "toggle_mouse":
-			s.UpdateStatus(func(st *Status) {
-				st.MouseEnabled = !st.MouseEnabled
-				if s.cap != nil {
-					s.cap.SetMouseEnabled(st.MouseEnabled)
-				}
-			})
-		case "toggle_capture":
-			s.UpdateStatus(func(st *Status) {
-				st.CaptureActive = !st.CaptureActive
-			})
-			if s.cap != nil {
-				st := s.GetStatus()
-				if st.CaptureActive {
-					if err := s.cap.Start(); err != nil {
-						log.Printf("[WebUI] Capture start failed: %v", err)
-						s.UpdateStatus(func(st *Status) {
-							st.CaptureActive = false
-						})
-					}
-				} else {
-					s.cap.Stop()
-				}
-			}
 		case "refresh":
 			s.refreshDevices()
+		case "keyevent":
+			key, _ := req["key"].(string)
+			down, _ := req["down"].(bool)
+			var mods []string
+			if raw, ok := req["modifiers"].([]interface{}); ok {
+				for _, m := range raw {
+					if s, ok := m.(string); ok {
+						mods = append(mods, s)
+					}
+				}
+			}
+			if key != "" {
+				if down {
+					blehid.SendKeyboardCode(s.port, key, mods, true, &s.keys)
+				} else {
+					blehid.SendKeyboardCode(s.port, key, mods, false, &s.keys)
+				}
+				if s.macros != nil && s.macros.IsRecording() {
+					if down && !capture.IsModifier(key) {
+						modsStr := ""
+						if len(mods) > 0 {
+							modsStr = "," + strings.Join(mods, ",")
+						}
+						s.macros.RecordCommand(fmt.Sprintf("keypress:%s%s", key, modsStr))
+					}
+				}
+			}
 		case "macro_list":
 			s.sendMacroList(conn)
 		case "macro_run":
@@ -452,74 +446,6 @@ func charToKey(ch rune) (string, []string) {
 	return "", nil
 }
 
-func (s *Server) HandleCaptureEvent(e capture.Event) {
-	if s.macros != nil && s.macros.IsRecording() {
-		s.recordCaptureEvent(e)
-	}
-
-	if e.Type == "keyevent" || e.Type == "mousebutton" {
-		data, _ := json.Marshal(map[string]interface{}{
-			"type": "capture_event",
-			"event": map[string]interface{}{
-				"type":      e.Type,
-				"key":       e.Key,
-				"modifiers": e.Modifiers,
-				"down":      e.Down,
-				"button":    e.Button,
-			},
-		})
-		s.hub.broadcast(data)
-	}
-
-	switch e.Type {
-	case "keyevent":
-		if err := blehid.SendKeyboardCode(s.port, e.Key, e.Modifiers, e.Down, &s.keys); err != nil {
-			log.Printf("[Capture] keyevent error: %v", err)
-		}
-	case "mousemove":
-		if err := blehid.SendMouseMove(s.port, e.DX, e.DY, 0, 0); err != nil {
-			log.Printf("[Capture] mousemove error: %v", err)
-		}
-	case "mousebutton":
-		if err := blehid.SendMouseButton(s.port, e.Button, ""); err != nil {
-			log.Printf("[Capture] mousebutton error: %v", err)
-		}
-	case "mousescroll":
-		if err := blehid.SendMouseMove(s.port, 0, 0, e.WheelY, e.WheelX); err != nil {
-			log.Printf("[Capture] scroll error: %v", err)
-		}
-	}
-}
-
-func (s *Server) recordCaptureEvent(e capture.Event) {
-	switch e.Type {
-	case "keyevent":
-		if !e.Down {
-			return
-		}
-		if capture.IsModifier(e.Key) {
-			return
-		}
-		mods := ""
-		if len(e.Modifiers) > 0 {
-			mods = "," + strings.Join(e.Modifiers, ",")
-		}
-		s.macros.RecordCommand(fmt.Sprintf("keypress:%s%s", e.Key, mods))
-	case "mousemove":
-		s.macros.RecordCommand(fmt.Sprintf("mousemove:%d,%d", e.DX, e.DY))
-	case "mousebutton":
-		beh := ""
-		if e.Down {
-			beh = ",down"
-		} else {
-			beh = ",up"
-		}
-		s.macros.RecordCommand(fmt.Sprintf("mousebutton:%s%s", e.Button, beh))
-	case "mousescroll":
-		s.macros.RecordCommand(fmt.Sprintf("mousemove:0,0,%d,%d", e.WheelY, e.WheelX))
-	}
-}
-
 func (s *Server) RefreshDevices() {
 	s.refreshDevices()
 }
@@ -532,37 +458,50 @@ func (s *Server) refreshDevices() {
 	name, _ := blehid.GetDeviceName(s.port)
 	list, _ := blehid.GetDeviceList(s.port)
 
+	currentDevice := strings.TrimSpace(name)
+	if currentDevice == "NONE" || currentDevice == "" {
+		currentDevice = ""
+	}
+
 	devices := make([]DeviceInfo, 0)
 	for _, d := range list {
 		d = strings.TrimSpace(d)
 		if d == "" || d == "OK" || d == "SUCCESS" {
 			continue
 		}
+		cleanName := d
+		if idx := strings.Index(d, ":"); idx >= 0 {
+			cleanName = strings.TrimSpace(d[idx+1:])
+		}
+		if cleanName == "" {
+			continue
+		}
 		connected := strings.Contains(d, "[connected]")
-		cleanName := strings.Split(d, " [")[0]
 		devices = append(devices, DeviceInfo{
 			Name:      cleanName,
-			Connected: connected,
+			Connected: connected || cleanName == currentDevice,
 		})
 	}
 
-	currentDevice := strings.TrimSpace(name)
-	dongleConnected := true
-	if currentDevice == "" || currentDevice == "NONE" {
-		currentDevice = ""
-		dongleConnected = false
-	}
-
-	if currentDevice != "" && len(devices) == 0 {
-		devices = append(devices, DeviceInfo{
-			Name:      currentDevice,
-			Connected: true,
-		})
+	if currentDevice != "" {
+		found := false
+		for i := range devices {
+			if devices[i].Name == currentDevice {
+				devices[i].Connected = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			devices = append(devices, DeviceInfo{
+				Name:      currentDevice,
+				Connected: true,
+			})
+		}
 	}
 
 	s.UpdateStatus(func(st *Status) {
 		st.CurrentDevice = currentDevice
 		st.DeviceList = devices
-		st.DongleConnected = dongleConnected
 	})
 }

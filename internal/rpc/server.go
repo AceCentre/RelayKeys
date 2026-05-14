@@ -66,6 +66,12 @@ func (s *Server) Port() blehid.Port {
 	return s.port
 }
 
+func (s *Server) SetPort(p blehid.Port) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.port = p
+}
+
 func (s *Server) ProcessBleCmd(cmd string) string {
 	return s.processBleCmd(cmd)
 }

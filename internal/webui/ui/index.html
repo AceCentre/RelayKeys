@@ -83,6 +83,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .kb-event-log div{padding:1px 0}
 .kb-event-log .down{color:#27ae60}
 .kb-event-log .up{color:#999}
+.capture-hint{font-size:13px;color:#888;margin-top:8px}
+.capture-area{border:2px dashed #ccc;border-radius:8px;padding:30px;text-align:center;margin-top:12px;cursor:pointer;transition:border-color .2s,background .2s}
+.capture-area:focus,.capture-area.listening{border-color:#3498db;background:#f0f8ff;outline:none}
 </style>
 </head>
 <body>
@@ -95,7 +98,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 
 <div class="tabs">
   <div class="tab active" data-tab="capture">Capture</div>
-  <div class="tab" data-tab="keyboard">Keyboard</div>
   <div class="tab" data-tab="devices">Devices</div>
   <div class="tab" data-tab="macros">Macros</div>
   <div class="tab" data-tab="connection">Connection</div>
@@ -105,44 +107,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
   <!-- Capture Tab -->
   <div id="tab-capture" class="tab-content">
     <div class="card">
-      <h2>Input Capture</h2>
-      <div class="toggle-row">
-        <span class="toggle-label">Keyboard capture</span>
-        <label class="toggle">
-          <input type="checkbox" id="keyboardToggle" onchange="toggleKeyboard()">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="toggle-row">
-        <span class="toggle-label">Mouse capture</span>
-        <label class="toggle">
-          <input type="checkbox" id="mouseToggle" onchange="toggleMouse()">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="toggle-row">
-        <span class="toggle-label">Active capture session</span>
-        <label class="toggle">
-          <input type="checkbox" id="captureToggle" onchange="toggleCapture()">
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Current Device</h2>
-      <div id="currentDeviceInfo" class="empty">No device connected</div>
-      <div class="actions">
-        <button class="btn btn-primary" onclick="sendCmd('switch')">Switch Device</button>
-        <button class="btn btn-outline" onclick="sendCmd('refresh')">Refresh</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Keyboard Tab -->
-  <div id="tab-keyboard" class="tab-content" style="display:none">
-    <div class="card">
-      <h2>Keyboard State</h2>
-      <div class="kb" id="keyboard"></div>
+      <h2>Keyboard Capture</h2>
+      <p class="capture-hint">Click the area below and type on your keyboard. Keys will be sent to the connected BLE device and shown on the visual keyboard.</p>
+      <div class="capture-area" id="captureArea" tabindex="0">Click here to start capturing keystrokes</div>
+      <div class="kb" id="keyboard" style="margin-top:16px"></div>
       <div class="kb-mods">
         <span class="kb-mod-indicator" id="mod-LCTRL">Ctrl</span>
         <span class="kb-mod-indicator" id="mod-LSHIFT">Shift</span>
@@ -156,7 +124,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
     </div>
     <div class="card">
       <h2>Event Log</h2>
-      <div class="kb-event-log" id="eventLog"><div style="color:#999">Enable capture to see events here</div></div>
+      <div class="kb-event-log" id="eventLog"><div style="color:#999">Click the capture area and type to see events</div></div>
+    </div>
+    <div class="card">
+      <h2>Current Device</h2>
+      <div id="currentDeviceInfo" class="empty">No device connected</div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="sendCmd('switch')">Switch Device</button>
+        <button class="btn btn-outline" onclick="sendCmd('refresh')">Refresh</button>
+      </div>
     </div>
   </div>
 
@@ -177,7 +153,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
   <div id="tab-macros" class="tab-content" style="display:none">
     <div class="card">
       <h2>Record Macro</h2>
-      <div id="macroRecordInfo" style="font-size:14px;color:#888;margin-bottom:8px">Start recording to capture keyboard/mouse events as a macro</div>
+      <div id="macroRecordInfo" style="font-size:14px;color:#888;margin-bottom:8px">Start recording to capture keyboard events as a macro</div>
       <div class="input-row">
         <input type="text" id="macroName" placeholder="Macro name">
         <button class="btn btn-danger" id="recordBtn" onclick="toggleRecord()">Record</button>
@@ -203,16 +179,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 <script>
 const KB_LAYOUT = [
   [{k:'ESC',c:'ESCAPE'},{k:'F1'},{k:'F2'},{k:'F3'},{k:'F4'},{k:'F5'},{k:'F6'},{k:'F7'},{k:'F8'},{k:'F9'},{k:'F10'},{k:'F11'},{k:'F12'}],
-  [{k:'`'},{k:'1'},{k:'2'},{k:'3'},{k:'4'},{k:'5'},{k:'6'},{k:'7'},{k:'8'},{k:'9'},{k:'0'},{k:'-'},{k:'='},{k:'Bksp',c:'BACKSPACE',w:'w-backspace'}],
-  [{k:'Tab',c:'TAB',w:'w-tab'},{k:'Q'},{k:'W'},{k:'E'},{k:'R'},{k:'T'},{k:'Y'},{k:'U'},{k:'I'},{k:'O'},{k:'P'},{k:'['},{k:']'},{k:'\\',w:'w-backslash'}],
-  [{k:'Caps',c:'CAPSLOCK',w:'w-caps'},{k:'A'},{k:'S'},{k:'D'},{k:'F'},{k:'G'},{k:'H'},{k:'J'},{k:'K'},{k:'L'},{k:';'},{k:"'"},{k:'Enter',c:'ENTER',w:'w-enter'}],
-  [{k:'Shift',c:'LSHIFT',w:'w-lshift',m:1},{k:'Z'},{k:'X'},{k:'C'},{k:'V'},{k:'B'},{k:'N'},{k:'M'},{k:','},{k:'.'},{k:'/'},{k:'Shift',c:'RSHIFT',w:'w-rshift',m:1}],
+  [{k:'`',c:'BACKQUOTE'},{k:'1'},{k:'2'},{k:'3'},{k:'4'},{k:'5'},{k:'6'},{k:'7'},{k:'8'},{k:'9'},{k:'0'},{k:'-',c:'MINUS'},{k:'=',c:'EQUALS'},{k:'Bksp',c:'BACKSPACE',w:'w-backspace'}],
+  [{k:'Tab',c:'TAB',w:'w-tab'},{k:'Q'},{k:'W'},{k:'E'},{k:'R'},{k:'T'},{k:'Y'},{k:'U'},{k:'I'},{k:'O'},{k:'P'},{k:'[',c:'LEFTBRACKET'},{k:']',c:'RIGHTBRACKET'},{k:'\\',c:'BACKSLASH',w:'w-backslash'}],
+  [{k:'Caps',c:'CAPSLOCK',w:'w-caps'},{k:'A'},{k:'S'},{k:'D'},{k:'F'},{k:'G'},{k:'H'},{k:'J'},{k:'K'},{k:'L'},{k:';',c:'SEMICOLON'},{k:"'",c:'QUOTE'},{k:'Enter',c:'ENTER',w:'w-enter'}],
+  [{k:'Shift',c:'LSHIFT',w:'w-lshift',m:1},{k:'Z'},{k:'X'},{k:'C'},{k:'V'},{k:'B'},{k:'N'},{k:'M'},{k:',',c:'COMMA'},{k:'.',c:'PERIOD'},{k:'/',c:'SLASH'},{k:'Shift',c:'RSHIFT',w:'w-rshift',m:1}],
   [{k:'Ctrl',c:'LCTRL',w:'w-ctrl',m:1},{k:'Win',c:'LMETA',w:'w-fn',m:1},{k:'Alt',c:'LALT',w:'w-alt',m:1},{k:'',c:'SPACE',w:'w-space'},{k:'Alt',c:'RALT',w:'w-alt',m:1},{k:'Win',c:'RMETA',w:'w-fn',m:1},{k:'Ctrl',c:'RCTRL',w:'w-ctrl',m:1}]
 ];
+
+const JS_TO_HID = {
+  'Escape':'ESCAPE','F1':'F1','F2':'F2','F3':'F3','F4':'F4','F5':'F5','F6':'F6',
+  'F7':'F7','F8':'F8','F9':'F9','F10':'F10','F11':'F11','F12':'F12',
+  'Backquote':'BACKQUOTE','Digit1':'1','Digit2':'2','Digit3':'3','Digit4':'4',
+  'Digit5':'5','Digit6':'6','Digit7':'7','Digit8':'8','Digit9':'9','Digit0':'0',
+  'Minus':'MINUS','Equal':'EQUALS','Backspace':'BACKSPACE',
+  'Tab':'TAB','KeyQ':'Q','KeyW':'W','KeyE':'E','KeyR':'R','KeyT':'T',
+  'KeyY':'Y','KeyU':'U','KeyI':'I','KeyO':'O','KeyP':'P',
+  'BracketLeft':'LEFTBRACKET','BracketRight':'RIGHTBRACKET','Backslash':'BACKSLASH',
+  'CapsLock':'CAPSLOCK','KeyA':'A','KeyS':'S','KeyD':'D','KeyF':'F','KeyG':'G',
+  'KeyH':'H','KeyJ':'J','KeyK':'K','KeyL':'L',
+  'Semicolon':'SEMICOLON','Quote':'QUOTE','Enter':'ENTER',
+  'ShiftLeft':'LSHIFT','KeyZ':'Z','KeyX':'X','KeyC':'C','KeyV':'V','KeyB':'B',
+  'KeyN':'N','KeyM':'M','Comma':'COMMA','Period':'PERIOD','Slash':'SLASH','ShiftRight':'RSHIFT',
+  'ControlLeft':'LCTRL','MetaLeft':'LMETA','AltLeft':'LALT','Space':'SPACE',
+  'AltRight':'RALT','MetaRight':'RMETA','ControlRight':'RCTRL',
+  'Insert':'INSERT','Delete':'DELETE','Home':'HOME','End':'END',
+  'PageUp':'PAGEUP','PageDown':'PAGEDOWN',
+  'ArrowUp':'UP','ArrowDown':'DOWN','ArrowLeft':'LEFT','ArrowRight':'RIGHT',
+  'NumLock':'NUMLOCK','ScrollLock':'SCROLLOCK','PrintScreen':'PRINTSCREEN',
+  'ContextMenu':'RMETA','Pause':'ESCAPE',
+  'Numpad0':'KP0','Numpad1':'KP1','Numpad2':'KP2','Numpad3':'KP3','Numpad4':'KP4',
+  'Numpad5':'KP5','Numpad6':'KP6','Numpad7':'KP7','Numpad8':'KP8','Numpad9':'KP9',
+  'NumpadAdd':'KP_PLUS','NumpadSubtract':'KP_MINUS','NumpadMultiply':'KP_MULTIPLY',
+  'NumpadDivide':'KP_DIVIDE','NumpadDecimal':'KP_PERIOD','NumpadEnter':'ENTER',
+};
 
 const MODS = ['LCTRL','LSHIFT','LALT','LMETA','RCTRL','RSHIFT','RALT','RMETA'];
 let activeKeys = {};
 let eventLogEntries = [];
+let captureListening = false;
+let isRecording = false;
+let runningMacros = {};
+let heldMods = [];
 
 function buildKeyboard() {
   const kb = document.getElementById('keyboard');
@@ -255,6 +262,7 @@ function clearAllKeys() {
     el.classList.remove('active','mod-active');
   });
   activeKeys = {};
+  heldMods = [];
   MODS.forEach(m => {
     const el = document.getElementById('mod-' + m);
     if (el) el.classList.remove('active');
@@ -265,7 +273,7 @@ function addLogEntry(evt) {
   const log = document.getElementById('eventLog');
   const cls = evt.down ? 'down' : 'up';
   const arrow = evt.down ? '\u25BC' : '\u25B2';
-  const keyName = evt.key || evt.button || '?';
+  const keyName = evt.key || '?';
   const mods = evt.modifiers && evt.modifiers.length ? ' [' + evt.modifiers.join('+') + ']' : '';
   const entry = document.createElement('div');
   entry.className = cls;
@@ -276,12 +284,64 @@ function addLogEntry(evt) {
   eventLogEntries.forEach(e => log.appendChild(e));
 }
 
+function getActiveMods() {
+  return MODS.filter(m => activeKeys[m]);
+}
+
+const captureArea = document.getElementById('captureArea');
+captureArea.addEventListener('focus', () => {
+  captureListening = true;
+  captureArea.classList.add('listening');
+  captureArea.textContent = 'Listening for keystrokes... (click outside to stop)';
+});
+captureArea.addEventListener('blur', () => {
+  captureListening = false;
+  captureArea.classList.remove('listening');
+  captureArea.textContent = 'Click here to start capturing keystrokes';
+  clearAllKeys();
+});
+
+captureArea.addEventListener('keydown', (e) => {
+  if (!captureListening) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  const hidKey = JS_TO_HID[e.code];
+  if (!hidKey) return;
+
+  setKeyActive(hidKey, true);
+
+  if (MODS.indexOf(hidKey) !== -1) {
+    if (heldMods.indexOf(hidKey) === -1) heldMods.push(hidKey);
+  }
+
+  const mods = getActiveMods();
+  sendCmd('keyevent', {key: hidKey, down: true, modifiers: mods});
+  addLogEntry({key: hidKey, down: true, modifiers: mods});
+});
+
+captureArea.addEventListener('keyup', (e) => {
+  if (!captureListening) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  const hidKey = JS_TO_HID[e.code];
+  if (!hidKey) return;
+
+  setKeyActive(hidKey, false);
+
+  const modIdx = heldMods.indexOf(hidKey);
+  if (modIdx !== -1) heldMods.splice(modIdx, 1);
+
+  const mods = getActiveMods();
+  sendCmd('keyevent', {key: hidKey, down: false, modifiers: mods});
+  addLogEntry({key: hidKey, down: false, modifiers: mods});
+});
+
 buildKeyboard();
 
 let ws;
 let reconnectDelay = 1000;
-let isRecording = false;
-let runningMacros = {};
 
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -298,7 +358,6 @@ function connect() {
     if (msg.type === 'status') updateUI(msg.status);
     else if (msg.type === 'macro_list') updateMacroList(msg.macros);
     else if (msg.type === 'macro_status') updateMacroStatus(msg.name, msg.running);
-    else if (msg.type === 'capture_event') handleCaptureEvent(msg.event);
   };
 
   ws.onclose = () => {
@@ -314,23 +373,6 @@ function sendCmd(command, extra) {
   }
 }
 
-function toggleKeyboard() { sendCmd('toggle_keyboard'); }
-function toggleMouse() { sendCmd('toggle_mouse'); }
-function toggleCapture() { sendCmd('toggle_capture'); }
-
-function handleCaptureEvent(evt) {
-  if (evt.type === 'keyevent') {
-    setKeyActive(evt.key, evt.down);
-    addLogEntry(evt);
-    if (!evt.down && MODS.indexOf(evt.key) === -1) {
-      setTimeout(() => { if (!activeKeys[evt.key]) return; }, 200);
-    }
-  } else if (evt.type === 'mousebutton') {
-    const label = evt.button === 'l' ? 'Left' : evt.button === 'r' ? 'Right' : 'Middle';
-    addLogEntry({key: label + ' click', down: evt.down});
-  }
-}
-
 function toggleRecord() {
   if (isRecording) {
     const name = document.getElementById('macroName').value.trim() || '';
@@ -339,7 +381,7 @@ function toggleRecord() {
     document.getElementById('recordBtn').textContent = 'Record';
     document.getElementById('recordBtn').className = 'btn btn-danger';
     document.getElementById('macroName').disabled = false;
-    document.getElementById('macroRecordInfo').textContent = 'Start recording to capture keyboard/mouse events as a macro';
+    document.getElementById('macroRecordInfo').textContent = 'Start recording to capture keyboard events as a macro';
   } else {
     sendCmd('macro_record_start');
     isRecording = true;
@@ -385,9 +427,6 @@ function updateMacroStatus(name, running) {
 function updateUI(s) {
   document.getElementById('dongleDot').className = 'status-dot ' + (s.dongleConnected ? 'on' : 'off');
   document.getElementById('daemonMode').textContent = s.daemonMode;
-  document.getElementById('keyboardToggle').checked = s.keyboardEnabled;
-  document.getElementById('mouseToggle').checked = s.mouseEnabled;
-  document.getElementById('captureToggle').checked = s.captureActive;
   document.getElementById('recDot').className = 'rec-dot ' + (s.recordingMacro ? 'on' : '');
 
   if (s.recordingMacro && !isRecording) {
@@ -401,7 +440,7 @@ function updateUI(s) {
     document.getElementById('recordBtn').textContent = 'Record';
     document.getElementById('recordBtn').className = 'btn btn-danger';
     document.getElementById('macroName').disabled = false;
-    document.getElementById('macroRecordInfo').textContent = 'Start recording to capture keyboard/mouse events as a macro';
+    document.getElementById('macroRecordInfo').textContent = 'Start recording to capture keyboard events as a macro';
   }
 
   document.getElementById('currentDeviceInfo').innerHTML = s.currentDevice && s.currentDevice !== 'NONE'
@@ -435,8 +474,6 @@ document.querySelectorAll('.tab').forEach(t => {
     document.querySelectorAll('.tab-content').forEach(x => x.style.display = 'none');
     t.classList.add('active');
     document.getElementById('tab-' + t.dataset.tab).style.display = 'block';
-    const wrap = document.getElementById('contentWrap');
-    wrap.classList.toggle('wide', t.dataset.tab === 'keyboard');
     if (t.dataset.tab === 'macros') sendCmd('macro_list');
   };
 });
