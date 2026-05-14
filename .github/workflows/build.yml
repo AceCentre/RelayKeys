@@ -6,6 +6,9 @@ on:
       - go
   pull_request:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -36,8 +39,7 @@ jobs:
     - name: Build
       run: powershell -ExecutionPolicy Bypass -File build-go.ps1
 
-    - name: Upload installer
-      uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v5
       with:
         name: 'Windows Installer'
         path: 'RelayKeys-*.exe'
