@@ -126,5 +126,6 @@ type Port interface {
 	WriteAT(cmd string) (string, error)
 	WriteATNoResponse(cmd string) error
 	WriteRaw(data []byte) error
+	ReadRaw(length int) ([]byte, error)
 	Flush()
 }

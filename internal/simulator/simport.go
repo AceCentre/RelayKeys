@@ -36,6 +36,8 @@ func (s *SimPort) WriteATNoResponse(cmd string) error {
 
 func (s *SimPort) WriteRaw(data []byte) error { return nil }
 
+func (s *SimPort) ReadRaw(length int) ([]byte, error) { return nil, nil }
+
 func (s *SimPort) Flush() {}
 
 func (s *SimPort) CommandLog() []string {

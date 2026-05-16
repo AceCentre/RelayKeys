@@ -70,6 +70,61 @@ func (InjectReportRequest_ReportType) EnumDescriptor() ([]byte, []int) {
 	return file_relaykeys_proto_rawDescGZIP(), []int{0, 0}
 }
 
+type AdminCommandRequest_CommandType int32
+
+const (
+	AdminCommandRequest_PAIR        AdminCommandRequest_CommandType = 0
+	AdminCommandRequest_SWITCH_SLOT AdminCommandRequest_CommandType = 1
+	AdminCommandRequest_GET_STATUS  AdminCommandRequest_CommandType = 2
+	AdminCommandRequest_RESET       AdminCommandRequest_CommandType = 3
+	AdminCommandRequest_CLEAR_SLOT  AdminCommandRequest_CommandType = 4
+)
+
+// Enum value maps for AdminCommandRequest_CommandType.
+var (
+	AdminCommandRequest_CommandType_name = map[int32]string{
+		0: "PAIR",
+		1: "SWITCH_SLOT",
+		2: "GET_STATUS",
+		3: "RESET",
+		4: "CLEAR_SLOT",
+	}
+	AdminCommandRequest_CommandType_value = map[string]int32{
+		"PAIR":        0,
+		"SWITCH_SLOT": 1,
+		"GET_STATUS":  2,
+		"RESET":       3,
+		"CLEAR_SLOT":  4,
+	}
+)
+
+func (x AdminCommandRequest_CommandType) Enum() *AdminCommandRequest_CommandType {
+	p := new(AdminCommandRequest_CommandType)
+	*p = x
+	return p
+}
+
+func (x AdminCommandRequest_CommandType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AdminCommandRequest_CommandType) Descriptor() protoreflect.EnumDescriptor {
+	return file_relaykeys_proto_enumTypes[1].Descriptor()
+}
+
+func (AdminCommandRequest_CommandType) Type() protoreflect.EnumType {
+	return &file_relaykeys_proto_enumTypes[1]
+}
+
+func (x AdminCommandRequest_CommandType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AdminCommandRequest_CommandType.Descriptor instead.
+func (AdminCommandRequest_CommandType) EnumDescriptor() ([]byte, []int) {
+	return file_relaykeys_proto_rawDescGZIP(), []int{2, 0}
+}
+
 type InjectReportRequest struct {
 	state         protoimpl.MessageState         `protogen:"open.v1"`
 	Type          InjectReportRequest_ReportType `protobuf:"varint,1,opt,name=type,proto3,enum=relaykeys.rpc.InjectReportRequest_ReportType" json:"type,omitempty"`
@@ -174,6 +229,126 @@ func (x *InjectReportResponse) GetErrorMessage() string {
 	return ""
 }
 
+type AdminCommandRequest struct {
+	state         protoimpl.MessageState          `protogen:"open.v1"`
+	Command       AdminCommandRequest_CommandType `protobuf:"varint,1,opt,name=command,proto3,enum=relaykeys.rpc.AdminCommandRequest_CommandType" json:"command,omitempty"`
+	Slot          int32                           `protobuf:"varint,2,opt,name=slot,proto3" json:"slot,omitempty"` // Used for SWITCH_SLOT or CLEAR_SLOT (0-4)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AdminCommandRequest) Reset() {
+	*x = AdminCommandRequest{}
+	mi := &file_relaykeys_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdminCommandRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdminCommandRequest) ProtoMessage() {}
+
+func (x *AdminCommandRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_relaykeys_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdminCommandRequest.ProtoReflect.Descriptor instead.
+func (*AdminCommandRequest) Descriptor() ([]byte, []int) {
+	return file_relaykeys_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *AdminCommandRequest) GetCommand() AdminCommandRequest_CommandType {
+	if x != nil {
+		return x.Command
+	}
+	return AdminCommandRequest_PAIR
+}
+
+func (x *AdminCommandRequest) GetSlot() int32 {
+	if x != nil {
+		return x.Slot
+	}
+	return 0
+}
+
+type AdminCommandResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	ErrorMessage  string                 `protobuf:"bytes,2,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	ActiveSlot    int32                  `protobuf:"varint,3,opt,name=active_slot,json=activeSlot,proto3" json:"active_slot,omitempty"`
+	SlotBonded    []bool                 `protobuf:"varint,4,rep,packed,name=slot_bonded,json=slotBonded,proto3" json:"slot_bonded,omitempty"` // 5 booleans indicating if a slot has a bonded device
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AdminCommandResponse) Reset() {
+	*x = AdminCommandResponse{}
+	mi := &file_relaykeys_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdminCommandResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdminCommandResponse) ProtoMessage() {}
+
+func (x *AdminCommandResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_relaykeys_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdminCommandResponse.ProtoReflect.Descriptor instead.
+func (*AdminCommandResponse) Descriptor() ([]byte, []int) {
+	return file_relaykeys_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *AdminCommandResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *AdminCommandResponse) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
+func (x *AdminCommandResponse) GetActiveSlot() int32 {
+	if x != nil {
+		return x.ActiveSlot
+	}
+	return 0
+}
+
+func (x *AdminCommandResponse) GetSlotBonded() []bool {
+	if x != nil {
+		return x.SlotBonded
+	}
+	return nil
+}
+
 var File_relaykeys_proto protoreflect.FileDescriptor
 
 const file_relaykeys_proto_rawDesc = "" +
@@ -189,7 +364,25 @@ const file_relaykeys_proto_rawDesc = "" +
 	"\bCONSUMER\x10\x02\"U\n" +
 	"\x14InjectReportResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
-	"\rerror_message\x18\x02 \x01(\tR\ferrorMessageB3Z1github.com/AceCentre/RelayKeys/internal/zmk/protob\x06proto3"
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\"\xc8\x01\n" +
+	"\x13AdminCommandRequest\x12H\n" +
+	"\acommand\x18\x01 \x01(\x0e2..relaykeys.rpc.AdminCommandRequest.CommandTypeR\acommand\x12\x12\n" +
+	"\x04slot\x18\x02 \x01(\x05R\x04slot\"S\n" +
+	"\vCommandType\x12\b\n" +
+	"\x04PAIR\x10\x00\x12\x0f\n" +
+	"\vSWITCH_SLOT\x10\x01\x12\x0e\n" +
+	"\n" +
+	"GET_STATUS\x10\x02\x12\t\n" +
+	"\x05RESET\x10\x03\x12\x0e\n" +
+	"\n" +
+	"CLEAR_SLOT\x10\x04\"\x97\x01\n" +
+	"\x14AdminCommandResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\x12\x1f\n" +
+	"\vactive_slot\x18\x03 \x01(\x05R\n" +
+	"activeSlot\x12\x1f\n" +
+	"\vslot_bonded\x18\x04 \x03(\bR\n" +
+	"slotBondedB3Z1github.com/AceCentre/RelayKeys/internal/zmk/protob\x06proto3"
 
 var (
 	file_relaykeys_proto_rawDescOnce sync.Once
@@ -203,20 +396,24 @@ func file_relaykeys_proto_rawDescGZIP() []byte {
 	return file_relaykeys_proto_rawDescData
 }
 
-var file_relaykeys_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_relaykeys_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_relaykeys_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_relaykeys_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_relaykeys_proto_goTypes = []any{
-	(InjectReportRequest_ReportType)(0), // 0: relaykeys.rpc.InjectReportRequest.ReportType
-	(*InjectReportRequest)(nil),         // 1: relaykeys.rpc.InjectReportRequest
-	(*InjectReportResponse)(nil),        // 2: relaykeys.rpc.InjectReportResponse
+	(InjectReportRequest_ReportType)(0),  // 0: relaykeys.rpc.InjectReportRequest.ReportType
+	(AdminCommandRequest_CommandType)(0), // 1: relaykeys.rpc.AdminCommandRequest.CommandType
+	(*InjectReportRequest)(nil),          // 2: relaykeys.rpc.InjectReportRequest
+	(*InjectReportResponse)(nil),         // 3: relaykeys.rpc.InjectReportResponse
+	(*AdminCommandRequest)(nil),          // 4: relaykeys.rpc.AdminCommandRequest
+	(*AdminCommandResponse)(nil),         // 5: relaykeys.rpc.AdminCommandResponse
 }
 var file_relaykeys_proto_depIdxs = []int32{
 	0, // 0: relaykeys.rpc.InjectReportRequest.type:type_name -> relaykeys.rpc.InjectReportRequest.ReportType
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	1, // 1: relaykeys.rpc.AdminCommandRequest.command:type_name -> relaykeys.rpc.AdminCommandRequest.CommandType
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_relaykeys_proto_init() }
@@ -229,8 +426,8 @@ func file_relaykeys_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_relaykeys_proto_rawDesc), len(file_relaykeys_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   2,
+			NumEnums:      2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

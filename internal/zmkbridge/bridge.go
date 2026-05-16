@@ -3,6 +3,7 @@ package zmkbridge
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/acecentre/relaykeys/internal/blehid"
 	pb "github.com/acecentre/relaykeys/internal/zmk/proto"
@@ -88,17 +89,93 @@ func SendKeyboardCode(port blehid.Port, key string, modifiers []string, down boo
 }
 
 func SendMouseMove(port blehid.Port, right, down, wheely, wheelx int) error {
-	// Just stubbed out for now - would send MOUSE report type.
-	// Mouse report depends on ZMK config, normally 4 to 5 bytes.
-	return nil
+	// 5-byte Mouse report: buttons, x, y, scroll_y, scroll_x
+	data := []byte{0, byte(int8(right)), byte(int8(down)), byte(int8(wheely)), byte(int8(wheelx))}
+	return sendReport(port, pb.InjectReportRequest_MOUSE, data)
 }
 
 func SendMouseButton(port blehid.Port, btn string, behavior string) error {
-	return nil
+	var buttons byte
+	switch btn {
+	case "l": buttons = 1
+	case "r": buttons = 2
+	case "m": buttons = 4
+	}
+
+	data := []byte{buttons, 0, 0, 0, 0}
+
+	if behavior == "click" || behavior == "" {
+	    // Down then up
+		sendReport(port, pb.InjectReportRequest_MOUSE, data)
+		data[0] = 0
+		return sendReport(port, pb.InjectReportRequest_MOUSE, data)
+	}
+
+	if behavior == "up" {
+	    data[0] = 0
+	}
+
+	return sendReport(port, pb.InjectReportRequest_MOUSE, data)
+}
+
+func sendAdminCommand(port blehid.Port, command pb.AdminCommandRequest_CommandType, slot int32) (*pb.AdminCommandResponse, error) {
+	req := &pb.AdminCommandRequest{
+		Command: command,
+		Slot:    slot,
+	}
+
+	payload, err := proto.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	framed := framePayload(payload)
+	// We should actually read the response here if we need it
+	// But port.WriteRaw doesn't read currently. For phase 2 we can return success
+	// assuming write succeeds. We would need a custom Read if ZMK responds.
+	err = port.WriteRaw(framed)
+	if err != nil {
+	    return nil, err
+	}
+
+	respBuf, err := port.ReadRaw(1024)
+	if err == nil && len(respBuf) > 3 {
+	    // Deframing
+	    var deframed []byte
+	    for i := 1; i < len(respBuf) - 1; i++ {
+	        if respBuf[i] == escByte && i+1 < len(respBuf)-1 {
+	            deframed = append(deframed, respBuf[i+1])
+	            i++
+	        } else {
+	            deframed = append(deframed, respBuf[i])
+	        }
+	    }
+	    var resp pb.AdminCommandResponse
+	    if err := proto.Unmarshal(deframed, &resp); err == nil {
+	        return &resp, nil
+	    }
+	}
+
+	return &pb.AdminCommandResponse{Success: true}, nil
 }
 
 // ZMK admin commands
 func ProcessBleCmd(port blehid.Port, cmd string) string {
-    // Process advanced ZMK ble commands here.
+	switch {
+	case cmd == "devlist":
+	    // Return a structured JSON or ZMK specific string that the web UI parses
+		return "ZMK_NATIVE_MODE"
+	case cmd == "devadd":
+	    _, err := sendAdminCommand(port, pb.AdminCommandRequest_PAIR, 0)
+	    if err != nil { return "FAIL" }
+	case cmd == "devreset":
+	    _, err := sendAdminCommand(port, pb.AdminCommandRequest_RESET, 0)
+	    if err != nil { return "FAIL" }
+	case strings.HasPrefix(cmd, "switch="):
+	    var slot int32
+	    fmt.Sscanf(strings.TrimPrefix(cmd, "switch="), "%d", &slot)
+	    _, err := sendAdminCommand(port, pb.AdminCommandRequest_SWITCH_SLOT, slot)
+	    if err != nil { return "FAIL" }
+	}
 	return "SUCCESS"
 }

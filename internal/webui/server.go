@@ -483,6 +483,16 @@ func (s *Server) refreshDevices() {
 		return
 	}
 
+	// We check if it is ZMK Native Mode via our blecmd hook
+	if s.processBle("devlist") == "ZMK_NATIVE_MODE" {
+		s.statusMu.Lock()
+		s.status.CurrentDevice = "ZMK Native Mode (See UI)"
+		s.status.DeviceList = nil
+		s.statusMu.Unlock()
+		data, _ := json.Marshal(map[string]interface{}{"type": "status", "status": &s.status}); s.hub.broadcast(data)
+		return
+	}
+
 	name, _ := blehid.GetDeviceName(s.port)
 	list, _ := blehid.GetDeviceList(s.port)
 
