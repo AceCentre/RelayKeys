@@ -87,7 +87,7 @@ func runDaemon(cfg *config.Config) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	rpcServer := rpc.NewServerWithConfig(nil, cfg.Username, cfg.Password)
+	rpcServer := rpc.NewServerWithConfig(nil, cfg.Username, cfg.Password, cfg.FirmwareType)
 
 	exePath, _ := os.Executable()
 	exeDir := filepath.Dir(exePath)

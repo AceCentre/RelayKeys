@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/acecentre/relaykeys/internal/blehid"
+	"github.com/acecentre/relaykeys/internal/zmkbridge"
 )
 
 type Server struct {
@@ -25,8 +26,9 @@ type Server struct {
 }
 
 type serverConfig struct {
-	Username string
-	Password string
+	Username     string
+	Password     string
+	FirmwareType string
 }
 
 type jsonRPCRequest struct {
@@ -48,12 +50,13 @@ type jsonRPCError struct {
 	Message string `json:"message"`
 }
 
-func NewServerWithConfig(port blehid.Port, username, password string) *Server {
+func NewServerWithConfig(port blehid.Port, username, password, firmwareType string) *Server {
 	return &Server{
 		port: port,
 		cfg: serverConfig{
-			Username: username,
-			Password: password,
+			Username:     username,
+			Password:     password,
+			FirmwareType: firmwareType,
 		},
 	}
 }
@@ -222,7 +225,11 @@ func (s *Server) handleKeyevent(rawParams json.RawMessage) interface{} {
 	}
 	down, _ := args[2].(bool)
 
-	if err := blehid.SendKeyboardCode(s.port, key, mods, down, &s.keys); err != nil {
+	if s.cfg.FirmwareType == "zmk" {
+		if err := zmkbridge.SendKeyboardCode(s.port, key, mods, down, &s.keys); err != nil {
+			return "FAIL"
+		}
+	} else if err := blehid.SendKeyboardCode(s.port, key, mods, down, &s.keys); err != nil {
 		return "FAIL"
 	}
 	return "SUCCESS"
@@ -247,7 +254,11 @@ func (s *Server) handleMousemove(rawParams json.RawMessage) interface{} {
 	if len(args) > 3 {
 		wheelx = toInt(args[3])
 	}
-	if err := blehid.SendMouseMove(s.port, right, down, wheely, wheelx); err != nil {
+	if s.cfg.FirmwareType == "zmk" {
+		if err := zmkbridge.SendMouseMove(s.port, right, down, wheely, wheelx); err != nil {
+			return "FAIL"
+		}
+	} else if err := blehid.SendMouseMove(s.port, right, down, wheely, wheelx); err != nil {
 		return "FAIL"
 	}
 	return "SUCCESS"
@@ -267,7 +278,11 @@ func (s *Server) handleMousebutton(rawParams json.RawMessage) interface{} {
 	if len(args) > 1 {
 		behavior, _ = args[1].(string)
 	}
-	if err := blehid.SendMouseButton(s.port, btn, behavior); err != nil {
+	if s.cfg.FirmwareType == "zmk" {
+		if err := zmkbridge.SendMouseButton(s.port, btn, behavior); err != nil {
+			return "FAIL"
+		}
+	} else if err := blehid.SendMouseButton(s.port, btn, behavior); err != nil {
 		return "FAIL"
 	}
 	return "SUCCESS"
@@ -330,7 +345,11 @@ func (s *Server) processAction(cmd string, args []interface{}) string {
 		if len(args) > 3 {
 			wheelx = toInt(args[3])
 		}
-		if err := blehid.SendMouseMove(s.port, right, down, wheely, wheelx); err != nil {
+		if s.cfg.FirmwareType == "zmk" {
+			if err := zmkbridge.SendMouseMove(s.port, right, down, wheely, wheelx); err != nil {
+				return "FAIL"
+			}
+		} else if err := blehid.SendMouseMove(s.port, right, down, wheely, wheelx); err != nil {
 			return "FAIL"
 		}
 		return "SUCCESS"
@@ -344,7 +363,11 @@ func (s *Server) processAction(cmd string, args []interface{}) string {
 		if len(args) > 1 {
 			behavior, _ = args[1].(string)
 		}
-		if err := blehid.SendMouseButton(s.port, btn, behavior); err != nil {
+		if s.cfg.FirmwareType == "zmk" {
+			if err := zmkbridge.SendMouseButton(s.port, btn, behavior); err != nil {
+				return "FAIL"
+			}
+		} else if err := blehid.SendMouseButton(s.port, btn, behavior); err != nil {
 			return "FAIL"
 		}
 		return "SUCCESS"
@@ -368,7 +391,11 @@ func (s *Server) processAction(cmd string, args []interface{}) string {
 		if len(args) > 2 {
 			down, _ = args[2].(bool)
 		}
-		if err := blehid.SendKeyboardCode(s.port, key, mods, down, &s.keys); err != nil {
+		if s.cfg.FirmwareType == "zmk" {
+			if err := zmkbridge.SendKeyboardCode(s.port, key, mods, down, &s.keys); err != nil {
+				return "FAIL"
+			}
+		} else if err := blehid.SendKeyboardCode(s.port, key, mods, down, &s.keys); err != nil {
 			return "FAIL"
 		}
 		return "SUCCESS"
@@ -386,6 +413,9 @@ func (s *Server) processAction(cmd string, args []interface{}) string {
 }
 
 func (s *Server) processBleCmd(cmd string) string {
+	if s.cfg.FirmwareType == "zmk" {
+		return zmkbridge.ProcessBleCmd(s.port, cmd)
+	}
 	var err error
 	var result string
 

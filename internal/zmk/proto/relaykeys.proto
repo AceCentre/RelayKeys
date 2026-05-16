@@ -1,0 +1,19 @@
+syntax = "proto3";
+package relaykeys.rpc;
+
+option go_package = "github.com/AceCentre/RelayKeys/internal/zmk/proto";
+
+message InjectReportRequest {
+  enum ReportType {
+    KEYBOARD = 0;
+    MOUSE = 1;
+    CONSUMER = 2; // For media keys like volume/mute
+  }
+  ReportType type = 1;
+  bytes data = 2; // Raw HID report bytes (e.g., 8 bytes for keyboard)
+}
+
+message InjectReportResponse {
+  bool success = 1;
+  string error_message = 2;
+}
