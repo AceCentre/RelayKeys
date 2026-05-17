@@ -1,0 +1,39 @@
+syntax = "proto3";
+package relaykeys.rpc;
+
+option go_package = "github.com/AceCentre/RelayKeys/internal/zmk/proto";
+
+message InjectReportRequest {
+  enum ReportType {
+    KEYBOARD = 0;
+    MOUSE = 1;
+    CONSUMER = 2; // For media keys like volume/mute
+  }
+  ReportType type = 1;
+  bytes data = 2; // Raw HID report bytes (e.g., 8 bytes for keyboard)
+}
+
+message InjectReportResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message AdminCommandRequest {
+  enum CommandType {
+    PAIR = 0;
+    SWITCH_SLOT = 1;
+    GET_STATUS = 2;
+    RESET = 3;
+    CLEAR_SLOT = 4;
+  }
+  CommandType command = 1;
+  int32 slot = 2; // Used for SWITCH_SLOT or CLEAR_SLOT (0-4)
+}
+
+message AdminCommandResponse {
+  bool success = 1;
+  string error_message = 2;
+
+  int32 active_slot = 3;
+  repeated bool slot_bonded = 4; // 5 booleans indicating if a slot has a bonded device
+}

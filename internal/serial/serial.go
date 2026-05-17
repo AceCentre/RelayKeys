@@ -186,6 +186,28 @@ func (h *HardwarePort) WriteATNoResponse(cmd string) error {
 	return err
 }
 
+func (h *HardwarePort) WriteRaw(data []byte) error {
+	if h.port == nil {
+		return nil
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	_, err := h.port.Write(data)
+	return err
+}
+
+func (h *HardwarePort) ReadRaw(length int) ([]byte, error) {
+	if h.port == nil {
+		return nil, nil
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	buf := make([]byte, length)
+	// Use a short timeout
+	n, err := h.port.Read(buf)
+	return buf[:n], err
+}
+
 func (h *HardwarePort) Flush() {
 	if h.port != nil {
 		_ = h.port.ResetInputBuffer()

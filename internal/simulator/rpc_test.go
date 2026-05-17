@@ -17,7 +17,7 @@ func TestRPCEndToEndKeyevent(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -53,7 +53,7 @@ func TestRPCEndToEndMousemove(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -80,7 +80,7 @@ func TestRPCEndToEndMousebutton(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -102,7 +102,7 @@ func TestRPCEndToEndBleCmd(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -140,7 +140,7 @@ func TestRPCEndToEndActions(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -180,7 +180,7 @@ func TestRPCEndToEndDaemon(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -210,7 +210,7 @@ func TestRPCServerWithAuth(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "admin", "secret123")
+	srv := rpc.NewServerWithConfig(port, "admin", "secret123", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -237,7 +237,7 @@ func TestRPCDeviceManagement(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -279,7 +279,7 @@ func TestRPCKeyboardRelease(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -316,7 +316,7 @@ func TestRPCSwitchAndName(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -350,7 +350,7 @@ func TestFullServerLifecycle(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -373,7 +373,7 @@ func TestRPCUnknownMethod(t *testing.T) {
 	d := simulator.NewDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)
@@ -395,7 +395,7 @@ func TestRPCEmptyDongle(t *testing.T) {
 	d := simulator.NewEmptyDongle()
 	port := simulator.NewSimPort(d)
 
-	srv := rpc.NewServerWithConfig(port, "", "")
+	srv := rpc.NewServerWithConfig(port, "", "", "legacy")
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		srv.HandleRPC(w, r)

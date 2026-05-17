@@ -22,6 +22,7 @@ type Config struct {
 	ClientPort int
 	KeymapFile string
 	Delay      int
+	FirmwareType string
 }
 
 func Load(path string) (*Config, error) {
@@ -31,6 +32,7 @@ func Load(path string) (*Config, error) {
 		Baud:       115200,
 		ClientHost: "127.0.0.1",
 		ClientPort: 5383,
+		FirmwareType: "legacy",
 	}
 
 	home, _ := os.UserHomeDir()
@@ -104,6 +106,8 @@ func parseINI(data []byte, cfg *Config) {
 				cfg.Password = val
 			case "debug":
 				cfg.Debug = val == "true" || val == "1"
+			case "firmware_type":
+				cfg.FirmwareType = val
 			case "noserial":
 				cfg.NoSerial = val == "true" || val == "1"
 			case "logfile":

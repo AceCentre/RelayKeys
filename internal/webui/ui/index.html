@@ -597,17 +597,23 @@ function updateUI(s) {
       : '<div class="empty">No BLE device paired — add a device to get started</div>';
 
   const dl = document.getElementById('deviceList');
-  if (s.deviceList && s.deviceList.length > 0) {
-    dl.innerHTML = s.deviceList.map(d =>
-      '<div class="device">' +
-        '<span class="name">' + esc(d.name) + '</span>' +
-        (d.connected ? '<span class="badge">connected</span>' : '') +
-        '<button class="btn btn-outline btn-sm" onclick="sendCmd(\'switch_to\',{name:\'' + esc(d.name) + '\'})">Connect</button>' +
-        ' <button class="btn btn-danger btn-sm" onclick="sendCmd(\'devremove\',{name:\'' + esc(d.name) + '\'})">Remove</button>' +
-      '</div>'
-    ).join('');
+  const cd = document.getElementById('currentDeviceInfo');
+  if (s.currentDevice === 'ZMK Native Mode (See UI)') {
+      cd.innerHTML = '<div class="info-row"><span class="label">Status</span><span class="value">Native ZMK Mode</span></div>';
+      dl.innerHTML = '<div class="device"><span class="name">ZMK Slots (1-5)</span><button class="btn btn-outline btn-sm" onclick="sendCmd(\\'switch_to\\',{name:\\'switch=0\\'})">Switch Slot 1</button><button class="btn btn-outline btn-sm" onclick="sendCmd(\\'switch_to\\',{name:\\'switch=1\\'})">Switch Slot 2</button><button class="btn btn-danger btn-sm" onclick="sendCmd(\\'ble_cmd\\',{name:\\'devreset\\'})">Clear Slots</button></div>';
   } else {
-    dl.innerHTML = '<div class="empty">No paired devices</div>';
+	  if (s.deviceList && s.deviceList.length > 0) {
+		dl.innerHTML = s.deviceList.map(d =>
+		  '<div class="device">' +
+			'<span class="name">' + esc(d.name) + '</span>' +
+			(d.connected ? '<span class="badge">connected</span>' : '') +
+			'<button class="btn btn-outline btn-sm" onclick="sendCmd(\\'switch_to\\',{name:\\'' + esc(d.name) + '\\'})">Connect</button>' +
+			' <button class="btn btn-danger btn-sm" onclick="sendCmd(\\'devremove\\',{name:\\'' + esc(d.name) + '\\'})">Remove</button>' +
+		  '</div>'
+		).join('');
+	  } else {
+		dl.innerHTML = '<div class="empty">No paired devices</div>';
+	  }
   }
 
   document.getElementById('connMode').textContent = s.daemonMode;

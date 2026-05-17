@@ -87,7 +87,7 @@ func runDaemon(cfg *config.Config) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	rpcServer := rpc.NewServerWithConfig(nil, cfg.Username, cfg.Password)
+	rpcServer := rpc.NewServerWithConfig(nil, cfg.Username, cfg.Password, cfg.FirmwareType)
 
 	exePath, _ := os.Executable()
 	exeDir := filepath.Dir(exePath)
@@ -177,11 +177,17 @@ func connectSerial(ctx context.Context, cfg *config.Config, rpcServer *rpc.Serve
 			}
 		}
 
-		if err := hwPort.Init(); err != nil {
-			log.Printf("Serial init warning: %v", err)
+		if cfg.FirmwareType != "zmk" {
+			if err := hwPort.Init(); err != nil {
+				log.Printf("Serial init warning: %v", err)
+			}
+		} else {
+			hwPort.Flush()
 		}
-		if err := blehid.InitSerial(hwPort); err != nil {
-			log.Printf("BLE HID init warning: %v", err)
+		if cfg.FirmwareType != "zmk" {
+			if err := blehid.InitSerial(hwPort); err != nil {
+				log.Printf("BLE HID init warning: %v", err)
+			}
 		}
 
 		log.Println("Serial device connected")
