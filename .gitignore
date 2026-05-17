@@ -33,3 +33,35 @@ venv/
 # Docs
 docs/node_modules/
 docs/dist/
+
+# ZMK / Zephyr build artifacts
+firmware/.west/
+firmware/build/
+firmware/zephyr/
+firmware/modules/
+firmware/optional/
+firmware/zmk-firmware/
+firmware/.config
+firmware/*.tar.xz
+firmware/*.7z
+firmware/zmk/app/
+firmware/zmk/docs/
+firmware/zmk/schema/
+firmware/zmk/.clang-format
+firmware/zmk/.devcontainer/
+firmware/zmk/.gitattributes
+firmware/zmk/.github/
+firmware/zmk/.gitignore
+firmware/zmk/.gitlint
+firmware/zmk/.pre-commit-config.yaml
+firmware/zmk/.release-please-manifest.json
+firmware/zmk/*.md
+firmware/zmk/AUTHORS
+firmware/zmk/CODEOWNERS
+firmware/zmk/LICENSE
+firmware/zmk/release-please*
+zmk-workspace/
+
+# Zephyr SDK
+gnu-arm-embedded/
+zephyr-sdk/

@@ -1,161 +1,335 @@
 #include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/uart.h>
 #include <zephyr/sys/reboot.h>
-#include <zmk/endpoints.h>
+#include <zephyr/logging/log.h>
+#include <string.h>
+
 #include <zmk/hid.h>
+#include <zmk/endpoints.h>
 #include <zmk/ble.h>
-#include <pb_decode.h>
-#include <pb_encode.h>
-#include <zmk/rpc/rpc.h>
 
-typedef struct _relaykeys_rpc_InjectReportRequest {
-    int32_t type;
-    pb_callback_t data;
-} relaykeys_rpc_InjectReportRequest;
+#include <dt-bindings/zmk/hid_usage_pages.h>
 
-#define relaykeys_rpc_InjectReportRequest_fields \
-    PB_FIELD(  1, INT32   , SINGULAR, STATIC  , FIRST, relaykeys_rpc_InjectReportRequest, type, type, 0), \
-    PB_FIELD(  2, BYTES   , SINGULAR, CALLBACK, OTHER, relaykeys_rpc_InjectReportRequest, data, type, 0), \
-    PB_LAST_FIELD
+LOG_MODULE_REGISTER(relaykeys, LOG_LEVEL_INF);
 
-typedef struct _relaykeys_rpc_AdminCommandRequest {
-    int32_t command;
-    int32_t slot;
-} relaykeys_rpc_AdminCommandRequest;
+#define SOF_BYTE 0xAB
+#define ESC_BYTE 0xAC
+#define EOF_BYTE 0xAD
 
-#define relaykeys_rpc_AdminCommandRequest_fields \
-    PB_FIELD(  1, INT32   , SINGULAR, STATIC  , FIRST, relaykeys_rpc_AdminCommandRequest, command, command, 0), \
-    PB_FIELD(  2, INT32   , SINGULAR, STATIC  , OTHER, relaykeys_rpc_AdminCommandRequest, slot, command, 0), \
-    PB_LAST_FIELD
+#define MAX_FRAME 128
+#define RING_SIZE 512
 
-typedef struct _relaykeys_rpc_AdminCommandResponse {
-    bool success;
-    pb_callback_t error_message;
-    int32_t active_slot;
-    pb_callback_t slot_bonded;
-} relaykeys_rpc_AdminCommandResponse;
+static const struct device *uart_dev;
+static uint8_t ring_buf[RING_SIZE];
+static volatile size_t ring_head;
+static volatile size_t ring_tail;
+static uint8_t frame_buf[MAX_FRAME];
+static size_t frame_len;
+static bool in_frame;
+static bool esc_next;
 
-#define relaykeys_rpc_AdminCommandResponse_fields \
-    PB_FIELD(  1, BOOL    , SINGULAR, STATIC  , FIRST, relaykeys_rpc_AdminCommandResponse, success, success, 0), \
-    PB_FIELD(  2, STRING  , SINGULAR, CALLBACK, OTHER, relaykeys_rpc_AdminCommandResponse, error_message, success, 0), \
-    PB_FIELD(  3, INT32   , SINGULAR, STATIC  , OTHER, relaykeys_rpc_AdminCommandResponse, active_slot, error_message, 0), \
-    PB_FIELD(  4, BOOL    , REPEATED, CALLBACK, OTHER, relaykeys_rpc_AdminCommandResponse, slot_bonded, active_slot, 0), \
-    PB_LAST_FIELD
+K_MUTEX_DEFINE(tx_mutex);
 
-static bool decode_data_callback(pb_istream_t *stream, const pb_field_t *field, void **arg)
-{
-    relaykeys_rpc_InjectReportRequest *req = (relaykeys_rpc_InjectReportRequest *)(*arg);
-    uint8_t report_data[16] = {0};
-    size_t len = stream->bytes_left;
-    if (len > sizeof(report_data)) return false;
-
-    if (!pb_read(stream, report_data, len))
-        return false;
-
-    if (req->type == 0) { // KEYBOARD
-        struct zmk_hid_keyboard_report_body report;
-        memset(&report, 0, sizeof(report));
-        if (len > 0) report.modifiers = report_data[0];
-        for (size_t i = 2; i < len && i - 2 < 6; i++) {
-            report.keys[i-2] = report_data[i];
+static void uart_isr(const struct device *dev, void *ctx) {
+    while (uart_irq_update(dev) && uart_irq_is_pending(dev)) {
+        if (!uart_irq_rx_ready(dev)) {
+            break;
         }
-        zmk_hid_keyboard_report_set(&report);
-        zmk_endpoints_send_report(ZMK_ENDPOINT_BLE);
-    } else if (req->type == 1) { // MOUSE
-        struct zmk_hid_mouse_report_body report;
-        memset(&report, 0, sizeof(report));
-        if (len >= 5) {
-            report.buttons = report_data[0];
-            report.x = (int8_t)report_data[1];
-            report.y = (int8_t)report_data[2];
-            report.scroll_y = (int8_t)report_data[3];
-            report.scroll_x = (int8_t)report_data[4];
-            zmk_hid_mouse_movement_set(report.x, report.y);
-            zmk_hid_mouse_scroll_set(report.scroll_x, report.scroll_y);
-            zmk_hid_mouse_buttons_set(report.buttons);
-            zmk_endpoints_send_report(ZMK_ENDPOINT_BLE);
-        }
-    } else if (req->type == 2) { // CONSUMER
-        if (len >= 2) {
-            uint16_t usage = (report_data[1] << 8) | report_data[0];
-            zmk_hid_consumer_report_set(usage);
-            zmk_endpoints_send_report(ZMK_ENDPOINT_BLE);
-            // clear it immediately
-            zmk_hid_consumer_report_set(0);
-            zmk_endpoints_send_report(ZMK_ENDPOINT_BLE);
+        uint8_t tmp[64];
+        int n = uart_fifo_read(dev, tmp, sizeof(tmp));
+        for (int i = 0; i < n; i++) {
+            size_t next = (ring_head + 1) % RING_SIZE;
+            if (next != ring_tail) {
+                ring_buf[ring_head] = tmp[i];
+                ring_head = next;
+            }
         }
     }
-
-    return true;
 }
 
-static int handle_inject_report(const pb_msgdesc_t *req_desc, pb_istream_t *req_stream,
-                                const pb_msgdesc_t *resp_desc, pb_ostream_t *resp_stream) {
-    relaykeys_rpc_InjectReportRequest req = {0};
-    req.data.funcs.decode = decode_data_callback;
-    req.data.arg = &req;
-
-    if (!pb_decode(req_stream, relaykeys_rpc_InjectReportRequest_fields, &req)) {
-        return -EINVAL;
+static int read_varint(const uint8_t *buf, size_t len, uint32_t *val) {
+    *val = 0;
+    int i = 0;
+    while (i < 5 && (size_t)i < len) {
+        *val |= (uint32_t)(buf[i] & 0x7F) << (7 * i);
+        if (!(buf[i] & 0x80)) {
+            return i + 1;
+        }
+        i++;
     }
-    return 0;
+    return -1;
 }
 
-static bool encode_slot_bonded_callback(pb_ostream_t *stream, const pb_field_t *field, void *const *arg)
-{
-    // ZMK supports up to ZMK_BLE_PROFILE_COUNT (usually 5)
-    for (int i = 0; i < ZMK_BLE_PROFILE_COUNT; i++) {
-        bool bonded = zmk_ble_active_profile_is_connected(); // Actually we need to check specific profile bonding if possible
-        // For simplicity we will return current active connection status for all slots or true if bonded
-        // Let's check if the slot has a bonded device.
-        bool has_bond = zmk_ble_profile_is_open(i); // This API might not be exact. We'll assume true if not open (has bond)
-        has_bond = !has_bond;
-        if (!pb_encode_tag_for_field(stream, field))
-            return false;
-        if (!pb_encode_varint(stream, has_bond))
-            return false;
+static bool decode_report(const uint8_t *data, size_t len, int32_t *type,
+                          uint8_t *payload, size_t *payload_len) {
+    size_t pos = 0;
+    *type = 0;
+    *payload_len = 0;
+
+    while (pos < len) {
+        uint32_t tag;
+        int n = read_varint(data + pos, len - pos, &tag);
+        if (n <= 0) return false;
+        pos += n;
+        int field = tag >> 3;
+        int wt = tag & 7;
+
+        if (field == 1 && wt == 0) {
+            uint32_t v;
+            n = read_varint(data + pos, len - pos, &v);
+            if (n <= 0) return false;
+            *type = (int32_t)v;
+            pos += n;
+        } else if (field == 2 && wt == 2) {
+            uint32_t dlen;
+            n = read_varint(data + pos, len - pos, &dlen);
+            if (n <= 0) return false;
+            pos += n;
+            if (pos + dlen > len || dlen > 16) return false;
+            memcpy(payload, data + pos, dlen);
+            *payload_len = dlen;
+            pos += dlen;
+        } else {
+            if (wt == 0) {
+                uint32_t v;
+                n = read_varint(data + pos, len - pos, &v);
+                if (n <= 0) return false;
+                pos += n;
+            } else if (wt == 2) {
+                uint32_t l;
+                n = read_varint(data + pos, len - pos, &l);
+                if (n <= 0) return false;
+                pos += n + l;
+            } else {
+                return false;
+            }
+        }
     }
     return true;
 }
 
-static int handle_admin_command(const pb_msgdesc_t *req_desc, pb_istream_t *req_stream,
-                                const pb_msgdesc_t *resp_desc, pb_ostream_t *resp_stream) {
-    relaykeys_rpc_AdminCommandRequest req = {0};
-    if (!pb_decode(req_stream, relaykeys_rpc_AdminCommandRequest_fields, &req)) {
-        return -EINVAL;
-    }
+static bool decode_admin(const uint8_t *data, size_t len, int32_t *cmd, int32_t *slot) {
+    size_t pos = 0;
+    *cmd = 0;
+    *slot = 0;
 
-    relaykeys_rpc_AdminCommandResponse resp = {0};
-    resp.success = true;
+    while (pos < len) {
+        uint32_t tag;
+        int n = read_varint(data + pos, len - pos, &tag);
+        if (n <= 0) return false;
+        pos += n;
+        int field = tag >> 3;
+        int wt = tag & 7;
 
-    if (req.command == 0) { // PAIR
-        zmk_ble_clear_bonds(); // Just mimicking BT_CLR for current profile
-        zmk_ble_adv_start();
-    } else if (req.command == 1) { // SWITCH_SLOT
-        if (req.slot >= 0 && req.slot < ZMK_BLE_PROFILE_COUNT) {
-            zmk_ble_prof_select(req.slot);
+        if (wt == 0) {
+            uint32_t v;
+            n = read_varint(data + pos, len - pos, &v);
+            if (n <= 0) return false;
+            if (field == 1) *cmd = (int32_t)v;
+            else if (field == 2) *slot = (int32_t)v;
+            pos += n;
+        } else if (wt == 2) {
+            uint32_t l;
+            n = read_varint(data + pos, len - pos, &l);
+            if (n <= 0) return false;
+            pos += n + l;
         }
-    } else if (req.command == 2) { // GET_STATUS
-        resp.active_slot = zmk_ble_active_profile_index();
-        resp.slot_bonded.funcs.encode = encode_slot_bonded_callback;
-    } else if (req.command == 3) { // RESET
+    }
+    return true;
+}
+
+static size_t encode_varint(uint8_t *buf, uint32_t val) {
+    size_t i = 0;
+    while (val >= 0x80) {
+        buf[i++] = (val & 0x7F) | 0x80;
+        val >>= 7;
+    }
+    buf[i++] = val & 0x7F;
+    return i;
+}
+
+static size_t encode_admin_response(bool success, int32_t active_slot, uint8_t *buf, size_t max) {
+    size_t pos = 0;
+    buf[pos++] = 0x08;
+    buf[pos++] = success ? 0x01 : 0x00;
+    if (active_slot >= 0) {
+        buf[pos++] = 0x18;
+        pos += encode_varint(buf + pos, (uint32_t)active_slot);
+    }
+    return pos;
+}
+
+static void send_framed(const uint8_t *data, size_t len) {
+    k_mutex_lock(&tx_mutex, K_FOREVER);
+    uart_poll_out(uart_dev, SOF_BYTE);
+    for (size_t i = 0; i < len; i++) {
+        if (data[i] == SOF_BYTE || data[i] == ESC_BYTE || data[i] == EOF_BYTE) {
+            uart_poll_out(uart_dev, ESC_BYTE);
+        }
+        uart_poll_out(uart_dev, data[i]);
+    }
+    uart_poll_out(uart_dev, EOF_BYTE);
+    k_mutex_unlock(&tx_mutex);
+}
+
+static void handle_inject_report(int32_t type, const uint8_t *data, size_t data_len) {
+    if (type == 0) {
+        struct zmk_hid_keyboard_report *rpt = zmk_hid_get_keyboard_report();
+        if (data_len > 0) {
+            rpt->body.modifiers = data[0];
+        }
+        for (int i = 0; i < CONFIG_ZMK_HID_KEYBOARD_REPORT_SIZE; i++) {
+            rpt->body.keys[i] = ((size_t)(i + 2) < data_len) ? data[i + 2] : 0;
+        }
+        zmk_endpoint_send_report(HID_USAGE_KEY);
+    } else if (type == 1) {
+#if IS_ENABLED(CONFIG_ZMK_POINTING)
+        struct zmk_hid_mouse_report *rpt = zmk_hid_get_mouse_report();
+        if (data_len >= 1) rpt->body.buttons = data[0];
+        rpt->body.d_x = (data_len >= 3) ? (int16_t)(int8_t)data[1] : 0;
+        rpt->body.d_y = (data_len >= 3) ? (int16_t)(int8_t)data[2] : 0;
+        rpt->body.d_scroll_y = (data_len >= 5) ? (int16_t)(int8_t)data[3] : 0;
+        rpt->body.d_scroll_x = (data_len >= 5) ? (int16_t)(int8_t)data[4] : 0;
+        zmk_endpoint_send_mouse_report();
+#endif
+    } else if (type == 2) {
+        struct zmk_hid_consumer_report *rpt = zmk_hid_get_consumer_report();
+        if (data_len >= 2) {
+            uint16_t usage = data[0] | ((uint16_t)data[1] << 8);
+            rpt->body.keys[0] = usage;
+            for (int i = 1; i < CONFIG_ZMK_HID_CONSUMER_REPORT_SIZE; i++) {
+                rpt->body.keys[i] = 0;
+            }
+        }
+        zmk_endpoint_send_report(HID_USAGE_CONSUMER);
+    }
+}
+
+static void handle_admin_command(int32_t cmd, int32_t slot) {
+    uint8_t resp[32];
+    size_t resp_len;
+
+    switch (cmd) {
+    case 0:
+        zmk_ble_clear_bonds();
+        break;
+    case 1:
+        if (slot >= 0 && slot < 5) {
+            zmk_ble_prof_select((uint8_t)slot);
+        }
+        break;
+    case 2:
+        break;
+    case 3:
+        resp_len = encode_admin_response(true, -1, resp, sizeof(resp));
+        send_framed(resp, resp_len);
+        k_sleep(K_MSEC(100));
         sys_reboot(SYS_REBOOT_WARM);
-    } else if (req.command == 4) { // CLEAR_SLOT
-        if (req.slot >= 0 && req.slot < ZMK_BLE_PROFILE_COUNT) {
+        return;
+    case 4:
+        if (slot >= 0 && slot < 5) {
             int current = zmk_ble_active_profile_index();
-            zmk_ble_prof_select(req.slot);
+            zmk_ble_prof_select((uint8_t)slot);
             zmk_ble_clear_bonds();
-            zmk_ble_prof_select(current);
+            zmk_ble_prof_select((uint8_t)current);
         }
+        break;
     }
 
-    if (!pb_encode(resp_stream, relaykeys_rpc_AdminCommandResponse_fields, &resp)) {
-        return -EINVAL;
-    }
-
-    return 0;
+    int32_t active = zmk_ble_active_profile_index();
+    resp_len = encode_admin_response(true, active, resp, sizeof(resp));
+    send_framed(resp, resp_len);
 }
 
-ZMK_RPC_SUBSYSTEM(relaykeys_inject,
-    ZMK_RPC_HANDLER(0, handle_inject_report),
-    ZMK_RPC_HANDLER(1, handle_admin_command)
-);
+static void process_frame(const uint8_t *data, size_t len) {
+    if (len < 2) return;
+
+    uint32_t tag;
+    int n = read_varint(data, len, &tag);
+    if (n <= 0) return;
+    int field = tag >> 3;
+    int wt = tag & 7;
+
+    if (field != 1 || wt != 0) return;
+
+    uint32_t type_val;
+    int n2 = read_varint(data + n, len - n, &type_val);
+    if (n2 <= 0) return;
+    size_t pos = (size_t)(n + n2);
+    if (pos >= len) return;
+
+    uint32_t tag2;
+    int n3 = read_varint(data + pos, len - pos, &tag2);
+    if (n3 <= 0) return;
+    int wt2 = tag2 & 7;
+
+    if (wt2 == 2) {
+        int32_t type;
+        uint8_t payload[16];
+        size_t payload_len;
+        if (decode_report(data, len, &type, payload, &payload_len)) {
+            handle_inject_report(type, payload, payload_len);
+        }
+    } else if (wt2 == 0) {
+        int32_t cmd, slot;
+        if (decode_admin(data, len, &cmd, &slot)) {
+            handle_admin_command(cmd, slot);
+        }
+    }
+}
+
+static void relaykeys_thread(void) {
+    uart_dev = DEVICE_DT_GET(DT_CHOSEN(relaykeys_uart));
+    if (!device_is_ready(uart_dev)) {
+        LOG_ERR("RelayKeys UART not ready");
+        return;
+    }
+
+    LOG_INF("RelayKeys UART ready, waiting for USB...");
+    k_sleep(K_SECONDS(3));
+
+    uart_irq_callback_set(uart_dev, uart_isr);
+    uart_irq_rx_enable(uart_dev);
+
+    LOG_INF("RelayKeys listening");
+    in_frame = false;
+    esc_next = false;
+    frame_len = 0;
+
+    for (;;) {
+        if (ring_tail == ring_head) {
+            k_sleep(K_MSEC(1));
+            continue;
+        }
+
+        uint8_t b = ring_buf[ring_tail];
+        ring_tail = (ring_tail + 1) % RING_SIZE;
+
+        if (esc_next) {
+            esc_next = false;
+            if (in_frame && frame_len < MAX_FRAME) {
+                frame_buf[frame_len++] = b;
+            }
+            continue;
+        }
+
+        if (b == SOF_BYTE) {
+            in_frame = true;
+            frame_len = 0;
+        } else if (b == EOF_BYTE && in_frame) {
+            if (frame_len > 0) {
+                process_frame(frame_buf, frame_len);
+            }
+            in_frame = false;
+            frame_len = 0;
+        } else if (b == ESC_BYTE && in_frame) {
+            esc_next = true;
+        } else if (in_frame && frame_len < MAX_FRAME) {
+            frame_buf[frame_len++] = b;
+        }
+    }
+}
+
+K_THREAD_DEFINE(relaykeys_tid, 1024, relaykeys_thread, NULL, NULL, NULL,
+                K_LOWEST_APPLICATION_THREAD_PRIO, 0, 0);

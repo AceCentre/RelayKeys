@@ -311,8 +311,17 @@ func (s *Server) handleDaemon(rawParams json.RawMessage) interface{} {
 	cmd, _ := params[0][0].(string)
 	switch cmd {
 	case "get_mode":
+		if s.cfg.FirmwareType == "zmk" {
+			return "Hardware serial (ZMK)"
+		}
 		return "Hardware serial"
 	case "dongle_status":
+		if s.cfg.FirmwareType == "zmk" {
+			if s.port == nil {
+				return "No connection"
+			}
+			return "Connected"
+		}
 		resp, err := blehid.CheckDongle(s.port)
 		if err != nil {
 			return "No connection"
